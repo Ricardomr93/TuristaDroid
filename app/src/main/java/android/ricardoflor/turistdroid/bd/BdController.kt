@@ -44,8 +44,14 @@ object BdController {
      */
     fun deleteUser(user: User) {
         getDefaultInstance().executeTransaction() {
-            it.where<User>().equalTo("id", user.id).findFirst()?.deleteFromRealm()
+            it.where<User>().equalTo("email", user.email).findFirst()?.deleteFromRealm()
         }
+    }
+
+    fun selectAllUser():MutableList<User>?{
+        return getDefaultInstance().copyFromRealm(
+            getDefaultInstance().where<User>().findAll()
+        )
     }
 
     /**
@@ -55,16 +61,6 @@ object BdController {
     fun selectByEmail(email: String): User? {
         return getDefaultInstance().copyFromRealm(
             getDefaultInstance().where<User>().equalTo("email", email).findFirst()
-        )
-    }
-
-    /**
-     * Select por id
-     * @param id Long
-     */
-    fun selectById(id: Long): User? {
-        return getDefaultInstance().copyFromRealm(
-            getDefaultInstance().where<User>().equalTo("id", id).findFirst()
         )
     }
 
@@ -106,6 +102,15 @@ object BdController {
         getDefaultInstance().executeTransaction() {
             it.where<Site>().equalTo("id", site.id).findFirst()?.deleteFromRealm()
         }
+    }
+
+    /**
+     * Select de todos los sitios
+     */
+    fun selectAllSite():MutableList<Site>?{
+        return getDefaultInstance().copyFromRealm(
+            getDefaultInstance().where<Site>().findAll()
+        )
     }
 
     /**

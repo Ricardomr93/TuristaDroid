@@ -33,6 +33,7 @@
 
     <string name="site_name">Site Name</string>
 
+    <string name="name_incorrecto">"El nombre no tiene el formato correcto"</string>
     <string name="email_incorrecto">"El email no tiene el formato correcto"</string>
     <string name="pwd_incorrecto">"La contraseña no tiene el formato correcto"</string>
 

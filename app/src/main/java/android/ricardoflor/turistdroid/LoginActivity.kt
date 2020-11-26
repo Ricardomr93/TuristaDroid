@@ -1,5 +1,6 @@
 package android.ricardoflor.turistdroid
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
@@ -16,12 +17,11 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-
-
-
     }
 
-    //Funcion onClick del botón Login
+    /**
+     * Funcion onClick del botón Login
+     */
     fun entrar(view: View){
 
         //Condicion que comprueba el correo
@@ -33,9 +33,16 @@ class LoginActivity : AppCompatActivity() {
             editTextLoginPassword.error = resources.getString(R.string.pwd_incorrecto)
         }
 
+//        val intent = Intent(this, MainActivity::class.java).apply {
+//        }
+//        intent.putExtra("Email", user.email)
+//        startActivity(intent)
+
     }
 
-    // Metodo para validar el EMAIL
+    /**
+     * Metodo para validar el EMAIL
+      */
     private fun isMailValid(mail: String): Boolean {
         return if (mail.contains('@')) {
             Patterns.EMAIL_ADDRESS.matcher(mail).matches()
@@ -44,7 +51,9 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // Metodo para validar la PASSWORD
+    /**
+     * Metodo para validar la PASSWORD
+     */
     private fun isPasswordValid(password: String): Boolean {
         return password.length > 5
     }

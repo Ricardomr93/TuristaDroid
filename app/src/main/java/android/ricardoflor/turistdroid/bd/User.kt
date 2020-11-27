@@ -19,7 +19,6 @@ import io.realm.annotations.Required
  */
 open class User(
 
-    var id: Long = 0,
     var name: String = "",
     var nameUser: String = "",
     @PrimaryKey
@@ -31,8 +30,12 @@ open class User(
     var facebook: String = "",
     var places: RealmList<Site> = RealmList()// relacion MxM
 ) : RealmObject() {
+    /**
+     * Metodo sobrescrito para escribir en pantalla un User
+     */
     override fun toString(): String {
-        return "Usuario(id=$id, name='$name', nameUser='$nameUser', password='$password', iamage='$image', email='$email', twitter='$twitter', instagram='$instagram', facebook='$facebook')"
+
+        return "Usuario(name='$name', nameUser='$nameUser', password='$password', iamage='$image', email='$email', twitter='$twitter', instagram='$instagram', facebook='$facebook', places$places)"
     }
 }
 

@@ -1,11 +1,11 @@
-package android.ricardoflor.turistdroid
+package android.ricardoflor.turistdroid.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.ricardoflor.turistdroid.R
 import android.util.Patterns
 import android.view.View
-import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_singin.*
 
 class SinginActivity : AppCompatActivity() {

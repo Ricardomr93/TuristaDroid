@@ -1,7 +1,8 @@
-package android.ricardoflor.turistdroid
+package android.ricardoflor.turistdroid.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.ricardoflor.turistdroid.R
 import android.util.Patterns
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity

@@ -41,6 +41,17 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
+     * Funcion onClick del botón Singin
+     */
+    fun registrarse(view: View){
+
+        val intent = Intent(this, SinginActivity::class.java).apply {
+        }
+        startActivity(intent)
+
+    }
+
+    /**
      * Metodo para validar el EMAIL
       */
     private fun isMailValid(mail: String): Boolean {

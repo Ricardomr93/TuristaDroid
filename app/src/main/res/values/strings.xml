@@ -38,5 +38,5 @@
     <string name="pwd_incorrecto">"The password is not in the correct format"</string>
     <string name="isEmpty">The text is empty.</string>
     <string name="isAlreadyExist">The email is already exists</string>
-
+    <string name="userNotCorrect">The email or password isn\'t correct</string>
 </resources>

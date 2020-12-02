@@ -113,7 +113,6 @@ class SinginActivity : AppCompatActivity() {
             putString("EMAIL", email)
             putString("NAME", name)
             putString("NAMEUSER", nameuser)
-            //putString("IMAGEN", ima?.let { Utilities.bitmapToBase64(it) })
             putString("PASSWORD", pass)
         }
         // llama a la clase padre para salvar los datos

@@ -12,60 +12,60 @@
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
             android:ems="10"
-            android:id="@+id/editTextSinginUserName"
+            android:id="@+id/txtUserName"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp" android:hint="@string/username"
-            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/editTextSinginName"
-            android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/editTextSinginEmail"/>
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/txtName"
+            android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/txtEmail"/>
     <ImageButton
             android:layout_width="224dp"
-            android:layout_height="196dp" tools:srcCompat="@tools:sample/avatars" android:id="@+id/imageButtonSinginFoto"
+            android:layout_height="196dp" tools:srcCompat="@tools:sample/avatars" android:id="@+id/imgBtnPhoto"
             app:layout_constraintTop_toTopOf="parent"
             android:layout_marginTop="80dp" app:layout_constraintStart_toStartOf="parent"
             android:layout_marginStart="129dp" android:layout_marginEnd="130dp"
             app:layout_constraintEnd_toEndOf="parent" android:layout_marginBottom="24dp"
-            app:layout_constraintBottom_toTopOf="@+id/editTextSinginName" android:scaleType="fitCenter"/>
+            app:layout_constraintBottom_toTopOf="@+id/txtName" android:scaleType="fitCenter"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
             android:ems="10"
-            android:id="@+id/editTextSinginName"
+            android:id="@+id/txtName"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="24dp" app:layout_constraintTop_toBottomOf="@+id/imageButtonSinginFoto"
+            android:layout_marginTop="24dp" app:layout_constraintTop_toBottomOf="@+id/imgBtnPhoto"
             app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp" android:hint="@string/name" android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/editTextSinginUserName"/>
+            app:layout_constraintBottom_toTopOf="@+id/txtUserName"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
             android:ems="10"
-            android:id="@+id/editTextSinginEmail"
+            android:id="@+id/txtEmail"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/editTextSinginUserName"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/txtUserName"
             app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp" android:hint="@string/email" android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/editTextSinginPassword"/>
+            app:layout_constraintBottom_toTopOf="@+id/txtPass"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
             android:ems="10"
-            android:id="@+id/editTextSinginPassword"
+            android:id="@+id/txtPass"
             android:layout_marginEnd="32dp" app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="32dp"
-            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/editTextSinginEmail"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/txtEmail"
             android:hint="@string/password" android:layout_marginBottom="24dp"
-            app:layout_constraintBottom_toTopOf="@+id/buttonSinginSingin"/>
+            app:layout_constraintBottom_toTopOf="@+id/btnSing"/>
     <Button
             android:text="@string/singin"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:id="@+id/buttonSinginSingin"
+            android:layout_height="wrap_content" android:id="@+id/btnSing"
             app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="24dp"
-            app:layout_constraintTop_toBottomOf="@+id/editTextSinginPassword"
+            app:layout_constraintTop_toBottomOf="@+id/txtPass"
             app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="156dp"
             android:onClick="singin" android:textColor="@color/white"
             android:background="@drawable/buttom_round"/>

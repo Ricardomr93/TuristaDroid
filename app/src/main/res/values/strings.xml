@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TuristDroid</string>
+    <string name="app_name">Turist Droid</string>
 
     <string name="email">Email</string>
     <string name="name">Name</string>
@@ -33,8 +33,8 @@
 
     <string name="site_name">Site Name</string>
 
-    <string name="name_incorrecto">"El nombre no tiene el formato correcto"</string>
-    <string name="email_incorrecto">"El email no tiene el formato correcto"</string>
-    <string name="pwd_incorrecto">"La contraseña no tiene el formato correcto"</string>
+    <string name="name_incorrecto">"The name is not in the correct format"</string>
+    <string name="email_incorrecto">"The email is not in the correct format"</string>
+    <string name="pwd_incorrecto">"The password is not in the correct format"</string>
 
 </resources>

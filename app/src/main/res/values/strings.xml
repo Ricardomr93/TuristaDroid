@@ -1,3 +1,42 @@
 <resources>
-    <string name="app_name">TuristDroid</string>
+    <string name="app_name">Turist Droid</string>
+
+    <string name="email">Email</string>
+    <string name="name">Name</string>
+    <string name="username">User Name</string>
+    <string name="password">Password</string>
+
+    <string name="login">Login</string>
+    <string name="singin">Sing in</string>
+
+    <string name="my_sites">My Sites</string>
+    <string name="next_to_me">Next To Me</string>
+    <string name="my_profile">My Profile</string>
+    <string name="exit">Exit</string>
+
+    <string name="menu_import">Import</string>
+    <string name="menu_export">Export</string>
+
+    <string name="order">Order</string>
+    <string name="order_by_name">Order by name</string>
+    <string name="order_by_date">Order by date</string>
+    <string name="order_by_ratings">Order by ratings</string>
+
+    <string name="date">Date</string>
+    <string name="ratings">Ratings</string>
+
+    <string name="update">Update</string>
+
+    <string name="add">Add</string>
+    <string name="add_location">Add Location</string>
+    <string name="or_import_qr">Or Import QR</string>
+
+    <string name="site_name">Site Name</string>
+
+    <string name="name_incorrecto">"The name is not in the correct format"</string>
+    <string name="email_incorrecto">"The email is not in the correct format"</string>
+    <string name="pwd_incorrecto">"The password is not in the correct format"</string>
+    <string name="isEmpty">The text is empty.</string>
+    <string name="isAlreadyExist">The email is already exists</string>
+
 </resources>

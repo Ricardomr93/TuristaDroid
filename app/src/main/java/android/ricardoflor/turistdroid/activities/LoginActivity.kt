@@ -43,7 +43,7 @@ class LoginActivity : AppCompatActivity() {
                 //val session = Session(email)
                 //BdController.insertSession(session)
             } else {
-                editTextLoginMail.error = resources.getString(R.string.userNotCorrect)
+                editTextLoginMail.error = getString(R.string.userNotCorrect)
                 Log.i("user", "usuario erroneo")
             }
         }

@@ -7,66 +7,80 @@
         android:layout_height="match_parent"
         tools:context=".activities.SinginActivity">
 
-    <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:ems="10"
-            android:id="@+id/txtUserName"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp" android:hint="@string/username"
-            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/txtName"
-            android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/txtEmail"/>
     <ImageButton
-            android:layout_width="224dp"
-            android:layout_height="196dp" tools:srcCompat="@tools:sample/avatars" android:id="@+id/imgBtnPhoto"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="80dp" app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="129dp" android:layout_marginEnd="130dp"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginBottom="24dp"
-            app:layout_constraintBottom_toTopOf="@+id/txtName" android:scaleType="fitCenter"/>
-    <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:ems="10"
-            android:id="@+id/txtName"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="24dp" app:layout_constraintTop_toBottomOf="@+id/imgBtnPhoto"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp" android:hint="@string/name" android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/txtUserName"/>
-    <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textEmailAddress"
-            android:ems="10"
-            android:id="@+id/txtEmail"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/txtUserName"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp" android:hint="@string/email" android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/txtPass"/>
-    <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:ems="10"
-            android:id="@+id/txtPass"
-            android:layout_marginEnd="32dp" app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="32dp"
-            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/txtEmail"
-            android:hint="@string/password" android:layout_marginBottom="24dp"
-            app:layout_constraintBottom_toTopOf="@+id/btnSing"/>
+            android:layout_width="167dp"
+            android:layout_height="171dp" tools:srcCompat="@tools:sample/avatars" android:id="@+id/imgBtnPhoto"
+            android:scaleType="fitCenter"
+            android:layout_marginTop="42dp" android:layout_marginBottom="32dp" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/textInputLayout2" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
     <Button
             android:text="@string/singin"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content" android:id="@+id/btnSing"
-            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="24dp"
-            app:layout_constraintTop_toBottomOf="@+id/txtPass"
-            app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="156dp"
-            android:onClick="singin" android:textColor="@color/white"
-            android:background="@drawable/buttom_round"/>
+            android:textColor="@color/white"
+            android:background="@drawable/buttom_round"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout4"
+            android:layout_marginBottom="67dp" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="32dp" android:layout_marginStart="32dp"/>
+    <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayout2"
+            app:layout_constraintTop_toBottomOf="@+id/imgBtnPhoto" android:layout_marginBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/textInputLayout5"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginEnd="32dp"
+            android:layout_marginStart="32dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:hint="@string/name" android:id="@+id/txtName"/>
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayout5"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout2" android:layout_marginBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/textInputLayout3"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginEnd="32dp"
+            android:layout_marginStart="32dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/username" android:id="@+id/txtUserName"/>
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayout3"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout5" android:layout_marginBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/textInputLayout4"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp" android:layout_marginEnd="32dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/email" android:id="@+id/txtEmail"/>
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayout4"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout3" android:layout_marginBottom="32dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/btnSing"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginEnd="32dp"
+            app:passwordToggleEnabled="true"
+            android:layout_marginStart="32dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/password" android:id="@+id/txtPass"
+                android:inputType="textPassword"/>
+    </com.google.android.material.textfield.TextInputLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

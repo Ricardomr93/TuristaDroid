@@ -19,11 +19,11 @@ class SplashActivity : AppCompatActivity() {
 
         //animaciones
         val scale = AnimationUtils.loadAnimation(this, R.anim.scale)
-        val des_down = AnimationUtils.loadAnimation(this, R.anim.des_down)
+        val desdown = AnimationUtils.loadAnimation(this, R.anim.des_down)
         val alpha = AnimationUtils.loadAnimation(this, R.anim.aplha)
 
         //le damos la animacion
-        pointlogo.animation = des_down
+        pointlogo.animation = desdown
         txtlogo.animation = scale
         buildlogo.animation = alpha
 

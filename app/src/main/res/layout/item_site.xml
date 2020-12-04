@@ -28,18 +28,18 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/imgSite"
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginBottom="10dp"
-        android:contentDescription="Icono"
-        app:layout_constraintBottom_toTopOf="@+id/txtSite2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtSiteName"
-        app:srcCompat="@drawable/ic_ricflor_mysites" />
+            android:id="@+id/imgSite"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginBottom="10dp"
+            android:contentDescription="Icono"
+            app:layout_constraintBottom_toTopOf="@+id/txtSite2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtSiteName"
+            app:srcCompat="@drawable/ic_ricflor_add_photo"/>
 
     <TextView
         android:id="@+id/txtSite"

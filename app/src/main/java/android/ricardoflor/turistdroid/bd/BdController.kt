@@ -28,129 +28,6 @@ object BdController {
         setDefaultConfiguration(config)
     }
 
-    //CONTROLES PARA USER
-    /**
-     * Insert Usuario
-     * @param user User
-     */
-    fun insertUser(user: User) {
-        getDefaultInstance().executeTransaction {
-            it.copyToRealm(user)
-        }
-    }
-
-    /**
-     * Delete Usuario
-     * @param user User
-     */
-    fun deleteUser(user: User) {
-        getDefaultInstance().executeTransaction() {
-            it.where<User>().equalTo("email", user.email).findFirst()?.deleteFromRealm()
-        }
-    }
-
-    fun selectAllUser():MutableList<User>?{
-        return getDefaultInstance().copyFromRealm(
-            getDefaultInstance().where<User>().findAll()
-        )
-    }
-
-    /**
-     * Hace una select por  email
-     * @param email
-     */
-    fun selectByEmail(email: String): User? {
-        return getDefaultInstance().copyFromRealm(
-            getDefaultInstance().where<User>().equalTo("email", email).findFirst()
-        )
-    }
-
-    /**
-     * Update de User
-     * @param user User
-     */
-    fun updateUser(user: User) {
-        getDefaultInstance().executeTransaction {
-            it.copyToRealmOrUpdate(user)
-        }
-    }
-
-    //CONTROLES PARA SITE
-    /**
-     * Insert Site
-     * @param site Site
-     */
-    fun insertSite(site: Site) {
-        getDefaultInstance().executeTransaction {
-            it.copyToRealm(site)
-        }
-    }
-
-    /**
-     * Delete Site
-     * @param site Site
-     */
-    fun deleteSite(site: Site) {
-        getDefaultInstance().executeTransaction() {
-            it.where<Site>().equalTo("id", site.id).findFirst()?.deleteFromRealm()
-        }
-    }
-
-    /**
-     * Select de todos los sitios
-     */
-    fun selectAllSite():MutableList<Site>?{
-        return getDefaultInstance().copyFromRealm(
-            getDefaultInstance().where<Site>().findAll()
-        )
-    }
-
-    /**
-     * Ordena segun el Rating
-     */
-    fun orderByRating() {
-        getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("rating").findAll()
-        }
-    }
-
-    /**
-     * Ordena segun la fecha
-     */
-    fun orderByDate() {
-        getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("Date").findAll()
-        }
-    }
-
-    /**
-     * Ordena segun nombre
-     */
-    fun orderByName() {
-        getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("name").findAll()
-        }
-    }
-
-    //CONTROLES DE LA SESSION
-    /**
-     * Crea una sesion con el email del user
-     */
-    fun insertSession(session: Session){
-        getDefaultInstance().executeTransaction {
-            it.copyToRealm(session)
-        }
-    }
-
-    /**
-     * Cierra la sesion y borra el email del user
-     */
-    fun deleteSession(session : Session){
-        getDefaultInstance().executeTransaction {
-            it.where<Session>().equalTo("useremail", session.useremail).findFirst()?.deleteFromRealm()
-        }
-    }
-
     //CONTROLES DE LA APP
     /**
      * Elimina todos
@@ -164,7 +41,7 @@ object BdController {
     /**
      * Cierra la base de datos
      */
-    fun close(){
+    fun close() {
         Realm.getDefaultInstance().close()
     }
 }

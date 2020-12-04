@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.User
+import android.ricardoflor.turistdroid.bd.UserController
 import android.ricardoflor.turistdroid.utils.Encryptor
 import android.util.Log
 import android.util.Patterns
@@ -57,7 +58,7 @@ class SinginActivity : AppCompatActivity() {
         user.password = Encryptor.encrypt(txtPass.text.toString())!!
         user.nameUser = txtUserName.text.toString()
         user.email = txtEmail.text.toString()
-        BdController.insertUser(user)
+        UserController.insertUser(user)
         Log.i("user", user.toString())
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)

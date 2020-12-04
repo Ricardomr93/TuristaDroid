@@ -46,4 +46,7 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
+    <string name="isEmpty">The text is empty.</string>
+    <string name="isAlreadyExist">The email is already exists</string>
+    <string name="userNotCorrect">The email or password isn\'t correct</string>
 </resources>

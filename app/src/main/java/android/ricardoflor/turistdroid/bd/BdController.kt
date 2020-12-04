@@ -3,6 +3,7 @@ package android.ricardoflor.turistdroid.bd
 import io.realm.Realm.*
 import io.realm.kotlin.where;
 import android.content.Context;
+import io.realm.Realm
 import io.realm.RealmConfiguration
 
 
@@ -27,7 +28,7 @@ object BdController {
         setDefaultConfiguration(config)
     }
 
-    //User**********
+    //CONTROLES PARA USER
     /**
      * Insert Usuario
      * @param user User
@@ -74,16 +75,7 @@ object BdController {
         }
     }
 
-    /**
-     * Elimina todos
-     */
-    fun removeAll() {
-        getDefaultInstance().executeTransaction {
-            it.deleteAll();
-        }
-    }
-
-    //Site***********
+    //CONTROLES PARA SITE
     /**
      * Insert Site
      * @param site Site
@@ -139,5 +131,40 @@ object BdController {
             it.where<Site>().sort("name").findAll()
         }
     }
-    //fun selectById
+
+    //CONTROLES DE LA SESSION
+    /**
+     * Crea una sesion con el email del user
+     */
+    fun insertSession(session: Session){
+        getDefaultInstance().executeTransaction {
+            it.copyToRealm(session)
+        }
+    }
+
+    /**
+     * Cierra la sesion y borra el email del user
+     */
+    fun deleteSession(session : Session){
+        getDefaultInstance().executeTransaction {
+            it.where<Session>().equalTo("useremail", session.useremail).findFirst()?.deleteFromRealm()
+        }
+    }
+
+    //CONTROLES DE LA APP
+    /**
+     * Elimina todos
+     */
+    fun removeAll() {
+        getDefaultInstance().executeTransaction {
+            it.deleteAll();
+        }
+    }
+
+    /**
+     * Cierra la base de datos
+     */
+    fun close(){
+        Realm.getDefaultInstance().close()
+    }
 }

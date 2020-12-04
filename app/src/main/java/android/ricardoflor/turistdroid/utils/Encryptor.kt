@@ -1,5 +1,6 @@
 package android.ricardoflor.turistdroid.utils
 
+import java.lang.Exception
 import java.security.MessageDigest
 import javax.crypto.spec.SecretKeySpec
 import kotlin.experimental.and
@@ -12,14 +13,16 @@ object Encryptor {
     /**
      *
      */
-    fun encrypt(pwd: String): String?{
+    fun encrypt(pwd: String): String? {
         var md: MessageDigest? = null
         var bytes: ByteArray? = null
-
-        md = MessageDigest.getInstance("SHA-256")
-        bytes = md.digest(pwd.toByteArray(charset("UTF-8")))
-
+        try {
+            md = MessageDigest.getInstance("SHA-256")
+            bytes = md.digest(pwd.toByteArray(charset("UTF-8")))
+        }catch (ex: Exception){
+        }
         return convertToHex(bytes)
+
 
     }
 

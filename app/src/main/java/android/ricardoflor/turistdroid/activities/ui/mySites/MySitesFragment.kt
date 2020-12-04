@@ -21,7 +21,7 @@ class MySitesFragment : Fragment() {
     ): View? {
         mySitesViewModel =
             ViewModelProviders.of(this).get(MySitesViewModel::class.java)
-        val root = inflater.inflate(R.layout.fragment_my_sites, container, false)
+        val root = null
 //        val textView: TextView = root.findViewById(R.id.text_home)
 //        mySitesViewModel.text.observe(viewLifecycleOwner, Observer {
 //            textView.text = it

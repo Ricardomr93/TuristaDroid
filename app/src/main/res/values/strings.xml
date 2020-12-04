@@ -22,8 +22,9 @@
     <string name="order_by_date">Order by date</string>
     <string name="order_by_ratings">Order by ratings</string>
 
-    <string name="date">Date</string>
-    <string name="ratings">Ratings</string>
+    <string name="site">Site:</string>
+    <string name="date">Date:</string>
+    <string name="ratings">Ratings:</string>
 
     <string name="update">Update</string>
 
@@ -36,7 +37,16 @@
     <string name="name_incorrecto">"The name is not in the correct format"</string>
     <string name="email_incorrecto">"The email is not in the correct format"</string>
     <string name="pwd_incorrecto">"The password is not in the correct format"</string>
+
+    <string name="title_activity_navigation">NavigationActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
     <string name="isEmpty">The text is empty.</string>
     <string name="isAlreadyExist">The email is already exists</string>
-
+    <string name="userNotCorrect">The email or password isn\'t correct</string>
 </resources>

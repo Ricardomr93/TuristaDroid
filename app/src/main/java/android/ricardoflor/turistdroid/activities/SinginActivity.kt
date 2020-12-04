@@ -26,13 +26,15 @@ class SinginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_singin)
+        singin()
     }
 
     /**
      * Metodo para registrar un usuario
      * Una vez registrado, vuelve al LoginActivity
      */
-    fun singin(view: View) {
+    fun singin() {
+        btnSing.setOnClickListener {
             if (anyEmpty()) {
                 try {
                     //Comprobar el campo password
@@ -47,6 +49,7 @@ class SinginActivity : AppCompatActivity() {
                 }
 
             }
+        }
     }
 
     private fun addUser() {
@@ -56,7 +59,7 @@ class SinginActivity : AppCompatActivity() {
         user.email = txtEmail.text.toString()
         BdController.insertUser(user)
         Log.i("user", user.toString())
-        val intent = Intent(this,LoginActivity::class.java)
+        val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
     }
 

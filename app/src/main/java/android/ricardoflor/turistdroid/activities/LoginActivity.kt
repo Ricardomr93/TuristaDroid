@@ -37,11 +37,11 @@ class LoginActivity : AppCompatActivity() {
             pass = Encryptor.encrypt(editTextLoginPassword.text.toString())!!
             if (userExists()) {
                 Log.i("user", "usuario logeado")
-                //Toast provisional para observar el correcto login
-                Toast.makeText(this,"Usuario logeado",Toast.LENGTH_SHORT).show()
                 //crea la session con el email del usuario logeado
                 //val session = Session(email)
                 //BdController.insertSession(session)
+                val intent = Intent(this,NavigationActivity::class.java)
+                startActivity(intent)
             } else {
                 editTextLoginMail.error = getString(R.string.userNotCorrect)
                 Log.i("user", "usuario erroneo")

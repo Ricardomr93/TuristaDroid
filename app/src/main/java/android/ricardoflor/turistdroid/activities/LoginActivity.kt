@@ -6,6 +6,7 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.Session
 import android.ricardoflor.turistdroid.bd.User
+import android.ricardoflor.turistdroid.bd.UserController
 import android.ricardoflor.turistdroid.utils.Encryptor
 import android.util.Log
 import android.util.Patterns
@@ -39,7 +40,7 @@ class LoginActivity : AppCompatActivity() {
                 Log.i("user", "usuario logeado")
                 //crea la session con el email del usuario logeado
                 //val session = Session(email)
-                //BdController.insertSession(session)
+                //SessionController.insertSession(session)
                 val intent = Intent(this,NavigationActivity::class.java)
                 startActivity(intent)
             } else {
@@ -65,7 +66,7 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun userExists(): Boolean {
         try{
-            user2 = BdController.selectByEmail(email)!!
+            user2 = UserController.selectByEmail(email)!!
         }catch (ex : IllegalArgumentException){
          Log.i("user","usuario no existe en la bd")
         }

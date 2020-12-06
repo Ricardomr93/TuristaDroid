@@ -8,7 +8,7 @@ import kotlin.experimental.and
 /**
  * Objeto Cifrador
  */
-object Encryptor {
+object UtilEncryptor {
 
     /**
      *

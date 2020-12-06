@@ -6,6 +6,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.bd.BdController
+import android.ricardoflor.turistdroid.utils.UtilSession
+import android.util.Log
 import android.view.animation.AnimationUtils
 import kotlinx.android.synthetic.main.activity_splash.*
 
@@ -26,19 +29,19 @@ class SplashActivity : AppCompatActivity() {
         pointlogo.animation = desdown
         txtlogo.animation = scale
         buildlogo.animation = alpha
-
         //cargamos el login con un delay
         Handler(Looper.getMainLooper()).postDelayed({
             run {
+                /*if (UtilSession.comprobarSesion()){
+                    Log.i("util","El usuario ya está logeado")
+                    startActivity(Intent(this,NavigationActivity::class.java))
+                }else{
+                    Log.i("util","El usuario no estaba logeado")
+                    startActivity(Intent(this,LoginActivity::class.java))
+                }*/
                 startActivity(Intent(this,LoginActivity::class.java))
                 finish()
             }
         },TIME_SPLASH)
-        //cargamos el activity
-        //intent = Intent(this,LoginActivity::class.java)
-        //startActivity(intent)
-
-
-
     }
 }

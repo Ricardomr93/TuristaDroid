@@ -13,12 +13,12 @@
             android:icon="@drawable/ic_ricflor_nexttome"
             android:title="@string/next_to_me" />
         <item
-            android:id="@+id/nav_my_profile"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/my_profile" />
-<!--        <item-->
-<!--            android:id="@+id/nav_slideshow"-->
-<!--            android:icon="@drawable/ic_menu_slideshow"-->
-<!--            android:title="@string/exit" />-->
+                android:id="@+id/nav_my_profile"
+                android:icon="@drawable/ic_ricflor_user"
+                android:title="@string/my_profile"/>
+        <item
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/ic_ricflor_exit"
+                android:title="@string/exit"/>
     </group>
 </menu>

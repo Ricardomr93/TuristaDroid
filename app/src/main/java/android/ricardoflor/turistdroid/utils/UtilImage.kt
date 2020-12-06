@@ -25,7 +25,7 @@ object UtilImage {
      */
     fun toBase64(bitmap: Bitmap): String? {
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, stream)
         val byteArray: ByteArray = stream.toByteArray()
         return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }

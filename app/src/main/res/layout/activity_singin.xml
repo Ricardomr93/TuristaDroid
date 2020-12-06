@@ -7,13 +7,13 @@
         android:layout_height="match_parent"
         tools:context=".activities.SinginActivity">
 
-    <ImageButton
-            android:layout_width="167dp"
-            android:layout_height="171dp" tools:srcCompat="@tools:sample/avatars" android:id="@+id/imgBtnPhoto"
+    <ImageView
+            android:layout_width="192dp"
+            android:layout_height="162dp" android:id="@+id/imgBtnPhoto"
             android:scaleType="fitCenter"
             android:layout_marginTop="42dp" android:layout_marginBottom="32dp" app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/textInputLayout2" app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent" app:srcCompat="@drawable/ic_ricflor_add_photo"/>
     <Button
             android:text="@string/singin"
             android:layout_width="0dp"

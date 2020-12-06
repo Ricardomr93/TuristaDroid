@@ -3,9 +3,17 @@ package android.ricardoflor.turistdroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.bd.SessionController
+import android.ricardoflor.turistdroid.bd.User
+import android.ricardoflor.turistdroid.bd.UserController
+import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilSession
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
@@ -17,10 +25,13 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import kotlinx.android.synthetic.main.nav_header_main.*
+import java.io.File
 
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var USER : User
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +56,9 @@ class NavigationActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        //opciones adicionales
+        getInformation()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -59,9 +73,32 @@ class NavigationActivity : AppCompatActivity() {
     }
 
 
-    fun logout(){
+    fun logout() {
 
         UtilSession.deleteSession()
         startActivity(Intent(this, LoginActivity::class.java))
+    }
+
+    private fun getInformation() {
+
+        // actualizamos el perfil con los datos de la sesion
+        val navigationView: NavigationView = findViewById(R.id.nav_view)
+        val headerView: View = navigationView.getHeaderView(0)
+        val navUsername: TextView = headerView.findViewById(R.id.txtNavUser)
+        val navUserEmail: TextView = headerView.findViewById(R.id.txtNavEmail)
+        val navUserImage: ImageView = headerView.findViewById(R.id.imgNavUser)
+
+        //obtenemos el email de la sesion y obtenemos el usuario
+        val session = SessionController.selectSession()!!
+        Log.i("util", session.useremail)
+        USER = UserController.selectByEmail(session.useremail)!!
+        Log.i("util", USER.toString())
+        //cambiamos los valores por los del usuario
+        navUsername.text = USER.nameUser
+        navUserEmail.text = USER.email
+        if (USER.image != ""){
+            Log.i("util","Carga imagen")
+            navUserImage.setImageBitmap(UtilImage.toBitmap(USER.email))
+        }
     }
 }

@@ -50,4 +50,6 @@
     <string name="isAlreadyExist">The email is already exists</string>
     <string name="userNotCorrect">The email or password isn\'t correct</string>
     <string name="Gallery">Select photo from gallery</string>
+    <string name="Photo">Take camera photo</string>
+    <string name="SelectOption">Select optiom</string>
 </resources>

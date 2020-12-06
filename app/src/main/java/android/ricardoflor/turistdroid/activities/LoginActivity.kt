@@ -34,7 +34,8 @@ class LoginActivity : AppCompatActivity() {
             pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
             if (userExists()) {
                 Log.i("realm", "usuario logeado")
-               // UtilSession.createSession(email)
+                UtilSession.deleteSession()//borrado provisional
+                UtilSession.createSession(email)
                 val intent = Intent(this,NavigationActivity::class.java)
                 startActivity(intent)
             } else {

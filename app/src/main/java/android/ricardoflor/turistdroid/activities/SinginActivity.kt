@@ -195,12 +195,12 @@ class SinginActivity : AppCompatActivity() {
      */
     private fun initDialogFoto() {
         val fotoDialogoItems = arrayOf(
-            "Seleccionar fotografía de galería",
-            "Capturar fotografía desde la cámara"
+            getString(R.string.Gallery),
+            getString(R.string.Photo)
         )
         // Creamos el dialog con su builder
         AlertDialog.Builder(this)
-            .setTitle("Seleccionar Acción")
+            .setTitle(getString(R.string.SelectOption))
             .setItems(fotoDialogoItems) { dialog, modo ->
                 when (modo) {
                     0 -> elegirFotoGaleria()
@@ -223,7 +223,8 @@ class SinginActivity : AppCompatActivity() {
 
     //Llamamos al intent de la camara
     private fun tomarFotoCamara() {
-        // Si queremos hacer uso de fotos en aklta calidad
+
+        // Si queremos hacer uso de fotos en alta calidad
         val builder = VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
 

@@ -3,15 +3,11 @@ package android.ricardoflor.turistdroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.BdController
-import android.ricardoflor.turistdroid.bd.Session
 import android.ricardoflor.turistdroid.bd.User
 import android.ricardoflor.turistdroid.bd.UserController
 import android.ricardoflor.turistdroid.utils.Encryptor
+import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
-import android.util.Patterns
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_login.*
 
@@ -26,7 +22,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
         login()
-        registrarse()
+        SingIn()
     }
 
     /**
@@ -37,15 +33,13 @@ class LoginActivity : AppCompatActivity() {
             email = editTextLoginMail.text.toString()
             pass = Encryptor.encrypt(editTextLoginPassword.text.toString())!!
             if (userExists()) {
-                Log.i("user", "usuario logeado")
-                //crea la session con el email del usuario logeado
-                //val session = Session(email)
-                //SessionController.insertSession(session)
+                Log.i("realm", "usuario logeado")
+                UtilSession.createSession(email)
                 val intent = Intent(this,NavigationActivity::class.java)
                 startActivity(intent)
             } else {
                 editTextLoginMail.error = getString(R.string.userNotCorrect)
-                Log.i("user", "usuario erroneo")
+                Log.i("realm", "usuario erroneo")
             }
         }
     }
@@ -53,7 +47,7 @@ class LoginActivity : AppCompatActivity() {
     /**
      * Funcion onClick del botón Singin
      */
-    fun registrarse() {
+    fun SingIn() {
         buttonLoginSingin.setOnClickListener {
             val intent = Intent(this, SinginActivity::class.java).apply {
             }
@@ -68,7 +62,7 @@ class LoginActivity : AppCompatActivity() {
         try{
             user2 = UserController.selectByEmail(email)!!
         }catch (ex : IllegalArgumentException){
-         Log.i("user","usuario no existe en la bd")
+         Log.i("realm","usuario"+user2+"no existe en la bd")
         }
         return pass == user2.password
     }

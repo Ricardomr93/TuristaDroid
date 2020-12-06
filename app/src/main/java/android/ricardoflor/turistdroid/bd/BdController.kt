@@ -3,6 +3,7 @@ package android.ricardoflor.turistdroid.bd
 import io.realm.Realm.*
 import io.realm.kotlin.where;
 import android.content.Context;
+import android.util.Log
 import io.realm.Realm
 import io.realm.RealmConfiguration
 
@@ -35,6 +36,7 @@ object BdController {
     fun removeAll() {
         getDefaultInstance().executeTransaction {
             it.deleteAll();
+            Log.i("util","BD borrada")
         }
     }
 

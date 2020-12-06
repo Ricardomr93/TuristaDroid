@@ -1,4 +1,4 @@
-package android.ricardoflor.turistdroid.bd
+package android.ricardoflor.turistdroid.bd.image
 
 object ImageController {
 }

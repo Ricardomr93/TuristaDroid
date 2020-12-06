@@ -3,12 +3,18 @@ package android.ricardoflor.turistdroid.utils
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
+import android.widget.ImageView
+import androidx.core.graphics.drawable.RoundedBitmapDrawable
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.net.toFile
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -154,4 +160,22 @@ object UtilImage {
         if (imagenUri.toFile().exists())
             imagenUri.toFile().delete()
     }
+
+    /**
+     * Método que redondea la imagen
+     */
+    fun redondearFoto(imagen: ImageView){
+        val originalDrawable: Drawable = imagen.drawable
+        var originalBitmap: Bitmap = (originalDrawable as BitmapDrawable).bitmap
+
+        if (originalBitmap.width > originalBitmap.height){
+            originalBitmap = Bitmap.createBitmap(originalBitmap, 0, 0, originalBitmap.height, originalBitmap.height);
+        }else if (originalBitmap.width < originalBitmap.height) {
+            originalBitmap = Bitmap.createBitmap(originalBitmap, 0, 0, originalBitmap.width, originalBitmap.width);
+        }
+        val roundedDrawable: RoundedBitmapDrawable = RoundedBitmapDrawableFactory.create(Resources.getSystem(), originalBitmap)
+        roundedDrawable.cornerRadius = originalBitmap.width.toFloat()
+        imagen.setImageDrawable(roundedDrawable)
+    }
+
 }

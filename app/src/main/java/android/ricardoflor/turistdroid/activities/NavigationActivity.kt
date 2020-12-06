@@ -25,6 +25,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.nav_header_main.*
 import java.io.File
 
@@ -73,7 +74,7 @@ class NavigationActivity : AppCompatActivity() {
     }
 
 
-    fun logout() {
+    fun logout(navigationView: NavigationView) {
 
         UtilSession.deleteSession()
         startActivity(Intent(this, LoginActivity::class.java))
@@ -98,7 +99,9 @@ class NavigationActivity : AppCompatActivity() {
         navUserEmail.text = USER.email
         if (USER.image != ""){
             Log.i("util","Carga imagen")
-            navUserImage.setImageBitmap(UtilImage.toBitmap(USER.email))
+            navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
+            UtilImage.redondearFoto(navUserImage)
         }
     }
+
 }

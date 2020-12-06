@@ -1,9 +1,9 @@
-package android.ricardoflor.turistdroid.bd
+package android.ricardoflor.turistdroid.bd.user
 
+import android.ricardoflor.turistdroid.bd.site.Site
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
-import io.realm.annotations.Required
 
 /**
  * Clase modelo del usuario

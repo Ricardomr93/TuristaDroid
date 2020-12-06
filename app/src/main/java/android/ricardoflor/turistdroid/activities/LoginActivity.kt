@@ -3,8 +3,8 @@ package android.ricardoflor.turistdroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.User
-import android.ricardoflor.turistdroid.bd.UserController
+import android.ricardoflor.turistdroid.bd.user.User
+import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log

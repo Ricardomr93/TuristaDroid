@@ -3,14 +3,13 @@ package android.ricardoflor.turistdroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.SessionController
-import android.ricardoflor.turistdroid.bd.User
-import android.ricardoflor.turistdroid.bd.UserController
+import android.ricardoflor.turistdroid.bd.session.SessionController
+import android.ricardoflor.turistdroid.bd.user.User
+import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -25,8 +24,6 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import kotlinx.android.synthetic.main.nav_header_main.*
-import java.io.File
 
 class NavigationActivity : AppCompatActivity() {
 
@@ -73,7 +70,7 @@ class NavigationActivity : AppCompatActivity() {
     }
 
 
-    fun logout() {
+    fun logout(navigationView: NavigationView) {
 
         UtilSession.deleteSession()
         startActivity(Intent(this, LoginActivity::class.java))
@@ -98,7 +95,9 @@ class NavigationActivity : AppCompatActivity() {
         navUserEmail.text = USER.email
         if (USER.image != ""){
             Log.i("util","Carga imagen")
-            navUserImage.setImageBitmap(UtilImage.toBitmap(USER.email))
+            navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
+            UtilImage.redondearFoto(navUserImage)
         }
     }
+
 }

@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.User
 import android.ricardoflor.turistdroid.bd.UserController
-import android.ricardoflor.turistdroid.utils.Encryptor
+import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -31,10 +31,10 @@ class LoginActivity : AppCompatActivity() {
     fun login() {
         buttonLoginLogin.setOnClickListener {
             email = editTextLoginMail.text.toString()
-            pass = Encryptor.encrypt(editTextLoginPassword.text.toString())!!
+            pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
             if (userExists()) {
                 Log.i("realm", "usuario logeado")
-                UtilSession.createSession(email)
+               // UtilSession.createSession(email)
                 val intent = Intent(this,NavigationActivity::class.java)
                 startActivity(intent)
             } else {

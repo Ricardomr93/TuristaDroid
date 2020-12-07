@@ -20,9 +20,9 @@ object UserController {
      * Delete Usuario
      * @param user User
      */
-    fun deleteUser(user: User) {
+    fun deleteUser(email : String) {
         Realm.getDefaultInstance().executeTransaction() {
-            it.where<User>().equalTo("email", user.email).findFirst()?.deleteFromRealm()
+            it.where<User>().equalTo("email",email).findFirst()?.deleteFromRealm()
         }
     }
 

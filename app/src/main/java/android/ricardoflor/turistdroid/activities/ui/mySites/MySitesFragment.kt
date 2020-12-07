@@ -20,12 +20,16 @@ class MySitesFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_my_sites, container, false)
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         init()
-        btnAddSiteFloating.setOnClickListener{addSite()}
     }
 
     fun init() {
-        addSite()
+        btnAddSiteFloating.setOnClickListener { addSite() }
     }
 
     private fun addSite() {

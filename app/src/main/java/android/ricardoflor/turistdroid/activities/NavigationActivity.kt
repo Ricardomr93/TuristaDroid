@@ -10,6 +10,7 @@ import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
 import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
@@ -17,6 +18,7 @@ import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -39,7 +41,7 @@ import java.io.File
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var USER: User
+
 
     //LINTERNA
     private lateinit var cameraManager: CameraManager
@@ -165,9 +167,6 @@ class NavigationActivity : AppCompatActivity() {
         val navUserImage: ImageView = headerView.findViewById(R.id.imgNavUser)
 
         //obtenemos el email de la sesion y obtenemos el usuario
-        val session = SessionController.selectSession()!!
-        Log.i("util", session.useremail)
-        USER = UserController.selectByEmail(session.useremail)!!
         Log.i("util", USER.toString())
         //cambiamos los valores por los del usuario
         navUsername.text = USER.nameUser

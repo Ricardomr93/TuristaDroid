@@ -27,9 +27,14 @@
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="106dp">
+            <ImageView
+                    android:src="@drawable/ic_codigo_qr"
+                    android:layout_width="104dp"
+                    android:layout_height="match_parent" android:id="@+id/imageView2" android:layout_weight="1"
+                    android:layout_margin="15dp"/>
             <LinearLayout
                     android:orientation="vertical"
-                    android:layout_width="247dp"
+                    android:layout_width="245dp"
                     android:layout_height="match_parent">
                 <LinearLayout
                         android:orientation="horizontal"
@@ -40,18 +45,19 @@
                             android:layout_width="100dp"
                             android:layout_height="wrap_content" android:id="@+id/lblSiteSite"
                             android:textAlignment="viewStart"
-                            android:textSize="18sp" android:textStyle="bold"/>
+                            android:textSize="18sp" android:textStyle="bold" android:layout_marginTop="15dp"/>
                     <TextView
                             android:text="Ciudad Real"
                             android:layout_width="110dp"
                             android:layout_height="wrap_content" android:id="@+id/txtSiteSite"
                             android:textAlignment="viewStart"
-                            android:layout_weight="1" android:textSize="18sp" android:textStyle="bold"/>
+                            android:layout_weight="1" android:textSize="18sp" android:textStyle="bold"
+                            android:layout_marginTop="15dp"/>
                 </LinearLayout>
                 <LinearLayout
                         android:orientation="horizontal"
                         android:layout_width="250dp"
-                        android:layout_height="34dp">
+                        android:layout_height="wrap_content">
                     <TextView
                             android:text="@string/date"
                             android:layout_width="100dp"
@@ -71,27 +77,24 @@
                         android:layout_height="51dp">
                     <TextView
                             android:text="@string/ratings"
-                            android:layout_width="100dp"
+                            android:layout_width="107dp"
                             android:layout_height="wrap_content" android:id="@+id/lblRatingSite"
                             android:textAlignment="viewStart"
                             android:textSize="18sp" android:textStyle="bold" android:layout_weight="1"/>
                     <TextView
                             android:text="5.0"
                             android:layout_width="38dp"
-                            android:layout_height="wrap_content" android:id="@+id/txtRatingsSite" android:layout_weight="1"
+                            android:layout_height="wrap_content" android:id="@+id/txtRatingsSite"
+                            android:layout_weight="1"
                             android:textSize="18sp" android:textStyle="bold" android:textAlignment="textStart"/>
                     <ImageView
                             android:src="@android:drawable/btn_star_big_on"
                             android:layout_width="124dp"
                             android:layout_height="24dp" android:id="@+id/imgStarSite"
-                            android:layout_weight="1" android:scaleType="fitStart"/>
+                            android:layout_weight="1" android:scaleType="fitStart"
+                            app:srcCompat="@drawable/ic_favoritos"/>
                 </LinearLayout>
             </LinearLayout>
-            <ImageView
-                    android:src="@drawable/builogo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:id="@+id/imgQRSite" android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/logo"/>
         </LinearLayout>
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -105,32 +108,30 @@
                     app:layout_constraintStart_toStartOf="parent"
                     android:layout_marginStart="16dp" app:layout_constraintHorizontal_bias="0.501"
                     android:layout_marginEnd="16dp" app:layout_constraintBottom_toBottomOf="parent"
-                    android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+                    android:layout_marginTop="16dp" android:layout_marginBottom="16dp"
+            />
         </androidx.constraintlayout.widget.ConstraintLayout>
         <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="67dp">
+                android:layout_height="54dp">
             <ImageView
-                    android:src="@drawable/builogo"
-                    android:layout_width="30dp"
-                    android:layout_height="wrap_content" android:id="@+id/imgEmailSite" android:layout_weight="1"
-                    android:scaleType="fitCenter"/>
+                    android:src="@drawable/ic_gmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/imgEmailSite" android:layout_weight="1"/>
             <ImageView
-                    android:src="@drawable/builogo"
-                    android:layout_width="30dp"
-                    android:layout_height="wrap_content" android:id="@+id/imgInstaSite" android:layout_weight="1"
-                    android:scaleType="fitCenter"/>
+                    android:src="@drawable/ic_instagram"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/imgInstaSite" android:layout_weight="1"/>
             <ImageView
-                    android:src="@drawable/builogo"
-                    android:layout_width="30dp"
-                    android:layout_height="wrap_content" android:id="@+id/imgTwittSite" android:layout_weight="1"
-                    android:scaleType="fitCenter"/>
+                    android:src="@drawable/ic_twitter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/imgTwitterSite"
+                    android:layout_weight="1"/>
             <ImageView
-                    android:src="@drawable/builogo"
-                    android:layout_width="30dp"
-                    android:layout_height="wrap_content" android:id="@+id/imgFaceSite" android:layout_weight="1"
-                    android:scaleType="fitCenter"/>
+                    android:src="@drawable/ic_facebook"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/imgFaceSite" android:layout_weight="1"/>
         </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

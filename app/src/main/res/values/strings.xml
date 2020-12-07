@@ -57,6 +57,8 @@
     <string name="error">Error</string>
     <string name="error_no_flash">The device does not have Flash</string>
     <string name="ok">OK</string>
+    <string name="deleteCount">Delete count</string>
+    
 
 
 

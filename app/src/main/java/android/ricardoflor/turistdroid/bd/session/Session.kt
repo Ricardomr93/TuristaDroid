@@ -1,4 +1,4 @@
-package android.ricardoflor.turistdroid.bd
+package android.ricardoflor.turistdroid.bd.session
 
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey

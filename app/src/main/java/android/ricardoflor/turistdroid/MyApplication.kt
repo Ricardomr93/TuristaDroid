@@ -1,4 +1,4 @@
-package android.ricardoflor.turistdroid.activities
+package android.ricardoflor.turistdroid
 
 import android.app.Application
 import android.ricardoflor.turistdroid.bd.BdController

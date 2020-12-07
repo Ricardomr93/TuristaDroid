@@ -18,6 +18,7 @@ class LoginActivity : AppCompatActivity() {
 
     var email: String = ""
     var pass: String = ""
+
     //Variable estatica
     companion object{
         var USER = User()
@@ -40,7 +41,6 @@ class LoginActivity : AppCompatActivity() {
             pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
             if (userExists()) {
                 Log.i("realm", "usuario logeado")
-                UtilSession.deleteSession()//borrado provisional
                 UtilSession.createSession(email)
                 SESSION = SessionController.selectSession()!!
                 val intent = Intent(this,NavigationActivity::class.java)

@@ -19,4 +19,8 @@ class SiteFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_site, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+    }
+
 }

@@ -3,6 +3,7 @@ package android.ricardoflor.turistdroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.ricardoflor.turistdroid.bd.user.User
@@ -101,5 +102,12 @@ class LoginActivity : AppCompatActivity() {
             email = getString("EMAIL").toString()
             pass = getString("PASSWORD").toString()
         }
+    }
+    /**
+     * cierra la base de datos cuando destruyes la app
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        BdController.close()
     }
 }

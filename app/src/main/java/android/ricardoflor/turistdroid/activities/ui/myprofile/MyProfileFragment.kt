@@ -7,20 +7,17 @@ import android.ricardoflor.turistdroid.activities.LoginActivity
 import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.SESSION
 import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
 import android.ricardoflor.turistdroid.bd.session.SessionController
+import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
-import com.google.android.material.navigation.NavigationView
-import com.google.android.material.textfield.TextInputEditText
-import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_my_profile.*
-import kotlinx.android.synthetic.main.fragment_my_sites.*
+
 
 class MyProfileFragment : Fragment() {
 
@@ -72,7 +69,10 @@ class MyProfileFragment : Fragment() {
     }
     private fun deleteUser(){
         btnUnsubMyProfile.setOnClickListener{
+            Log.i("util", "BORRANDO USUARIO: $USER")
             UserController.deleteUser(USER.email)
+            USER = User()// se reinicia el usuario
+            Log.i("util", "USUARIO BORRADO: $USER")
             SessionController.deleteSession(SESSION)
             startActivity(Intent(context,LoginActivity::class.java))
             Toast.makeText(context!!, "USUARIO BORRADO", Toast.LENGTH_SHORT).show()

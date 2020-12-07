@@ -14,6 +14,7 @@ import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
 import android.ricardoflor.turistdroid.activities.ui.myprofile.MyProfileFragment
 import android.ricardoflor.turistdroid.activities.ui.nexttome.NextToMeFragment
 import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
+import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
@@ -65,11 +66,12 @@ class NavigationActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        navigationListener(navView)
+        //navigationListener(navView)
 
         //opciones adicionales
         getInformation()
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -263,6 +265,14 @@ class NavigationActivity : AppCompatActivity() {
             navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
             UtilImage.redondearFoto(navUserImage)
         }
+    }
+
+    /**
+     * cierra la base de datos cuando destruyes la app
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        BdController.close()
     }
 
 }

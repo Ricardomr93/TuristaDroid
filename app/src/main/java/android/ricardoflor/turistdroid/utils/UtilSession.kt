@@ -43,7 +43,6 @@ object UtilSession {
                 SessionController.deleteSession(SESSION)
             }catch (ex: IllegalArgumentException){
             }
-
         }
 
     }

@@ -12,6 +12,7 @@ import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import android.provider.MediaStore
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
@@ -338,5 +339,12 @@ class SinginActivity : AppCompatActivity() {
             }).withErrorListener { Toast.makeText(applicationContext, "Existe errores! ", Toast.LENGTH_SHORT).show() }
             .onSameThread()
             .check()
+    }
+    /**
+     * cierra la base de datos cuando destruyes la app
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        BdController.close()
     }
 }

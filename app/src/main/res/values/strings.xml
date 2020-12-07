@@ -16,6 +16,7 @@
 
     <string name="menu_import">Import</string>
     <string name="menu_export">Export</string>
+    <string name="menu_light">Light</string>
 
     <string name="order">Order</string>
     <string name="order_by_name">Order by name</string>
@@ -49,4 +50,14 @@
     <string name="isEmpty">The text is empty.</string>
     <string name="isAlreadyExist">The email is already exists</string>
     <string name="userNotCorrect">The email or password isn\'t correct</string>
+    <string name="Gallery">Select photo from gallery</string>
+    <string name="Photo">Take camera photo</string>
+    <string name="SelectOption">Select optiom</string>
+
+    <string name="error">Error</string>
+    <string name="error_no_flash">The device does not have Flash</string>
+    <string name="ok">OK</string>
+
+
+
 </resources>

@@ -13,9 +13,7 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
 import android.ricardoflor.turistdroid.activities.ui.myprofile.MyProfileFragment
 import android.ricardoflor.turistdroid.activities.ui.nexttome.NextToMeFragment
-import android.ricardoflor.turistdroid.bd.SessionController
-import android.ricardoflor.turistdroid.bd.User
-import android.ricardoflor.turistdroid.bd.UserController
+import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
@@ -24,9 +22,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -43,7 +38,7 @@ import kotlinx.android.synthetic.main.activity_navigation.*
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var USER: User
+
 
     //LINTERNA
     private lateinit var cameraManager: CameraManager
@@ -245,7 +240,7 @@ class NavigationActivity : AppCompatActivity() {
      * Funcion para Cerrar Sesion
      */
     private fun logout() {
-        //UtilSession.deleteSession()
+        UtilSession.deleteSession()
         startActivity(Intent(this, LoginActivity::class.java))
     }
 
@@ -259,9 +254,6 @@ class NavigationActivity : AppCompatActivity() {
         val navUserImage: ImageView = headerView.findViewById(R.id.imgNavUser)
 
         //obtenemos el email de la sesion y obtenemos el usuario
-        val session = SessionController.selectSession()!!
-        Log.i("util", session.useremail)
-        USER = UserController.selectByEmail(session.useremail)!!
         Log.i("util", USER.toString())
         //cambiamos los valores por los del usuario
         navUsername.text = USER.nameUser

@@ -28,4 +28,5 @@
         android:name="android.ricardoflor.turistdroid.activities.ui.myprofile.MyProfileFragment"
         android:label="@string/my_profile"
         tools:layout="@layout/fragment_my_profile" />
+
 </navigation>

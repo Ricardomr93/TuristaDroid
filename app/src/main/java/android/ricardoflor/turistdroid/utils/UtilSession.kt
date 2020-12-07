@@ -1,13 +1,13 @@
 package android.ricardoflor.turistdroid.utils
 
-import android.content.Context
-import android.ricardoflor.turistdroid.bd.Session
-import android.ricardoflor.turistdroid.bd.SessionController
+import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.SESSION
+import android.ricardoflor.turistdroid.bd.session.Session
+import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.util.Log
 
 object UtilSession {
 
-    private var SESSION = Session();
+
 
     /**
      * Comrpueba que existe una sesión abierta

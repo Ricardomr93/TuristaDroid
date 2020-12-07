@@ -3,8 +3,10 @@ package android.ricardoflor.turistdroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.User
-import android.ricardoflor.turistdroid.bd.UserController
+import android.ricardoflor.turistdroid.bd.session.Session
+import android.ricardoflor.turistdroid.bd.session.SessionController
+import android.ricardoflor.turistdroid.bd.user.User
+import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
@@ -16,7 +18,11 @@ class LoginActivity : AppCompatActivity() {
 
     var email: String = ""
     var pass: String = ""
-    var user2 = User();
+    //Variable estatica
+    companion object{
+        var USER = User()
+        var SESSION = Session()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +42,7 @@ class LoginActivity : AppCompatActivity() {
                 Log.i("realm", "usuario logeado")
                 UtilSession.deleteSession()//borrado provisional
                 UtilSession.createSession(email)
+                SESSION = SessionController.selectSession()!!
                 val intent = Intent(this,NavigationActivity::class.java)
                 startActivity(intent)
             } else {
@@ -61,11 +68,11 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun userExists(): Boolean {
         try{
-            user2 = UserController.selectByEmail(email)!!
+            USER = UserController.selectByEmail(email)!!
         }catch (ex : IllegalArgumentException){
-         Log.i("realm","usuario"+user2+"no existe en la bd")
+         Log.i("realm","usuario"+USER+"no existe en la bd")
         }
-        return pass == user2.password
+        return pass == USER.password
     }
 
 

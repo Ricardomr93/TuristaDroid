@@ -8,24 +8,23 @@
     android:backgroundTint="@color/primary_light">
 
     <TextView
-        android:id="@+id/txtSiteName"
-        android:layout_width="match_parent"
-        android:layout_height="35dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
-        android:layout_toEndOf="@id/imgSite"
-        android:layout_toRightOf="@id/imgSite"
-        android:gravity="center_vertical"
-        android:lines="2"
-        android:text="@string/site_name"
-        android:textColor="@color/secondary_text"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/imgSite"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+            android:id="@+id/txtSiteName"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_toEndOf="@id/imgSite"
+            android:layout_toRightOf="@id/imgSite"
+            android:gravity="center_vertical"
+            android:lines="2"
+            android:text="@string/site_name"
+            android:textColor="@color/secondary_text"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/imgSite"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
     <ImageView
             android:id="@+id/imgSite"
@@ -39,7 +38,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtSiteName"
-            app:srcCompat="@drawable/ic_ricflor_add_photo"/>
+            app:srcCompat="@drawable/ic_ricflor_add_photo" android:layout_marginEnd="24dp"
+            android:layout_marginStart="24dp"/>
 
     <TextView
         android:id="@+id/txtSite"

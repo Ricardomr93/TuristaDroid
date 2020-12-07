@@ -1,4 +1,4 @@
-package android.ricardoflor.turistdroid.bd
+package android.ricardoflor.turistdroid.bd.site
 
 import io.realm.Realm
 import io.realm.kotlin.where

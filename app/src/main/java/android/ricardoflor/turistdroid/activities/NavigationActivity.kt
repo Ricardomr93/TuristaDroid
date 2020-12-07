@@ -10,10 +10,13 @@ import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
+import android.ricardoflor.turistdroid.activities.ui.myprofile.MyProfileFragment
+import android.ricardoflor.turistdroid.activities.ui.nexttome.NextToMeFragment
+import android.ricardoflor.turistdroid.bd.SessionController
+import android.ricardoflor.turistdroid.bd.User
+import android.ricardoflor.turistdroid.bd.UserController
 import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
-import android.ricardoflor.turistdroid.bd.session.SessionController
-import android.ricardoflor.turistdroid.bd.user.User
-import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
@@ -22,6 +25,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
@@ -33,10 +37,9 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContentProviderCompat
-import kotlinx.android.synthetic.main.activity_singin.*
-import kotlinx.android.synthetic.main.nav_header_main.*
-import java.io.File
+import androidx.core.view.GravityCompat
+import kotlinx.android.synthetic.main.activity_navigation.*
+
 
 class NavigationActivity : AppCompatActivity() {
 
@@ -68,6 +71,8 @@ class NavigationActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+        navigationListener(navView)
+
         //opciones adicionales
         getInformation()
     }
@@ -77,6 +82,54 @@ class NavigationActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.navigation, menu)
         initLight()
         return true
+    }
+
+    /**
+     * Funcion para manejar los eventos clic del menu izquierdo (tres rayas)
+     *
+     * @param navigationView
+     */
+    private fun navigationListener(navigationView: NavigationView){
+        navigationView.setNavigationItemSelectedListener {
+            when(it.itemId){
+                R.id.nav_my_sites -> {
+                    openMySites()
+                    // Para abrir y cerrar el menu izquierdo
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+                R.id.nav_next_to_me -> {
+                    openNextToMe()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+                R.id.nav_my_profile -> {
+                    openMyProfile()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+                R.id.nav_logout -> {
+                    // Log.i("navig", "exit")
+                    logout()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+                else -> {
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    false
+                }
+            }
+        }
     }
 
     /**
@@ -98,7 +151,7 @@ class NavigationActivity : AppCompatActivity() {
             }
 
             R.id.action_light -> {
-                if (encendida){
+                if (encendida) {
                     //Log.i("light", "Linterna OFF")
                     item.setIcon(R.drawable.ic_ricflor_lantern_white_off)
                     encendida = false
@@ -117,15 +170,21 @@ class NavigationActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Funcion para arrancar la linterna
+     */
     private fun initLight() {
-        val isFlashAvailable = applicationContext?.packageManager?.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)
+        val isFlashAvailable =
+            applicationContext?.packageManager?.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)
         if (!isFlashAvailable!!) {
             val alert = AlertDialog.Builder(applicationContext)
                 .create()
             alert.setTitle(R.string.error)
             alert.setMessage(R.string.error_no_flash.toString())
-            alert.setButton(DialogInterface.BUTTON_POSITIVE, R.string.ok.toString()) { _, _ -> Log.i("Linterna", "Sin linterna")}
-            alert.show()
+            alert.setButton(DialogInterface.BUTTON_POSITIVE, R.string.ok.toString()) { _, _ ->
+                Log.i("Linterna", "Sin linterna")
+            }
+            //alert.show()
         }
         cameraManager = applicationContext?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
@@ -150,10 +209,44 @@ class NavigationActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    /**
+     * Funcion para abrir el fragment My Sites
+     */
+    private fun openMySites(){
+        val newFragment = MySitesFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
 
-    fun logout(navigationView: NavigationView) {
+    /**
+     * Funcion para abrir el fragment Next To Me
+     */
+    private fun openNextToMe(){
+        val newFragment = NextToMeFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
 
-        UtilSession.deleteSession()
+    /**
+     * Funcion para abrir el fragment My Profile
+     */
+    private fun openMyProfile(){
+        val newFragment = MyProfileFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
+    /**
+     * Funcion para Cerrar Sesion
+     */
+    private fun logout() {
+        //UtilSession.deleteSession()
         startActivity(Intent(this, LoginActivity::class.java))
     }
 

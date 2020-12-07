@@ -8,6 +8,9 @@
 
     <string name="login">Login</string>
     <string name="singin">Sing in</string>
+    <string name="logout">Logout</string>
+
+    <string name="want_to_logout">Do you want to Logout?</string>
 
     <string name="my_sites">My Sites</string>
     <string name="next_to_me">Next To Me</string>

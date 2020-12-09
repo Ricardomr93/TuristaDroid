@@ -3,19 +3,14 @@ package android.ricardoflor.turistdroid.activities
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
-import android.ricardoflor.turistdroid.activities.ui.myprofile.MyProfileFragment
-import android.ricardoflor.turistdroid.activities.ui.nexttome.NextToMeFragment
 import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
 import android.ricardoflor.turistdroid.utils.UtilImage
-import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -31,8 +26,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.GravityCompat
-import kotlinx.android.synthetic.main.activity_navigation.*
+
 
 
 class NavigationActivity : AppCompatActivity() {
@@ -65,8 +59,6 @@ class NavigationActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        navigationListener(navView)
-
         //opciones adicionales
         getInformation()
     }
@@ -76,54 +68,6 @@ class NavigationActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.navigation, menu)
         initLight()
         return true
-    }
-
-    /**
-     * Funcion para manejar los eventos clic del menu izquierdo (tres rayas)
-     *
-     * @param navigationView
-     */
-    private fun navigationListener(navigationView: NavigationView){
-        navigationView.setNavigationItemSelectedListener {
-            when(it.itemId){
-                R.id.nav_my_sites -> {
-                    openMySites()
-                    // Para abrir y cerrar el menu izquierdo
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    true
-                }
-                R.id.nav_next_to_me -> {
-                    openNextToMe()
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    true
-                }
-                R.id.nav_my_profile -> {
-                    openMyProfile()
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    true
-                }
-                R.id.nav_logout -> {
-                    // Log.i("navig", "exit")
-                    logout()
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    true
-                }
-                else -> {
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    false
-                }
-            }
-        }
     }
 
     /**
@@ -201,47 +145,6 @@ class NavigationActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-    }
-
-    /**
-     * Funcion para abrir el fragment My Sites
-     */
-    private fun openMySites(){
-        val newFragment = MySitesFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, newFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-    }
-
-    /**
-     * Funcion para abrir el fragment Next To Me
-     */
-    private fun openNextToMe(){
-        val newFragment = NextToMeFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, newFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-    }
-
-    /**
-     * Funcion para abrir el fragment My Profile
-     */
-    private fun openMyProfile(){
-        val newFragment = MyProfileFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, newFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-    }
-
-    /**
-     * Funcion para Cerrar Sesion
-     */
-    private fun logout() {
-        UtilSession.deleteSession()
-        startActivity(Intent(this, LoginActivity::class.java))
     }
 
     private fun getInformation() {

@@ -3,14 +3,13 @@ package android.ricardoflor.turistdroid.activities
 import android.content.Intent
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.BdController
-import android.ricardoflor.turistdroid.bd.Session
-import android.ricardoflor.turistdroid.bd.User
-import android.ricardoflor.turistdroid.utils.Encryptor
+import android.ricardoflor.turistdroid.bd.session.Session
+import android.ricardoflor.turistdroid.bd.session.SessionController
+import android.ricardoflor.turistdroid.bd.user.User
+import android.ricardoflor.turistdroid.bd.user.UserController
+import android.ricardoflor.turistdroid.utils.UtilEncryptor
+import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
-import android.util.Patterns
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_login.*
 
@@ -19,13 +18,18 @@ class LoginActivity : AppCompatActivity() {
 
     var email: String = ""
     var pass: String = ""
-    var user2 = User();
+
+    //Variable estatica
+    companion object{
+        var USER = User()
+        var SESSION = Session()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
         login()
-        registrarse()
+        SingIn()
     }
 
     /**
@@ -34,17 +38,16 @@ class LoginActivity : AppCompatActivity() {
     fun login() {
         buttonLoginLogin.setOnClickListener {
             email = editTextLoginMail.text.toString()
-            pass = Encryptor.encrypt(editTextLoginPassword.text.toString())!!
+            pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
             if (userExists()) {
-                Log.i("user", "usuario logeado")
-                //Toast provisional para observar el correcto login
-                Toast.makeText(this,"Usuario logeado",Toast.LENGTH_SHORT).show()
-                //crea la session con el email del usuario logeado
-                //val session = Session(email)
-                //BdController.insertSession(session)
+                Log.i("realm", "usuario logeado")
+                UtilSession.createSession(email)
+                SESSION = SessionController.selectSession()!!
+                val intent = Intent(this,NavigationActivity::class.java)
+                startActivity(intent)
             } else {
                 editTextLoginMail.error = getString(R.string.userNotCorrect)
-                Log.i("user", "usuario erroneo")
+                Log.i("realm", "usuario erroneo")
             }
         }
     }
@@ -52,7 +55,7 @@ class LoginActivity : AppCompatActivity() {
     /**
      * Funcion onClick del botón Singin
      */
-    fun registrarse() {
+    fun SingIn() {
         buttonLoginSingin.setOnClickListener {
             val intent = Intent(this, SinginActivity::class.java).apply {
             }
@@ -65,11 +68,11 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun userExists(): Boolean {
         try{
-            user2 = BdController.selectByEmail(email)!!
+            USER = UserController.selectByEmail(email)!!
         }catch (ex : IllegalArgumentException){
-         Log.i("user","usuario no existe en la bd")
+         Log.i("realm","usuario"+USER+"no existe en la bd")
         }
-        return pass == user2.password
+        return pass == USER.password
     }
 
 

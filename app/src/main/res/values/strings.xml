@@ -8,6 +8,9 @@
 
     <string name="login">Login</string>
     <string name="singin">Sing in</string>
+    <string name="logout">Logout</string>
+
+    <string name="want_to_logout">Do you want to Logout?</string>
 
     <string name="my_sites">My Sites</string>
     <string name="next_to_me">Next To Me</string>
@@ -16,14 +19,16 @@
 
     <string name="menu_import">Import</string>
     <string name="menu_export">Export</string>
+    <string name="menu_light">Light</string>
 
     <string name="order">Order</string>
     <string name="order_by_name">Order by name</string>
     <string name="order_by_date">Order by date</string>
     <string name="order_by_ratings">Order by ratings</string>
 
-    <string name="date">Date</string>
-    <string name="ratings">Ratings</string>
+    <string name="site">Site:</string>
+    <string name="date">Date:</string>
+    <string name="ratings">Ratings:</string>
 
     <string name="update">Update</string>
 
@@ -36,7 +41,28 @@
     <string name="name_incorrecto">"The name is not in the correct format"</string>
     <string name="email_incorrecto">"The email is not in the correct format"</string>
     <string name="pwd_incorrecto">"The password is not in the correct format"</string>
+
+    <string name="title_activity_navigation">NavigationActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
     <string name="isEmpty">The text is empty.</string>
     <string name="isAlreadyExist">The email is already exists</string>
     <string name="userNotCorrect">The email or password isn\'t correct</string>
+    <string name="Gallery">Select photo from gallery</string>
+    <string name="Photo">Take camera photo</string>
+    <string name="SelectOption">Select optiom</string>
+
+    <string name="error">Error</string>
+    <string name="error_no_flash">The device does not have Flash</string>
+    <string name="ok">OK</string>
+    <string name="deleteCount">Delete count</string>
+    
+
+
+
 </resources>

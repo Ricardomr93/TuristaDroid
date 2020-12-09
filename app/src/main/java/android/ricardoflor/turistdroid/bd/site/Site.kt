@@ -1,5 +1,7 @@
-package android.ricardoflor.turistdroid.bd
+package android.ricardoflor.turistdroid.bd.site
 
+import android.ricardoflor.turistdroid.bd.image.Image
+import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import java.util.*
@@ -19,7 +21,7 @@ open class Site(
     @PrimaryKey
     var id: Long = 0,
     var name: String = "",
-    var image: String = "",
+    var image: RealmList<Image> = RealmList(),
     var site: String = "",
     var date: Date = Date(),
     var rating: Int = 0,
@@ -29,6 +31,6 @@ open class Site(
     override fun toString(): String {
         return "Site(id=$id, name='$name', image='$image', site='$site', date=$date, rating=$rating, latitude=$latitude, longitude=$longitude)"
     }
-    constructor(name: String,image: String,site: String,date: Date,rating: Int,latitude: Int,longitude: Int)
+    constructor(name: String,image: RealmList<Image>,site: String,date: Date,rating: Int,latitude: Int,longitude: Int)
             :this(System.currentTimeMillis()/1000,name, image, site, date, rating, latitude, longitude)
 }

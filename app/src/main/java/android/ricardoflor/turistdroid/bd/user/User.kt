@@ -1,9 +1,9 @@
-package android.ricardoflor.turistdroid.bd
+package android.ricardoflor.turistdroid.bd.user
 
+import android.ricardoflor.turistdroid.bd.site.Site
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
-import io.realm.annotations.Required
 
 /**
  * Clase modelo del usuario
@@ -35,7 +35,7 @@ open class User(
      */
     override fun toString(): String {
 
-        return "Usuario(name='$name', nameUser='$nameUser',email='$email', password='$password', iamage='$image',  twitter='$twitter', instagram='$instagram', facebook='$facebook', places$places)"
+        return "Usuario(name='$name', nameUser='$nameUser',email='$email', password='$password', twitter='$twitter', instagram='$instagram', facebook='$facebook', places$places, image='$image',)"
     }
 }
 

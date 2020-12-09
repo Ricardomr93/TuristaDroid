@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
@@ -18,8 +18,7 @@
                 android:src="@drawable/ic_ricflor_add_photo"
                 android:layout_width="match_parent"
                 android:layout_height="194dp" android:id="@+id/iamgeSite"/>
-        <TextView
-                android:text="Example Text"
+        <EditText
                 android:layout_width="match_parent"
                 android:layout_height="43dp" android:id="@+id/txtNameSiteSite"
                 android:textSize="24sp" android:textStyle="bold"
@@ -40,20 +39,19 @@
                 <LinearLayout
                         android:orientation="horizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="36dp">
                     <TextView
                             android:text="@string/site"
                             android:layout_width="100dp"
                             android:layout_height="wrap_content" android:id="@+id/lblSiteSite"
                             android:textAlignment="viewStart"
-                            android:textSize="18sp" android:textStyle="bold" android:layout_marginTop="15dp"/>
-                    <TextView
-                            android:text="Ciudad Real"
-                            android:layout_width="110dp"
-                            android:layout_height="wrap_content" android:id="@+id/txtSiteSite"
+                            android:textSize="18sp" android:textStyle="bold"/>
+                    <EditText
+                            android:layout_width="wrap_content"
+                            android:layout_height="29dp" android:id="@+id/txtSiteSite"
                             android:textAlignment="viewStart"
                             android:layout_weight="1" android:textSize="18sp" android:textStyle="bold"
-                            android:layout_marginTop="15dp"/>
+                    />
                 </LinearLayout>
                 <LinearLayout
                         android:orientation="horizontal"
@@ -65,10 +63,9 @@
                             android:layout_height="wrap_content" android:id="@+id/lblDateSite"
                             android:textAlignment="viewStart"
                             android:textSize="18sp" android:textStyle="bold"/>
-                    <TextView
-                            android:text="22/11/2020"
+                    <EditText
                             android:layout_width="135dp"
-                            android:layout_height="wrap_content" android:id="@+id/txtDateSite"
+                            android:layout_height="match_parent" android:id="@+id/txtDateSite"
                             android:textAlignment="viewStart"
                             android:layout_weight="1" android:textSize="18sp" android:textStyle="bold"/>
                 </LinearLayout>
@@ -82,24 +79,15 @@
                             android:layout_height="wrap_content" android:id="@+id/lblRatingSite"
                             android:textAlignment="viewStart"
                             android:textSize="18sp" android:textStyle="bold" android:layout_weight="1"/>
-                    <TextView
-                            android:text="5.0"
-                            android:layout_width="38dp"
-                            android:layout_height="wrap_content" android:id="@+id/txtRatingsSite"
-                            android:layout_weight="1"
-                            android:textSize="18sp" android:textStyle="bold" android:textAlignment="textStart"/>
-                    <ImageView
-                            android:src="@android:drawable/btn_star_big_on"
-                            android:layout_width="124dp"
-                            android:layout_height="24dp" android:id="@+id/imgStarSite"
-                            android:layout_weight="1" android:scaleType="fitStart"
-                            app:srcCompat="@drawable/ic_favoritos"/>
+                    <RatingBar
+                            android:layout_width="145dp"
+                            android:layout_height="34dp" android:id="@+id/ratingBar" android:numStars="5"/>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="226dp">
+                android:layout_height="239dp">
 
             <com.google.android.gms.maps.MapView
                     android:layout_width="324dp"
@@ -107,15 +95,24 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    android:layout_marginStart="16dp" app:layout_constraintHorizontal_bias="0.501"
+                    android:layout_marginStart="16dp" app:layout_constraintHorizontal_bias="0.428"
                     android:layout_marginEnd="16dp" app:layout_constraintBottom_toBottomOf="parent"
                     android:layout_marginTop="16dp" android:layout_marginBottom="16dp"
-            />
+                    app:layout_constraintVertical_bias="0.0"/>
+            <Button
+                    android:text="@string/add"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp" android:id="@+id/buttonSiteAddUpdate" android:layout_weight="1"
+                    android:background="@color/accent"
+                    app:layout_constraintTop_toBottomOf="@+id/mapViewAdd" app:layout_constraintStart_toStartOf="parent"
+                    android:layout_marginStart="23dp" android:layout_marginEnd="23dp"
+                    app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="8dp"
+                    app:layout_constraintHorizontal_bias="0.0"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
         <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="54dp">
+                android:layout_height="54dp" android:visibility="visible" android:id="@+id/linearLayoutSiteSocial">
             <ImageView
                     android:src="@drawable/ic_gmail"
                     android:layout_width="wrap_content"
@@ -135,4 +132,4 @@
                     android:layout_height="wrap_content" android:id="@+id/imgFaceSite" android:layout_weight="1"/>
         </LinearLayout>
     </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>

@@ -34,7 +34,7 @@ class MySitesFragment : Fragment() {
 
     private fun addSite() {
             Log.i("sites","nuevo sitio")
-            val addSites = SiteFragment()
+            val addSites = SiteFragment(1)
             val transaction = activity!!.supportFragmentManager.beginTransaction()
             transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
             transaction.add(R.id.nav_host_fragment,addSites)

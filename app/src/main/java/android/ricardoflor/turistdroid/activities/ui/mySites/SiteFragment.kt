@@ -10,23 +10,13 @@ import android.ricardoflor.turistdroid.R
 
 class SiteFragment : Fragment() {
 
-    companion object {
-        fun newInstance() = SiteFragment()
-    }
 
-    private lateinit var viewModel: AddSiteViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.site_fragment, container, false)
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(AddSiteViewModel::class.java)
-        // TODO: Use the ViewModel
+        return inflater.inflate(R.layout.fragment_site, container, false)
     }
 
 }

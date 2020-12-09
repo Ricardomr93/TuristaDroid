@@ -8,14 +8,19 @@
 
     <string name="login">Login</string>
     <string name="singin">Sing in</string>
+    <string name="logout">Logout</string>
+
+    <string name="want_to_logout">Do you want to Logout?</string>
 
     <string name="my_sites">My Sites</string>
+    <string name="it_site">Site</string>
     <string name="next_to_me">Next To Me</string>
     <string name="my_profile">My Profile</string>
     <string name="exit">Exit</string>
 
     <string name="menu_import">Import</string>
     <string name="menu_export">Export</string>
+    <string name="menu_light">Light</string>
 
     <string name="order">Order</string>
     <string name="order_by_name">Order by name</string>
@@ -52,4 +57,13 @@
     <string name="Gallery">Select photo from gallery</string>
     <string name="Photo">Take camera photo</string>
     <string name="SelectOption">Select optiom</string>
+
+    <string name="error">Error</string>
+    <string name="error_no_flash">The device does not have Flash</string>
+    <string name="ok">OK</string>
+    <string name="deleteCount">Delete count</string>
+    
+
+
+
 </resources>

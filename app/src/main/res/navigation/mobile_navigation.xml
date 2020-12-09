@@ -8,13 +8,15 @@
     <fragment
         android:id="@+id/nav_my_sites"
         android:name="android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment"
-        android:label="@string/my_sites" >
+        android:label="@string/my_sites"
+        tools:layout="@layout/fragment_my_sites" >
         <action
             android:id="@+id/action_nav_my_sites_to_nav_next_to_me2"
             app:destination="@id/nav_next_to_me" />
         <action
             android:id="@+id/action_nav_my_sites_to_nav_my_profile"
             app:destination="@id/nav_my_profile" />
+        <action android:id="@+id/action_nav_my_sites_to_nav_site" app:destination="@id/nav_site"/>
     </fragment>
 
     <fragment
@@ -28,4 +30,11 @@
         android:name="android.ricardoflor.turistdroid.activities.ui.myprofile.MyProfileFragment"
         android:label="@string/my_profile"
         tools:layout="@layout/fragment_my_profile" />
+
+    <fragment
+            android:id="@+id/nav_site"
+            android:name="android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment"
+            android:label="@string/it_site"
+            tools:layout="@layout/fragment_site" />
+
 </navigation>

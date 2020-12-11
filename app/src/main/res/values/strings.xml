@@ -62,7 +62,10 @@
     <string name="error_no_flash">The device does not have Flash</string>
     <string name="ok">OK</string>
     <string name="deleteCount">Delete count</string>
-    
+    <string name="error_permissions">Error: error with permissions</string>
+    <string name="error_gallery">Error: error with Gallery</string>
+    <string name="error_camera">Error: error with Camera</string>
+
 
 
 

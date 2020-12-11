@@ -2,10 +2,10 @@ package android.ricardoflor.turistdroid.activities.ui.myprofile
 
 import android.content.Intent
 import android.os.Bundle
+import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.LoginActivity
-import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.SESSION
-import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
 import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.view.LayoutInflater
@@ -14,13 +14,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
-import com.google.android.material.navigation.NavigationView
-import com.google.android.material.textfield.TextInputEditText
-import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_my_profile.*
-import kotlinx.android.synthetic.main.fragment_my_sites.*
 
 class MyProfileFragment : Fragment() {
 

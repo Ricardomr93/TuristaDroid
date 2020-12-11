@@ -2,10 +2,10 @@ package android.ricardoflor.turistdroid.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionController
-import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilSession
@@ -19,11 +19,7 @@ class LoginActivity : AppCompatActivity() {
     var email: String = ""
     var pass: String = ""
 
-    //Variable estatica
-    companion object{
-        var USER = User()
-        var SESSION = Session()
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

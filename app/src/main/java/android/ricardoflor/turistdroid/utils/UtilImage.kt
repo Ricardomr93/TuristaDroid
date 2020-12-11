@@ -35,6 +35,7 @@ object UtilImage {
         val byteArray: ByteArray = stream.toByteArray()
         return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
+
     /**
      * Convierte una cadena Base64 a Bitmap
      *
@@ -45,6 +46,7 @@ object UtilImage {
         val imageAsBytes: ByteArray = Base64.decode(b64String.toByteArray(), Base64.DEFAULT)
         return BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.size)
     }
+
     /**
      * Salva un fichero en un directorio
      */
@@ -68,35 +70,12 @@ object UtilImage {
         return null
     }
     /**
-     * Copia un bitmap en un path determinado
-     */
-    fun copiarImagen(bitmap: Bitmap, path: String, compresion: Int, context: Context) {
-        val nombre = crearNombreFichero()
-        val fichero =
-            context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)?.absolutePath + path + File.separator + nombre
-        val bytes = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, compresion, bytes)
-        val fo = FileOutputStream(fichero)
-        fo.write(bytes.toByteArray())
-        fo.close()
-    }
-    /**
      * Función para opbtener el nombre del fichero
      */
-    public fun crearNombreFichero(): String {
+    fun crearNombreFichero(): String {
         return "camara-" + UUID.randomUUID().toString() + ".jpg"
     }
-    /**
-     * Comprime una imagen
-     */
-    fun comprimirImagen(fichero: File, bitmap: Bitmap, compresion: Int) {
-        // Recuperamos el Bitmap
-        val bytes = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, compresion, bytes)
-        val fo = FileOutputStream(fichero)
-        fo.write(bytes.toByteArray())
-        fo.close()
-    }
+
     /**
      * Añade una imagen a la galería
      */
@@ -111,6 +90,7 @@ object UtilImage {
         values.put(MediaStore.Images.Media.DATA, foto.toFile().absolutePath)
         return context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
     }
+
     /**
      * Elimina una imagen de la galería
      */
@@ -164,16 +144,17 @@ object UtilImage {
     /**
      * Método que redondea la imagen
      */
-    fun redondearFoto(imagen: ImageView){
+    fun redondearFoto(imagen: ImageView) {
         val originalDrawable: Drawable = imagen.drawable
         var originalBitmap: Bitmap = (originalDrawable as BitmapDrawable).bitmap
 
-        if (originalBitmap.width > originalBitmap.height){
+        if (originalBitmap.width > originalBitmap.height) {
             originalBitmap = Bitmap.createBitmap(originalBitmap, 0, 0, originalBitmap.height, originalBitmap.height);
-        }else if (originalBitmap.width < originalBitmap.height) {
+        } else if (originalBitmap.width < originalBitmap.height) {
             originalBitmap = Bitmap.createBitmap(originalBitmap, 0, 0, originalBitmap.width, originalBitmap.width);
         }
-        val roundedDrawable: RoundedBitmapDrawable = RoundedBitmapDrawableFactory.create(Resources.getSystem(), originalBitmap)
+        val roundedDrawable: RoundedBitmapDrawable =
+            RoundedBitmapDrawableFactory.create(Resources.getSystem(), originalBitmap)
         roundedDrawable.cornerRadius = originalBitmap.width.toFloat()
         imagen.setImageDrawable(roundedDrawable)
     }

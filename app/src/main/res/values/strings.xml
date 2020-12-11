@@ -65,6 +65,7 @@
     <string name="error_permissions">Error: error with permissions</string>
     <string name="error_gallery">Error: error with Gallery</string>
     <string name="error_camera">Error: error with Camera</string>
+    <string name="update_user">Updated user</string>
 
 
 

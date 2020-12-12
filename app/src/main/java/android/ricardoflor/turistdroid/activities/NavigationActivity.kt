@@ -26,13 +26,12 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-
+import kotlin.system.exitProcess
 
 
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-
 
     //LINTERNA
     private lateinit var cameraManager: CameraManager
@@ -147,7 +146,6 @@ class NavigationActivity : AppCompatActivity() {
     }
 
     private fun getInformation() {
-
         // actualizamos el perfil con los datos de la sesion
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         val headerView: View = navigationView.getHeaderView(0)
@@ -166,5 +164,4 @@ class NavigationActivity : AppCompatActivity() {
             UtilImage.redondearFoto(navUserImage)
         }
     }
-
 }

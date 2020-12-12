@@ -73,7 +73,7 @@ object UtilImage {
      * Función para opbtener el nombre del fichero
      */
     fun crearNombreFichero(): String {
-        return "camara-" + UUID.randomUUID().toString() + ".jpg"
+        return "camera-" + UUID.randomUUID().toString() + ".jpg"
     }
 
     /**

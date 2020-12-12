@@ -1,33 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".activities.ui.mySites.SiteFragment" android:background="@drawable/background_app"
-        android:id="@+id/nav_site">
+        android:id="@+id/fragment_site">
     <LinearLayout
             android:orientation="vertical"
-            android:layout_width="363dp"
-            android:layout_height="697dp" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" android:layout_marginEnd="16dp"
             android:layout_marginStart="16dp" app:layout_constraintTop_toTopOf="parent"
             android:id="@+id/linearLayout" app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginTop="16dp" android:layout_marginBottom="16dp">
-        <ImageView
-                android:src="@drawable/ic_ricflor_add_photo"
+            android:layout_marginBottom="16dp">
+
+        <androidx.viewpager.widget.ViewPager
                 android:layout_width="match_parent"
-                android:layout_height="194dp" android:id="@+id/iamgeSite"/>
-        <TextView
-                android:text="Example Text"
+                android:layout_height="182dp"
+                android:id="@+id/imageSite"
+                android:elevation="10dp"
+                android:background="@drawable/sombra_slider"/>
+
+        <EditText
                 android:layout_width="match_parent"
-                android:layout_height="43dp" android:id="@+id/txtNameSiteSite"
+                android:layout_height="wrap_content" android:id="@+id/txtNameSiteSite"
                 android:textSize="24sp" android:textStyle="bold"
-                android:textAllCaps="true" android:textAlignment="center"/>
+                android:textAllCaps="true" android:textAlignment="center" android:hint="@string/site_name"/>
         <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="106dp">
+                android:layout_height="123dp">
             <ImageView
                     android:src="@drawable/ic_codigo_qr"
                     android:layout_width="104dp"
@@ -41,65 +44,45 @@
                         android:orientation="horizontal"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
-                    <TextView
-                            android:text="@string/site"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content" android:id="@+id/lblSiteSite"
+                    <EditText
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" android:id="@+id/txtSiteSite"
                             android:textAlignment="viewStart"
-                            android:textSize="18sp" android:textStyle="bold" android:layout_marginTop="15dp"/>
-                    <TextView
-                            android:text="Ciudad Real"
-                            android:layout_width="110dp"
-                            android:layout_height="wrap_content" android:id="@+id/txtSiteSite"
-                            android:textAlignment="viewStart"
-                            android:layout_weight="1" android:textSize="18sp" android:textStyle="bold"
-                            android:layout_marginTop="15dp"/>
-                </LinearLayout>
-                <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="250dp"
-                        android:layout_height="wrap_content">
-                    <TextView
-                            android:text="@string/date"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content" android:id="@+id/lblDateSite"
-                            android:textAlignment="viewStart"
-                            android:textSize="18sp" android:textStyle="bold"/>
-                    <TextView
-                            android:text="22/11/2020"
-                            android:layout_width="135dp"
-                            android:layout_height="wrap_content" android:id="@+id/txtDateSite"
-                            android:textAlignment="viewStart"
-                            android:layout_weight="1" android:textSize="18sp" android:textStyle="bold"/>
+                            android:layout_weight="1" android:textSize="14sp" android:textStyle="bold"
+                            android:hint="@string/site_location"/>
                 </LinearLayout>
                 <LinearLayout
                         android:orientation="horizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="51dp">
-                    <TextView
-                            android:text="@string/ratings"
-                            android:layout_width="107dp"
-                            android:layout_height="wrap_content" android:id="@+id/lblRatingSite"
-                            android:textAlignment="viewStart"
-                            android:textSize="18sp" android:textStyle="bold" android:layout_weight="1"/>
-                    <TextView
-                            android:text="5.0"
-                            android:layout_width="38dp"
-                            android:layout_height="wrap_content" android:id="@+id/txtRatingsSite"
+                        android:layout_height="wrap_content" android:clickable="false">
+                    <EditText
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:inputType="date"
+                            android:ems="10"
+                            android:id="@+id/txtDateSite"
                             android:layout_weight="1"
-                            android:textSize="18sp" android:textStyle="bold" android:textAlignment="textStart"/>
-                    <ImageView
-                            android:src="@android:drawable/btn_star_big_on"
-                            android:layout_width="124dp"
-                            android:layout_height="24dp" android:id="@+id/imgStarSite"
-                            android:layout_weight="1" android:scaleType="fitStart"
-                            app:srcCompat="@drawable/ic_favoritos"/>
+                            android:textSize="14sp"
+                            android:hint="@string/site_date"
+                            android:clickable="false"
+                            android:focusable="false"/>
+                </LinearLayout>
+                <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                    <RatingBar
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:id="@+id/ratingBar"
+                            android:rating="0"
+                            android:numStars="5"/>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="226dp">
+                android:layout_height="match_parent">
 
             <com.google.android.gms.maps.MapView
                     android:layout_width="324dp"
@@ -107,32 +90,20 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    android:layout_marginStart="16dp" app:layout_constraintHorizontal_bias="0.501"
-                    android:layout_marginEnd="16dp" app:layout_constraintBottom_toBottomOf="parent"
-                    android:layout_marginTop="16dp" android:layout_marginBottom="16dp"
-            />
+                    android:layout_marginStart="16dp" app:layout_constraintHorizontal_bias="0.428"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="12dp" app:layout_constraintBottom_toTopOf="@+id/buttonSiteAddUpdate"/>
+            <Button
+                    android:text="@string/add"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp" android:id="@+id/buttonSiteAddUpdate" android:layout_weight="1"
+                    android:background="@drawable/buttom_round"
+                    app:layout_constraintTop_toBottomOf="@+id/mapViewAdd" app:layout_constraintStart_toStartOf="parent"
+                    android:layout_marginStart="32dp" android:layout_marginEnd="32dp"
+                    app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="12dp"
+                    app:layout_constraintHorizontal_bias="1.0" app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginBottom="45dp"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-        <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="54dp">
-            <ImageView
-                    android:src="@drawable/ic_gmail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/imgEmailSite" android:layout_weight="1"/>
-            <ImageView
-                    android:src="@drawable/ic_instagram"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/imgInstaSite" android:layout_weight="1"/>
-            <ImageView
-                    android:src="@drawable/ic_twitter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/imgTwitterSite"
-                    android:layout_weight="1"/>
-            <ImageView
-                    android:src="@drawable/ic_facebook"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/imgFaceSite" android:layout_weight="1"/>
-        </LinearLayout>
     </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>

@@ -32,7 +32,7 @@ import androidx.appcompat.widget.Toolbar
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-
+    public var isClicEventoFila = true
 
     //LINTERNA
     private lateinit var cameraManager: CameraManager

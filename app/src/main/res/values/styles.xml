@@ -16,7 +16,7 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-<!--    &lt;!&ndash;Tema para el Date Picker&ndash;&gt;-->
+    <!--Tema para el Date Picker-->
 <!--    <style name="AppTheme.datePickerTheme">-->
 <!--        <item name="colorPrimaryDark">@color/primary_dark</item>-->
 <!--    </style>-->

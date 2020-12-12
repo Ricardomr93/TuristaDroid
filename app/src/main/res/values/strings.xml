@@ -56,7 +56,7 @@
     <string name="isEmpty">The text is empty.</string>
     <string name="isAlreadyExist">The email is already exists</string>
     <string name="userNotCorrect">The email or password isn\'t correct</string>
-    <string name="Gallery">Select photo from gallery</string>
+    <string name="Gallery">Select from gallery</string>
     <string name="Photo">Take camera photo</string>
     <string name="SelectOption">Select option</string>
 
@@ -64,8 +64,5 @@
     <string name="error_no_flash">The device does not have Flash</string>
     <string name="ok">OK</string>
     <string name="deleteCount">Delete count</string>
-    
-
-
 
 </resources>

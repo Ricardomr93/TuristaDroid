@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.BdController
+import android.ricardoflor.turistdroid.bd.site.SiteController
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.animation.AnimationUtils

@@ -32,6 +32,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.google.android.gms.dynamic.IFragmentWrapper
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -89,9 +90,12 @@ class MyProfileFragment : Fragment() {
         user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
         user.nameUser = nameUser
         user.email = email
-        try {
+        if (this::FOTO.isInitialized) {
             user.image = UtilImage.toBase64(FOTO)!!
-        } catch (ex: UninitializedPropertyAccessException) {
+        }else{
+            if (USER.image != null){
+                user.image = USER.image
+            }
         }
         UserController.updateUser(user)
     }
@@ -145,9 +149,12 @@ class MyProfileFragment : Fragment() {
             user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
             user.nameUser = txtUserNameMyProfile.text.toString()
             user.email = txtEmailMyProfile.text.toString()
-            try {
+            if (this::FOTO.isInitialized) {
                 user.image = UtilImage.toBase64(FOTO)!!
-            } catch (ex: UninitializedPropertyAccessException) {
+            }else{
+                if (USER.image != null){
+                    user.image = USER.image
+                }
             }
             UserController.insertUser(user)
             USER = user
@@ -157,8 +164,6 @@ class MyProfileFragment : Fragment() {
             txtEmailMyProfile.error = resources.getString(R.string.isAlreadyExist)
             restauredUser()//restaura el usuario para no perder los datos
         }
-
-
     }
 
     /**

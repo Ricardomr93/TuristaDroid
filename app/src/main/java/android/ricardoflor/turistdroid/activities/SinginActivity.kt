@@ -82,9 +82,8 @@ class SinginActivity : AppCompatActivity() {
         user.password = UtilEncryptor.encrypt(txtPass.text.toString())!!
         user.nameUser = txtUserName.text.toString()
         user.email = txtEmail.text.toString()
-        try {
+        if (this::FOTO.isInitialized) {
             user.image = UtilImage.toBase64(FOTO)!!
-        } catch (ex: UninitializedPropertyAccessException) {
         }
         UserController.insertUser(user)
         USER = user

@@ -8,8 +8,8 @@ import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.view.Menu
@@ -26,7 +26,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-
+import kotlin.system.exitProcess
 
 
 class NavigationActivity : AppCompatActivity() {
@@ -39,9 +39,14 @@ class NavigationActivity : AppCompatActivity() {
     private lateinit var cameraId: String
     private var encendida: Boolean = false
 
+    companion object {
+        lateinit var navUsername: TextView
+        lateinit var navUserEmail: TextView
+        lateinit var navUserImage: ImageView
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_navigation)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -148,13 +153,12 @@ class NavigationActivity : AppCompatActivity() {
     }
 
     private fun getInformation() {
-
         // actualizamos el perfil con los datos de la sesion
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         val headerView: View = navigationView.getHeaderView(0)
-        val navUsername: TextView = headerView.findViewById(R.id.txtNavUser)
-        val navUserEmail: TextView = headerView.findViewById(R.id.txtNavEmail)
-        val navUserImage: ImageView = headerView.findViewById(R.id.imgNavUser)
+        navUsername = headerView.findViewById(R.id.txtNavUser)
+        navUserEmail = headerView.findViewById(R.id.txtNavEmail)
+        navUserImage = headerView.findViewById(R.id.imgNavUser)
 
         //obtenemos el email de la sesion y obtenemos el usuario
         Log.i("util", USER.toString())
@@ -167,5 +171,4 @@ class NavigationActivity : AppCompatActivity() {
             UtilImage.redondearFoto(navUserImage)
         }
     }
-
 }

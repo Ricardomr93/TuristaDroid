@@ -8,9 +8,8 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.StrictMode
-import android.os.StrictMode.VmPolicy
 import android.provider.MediaStore
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
@@ -28,6 +27,7 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
+import io.realm.internal.Util
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
 
@@ -37,28 +37,18 @@ class SinginActivity : AppCompatActivity() {
     private var nameuser = ""
     private var email = ""
     private var pass = ""
-    private var user = User();
+    private var user = User()
     private var image: Bitmap? = null
-
+    private lateinit var IMAGE: Uri
     // Constantes
-    private val GALERIA = 1
-    private val CAMARA = 2
-
-    // https://developer.android.com/training/data-storage/shared/media?hl=es-419
-    private val IMAGEN_DIR = "/TodoCamara2020"
-    private lateinit var IMAGEN_URI: Uri
-    private val PROPORCION = 600
-    private var IMAGEN_NOMBRE = ""
-    private var IMAGEN_COMPRES = 30
-
+    private val GALLERY = 1
+    private val CAMERA = 2
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_singin)
-        singin()
         initUI()
     }
-
     /**
      * Metodo para registrar un usuario
      * Una vez registrado, vuelve al LoginActivity
@@ -67,13 +57,14 @@ class SinginActivity : AppCompatActivity() {
         btnSing.setOnClickListener {
             if (anyEmpty()) {
                 try {
-                    //Comprobar el campo password
-                    if (isPasswordValid(txtPass.text.toString())) {
-                        addUser()
+                    if (isMailValid(txtEmail.text.toString())) {//campo email correcto
+                        //Comprobar el campo password
+                            addUser()
+                            val intent = Intent(this, LoginActivity::class.java)
+                            startActivity(intent)
                     } else {
-                        txtPass.error = resources.getString(R.string.pwd_incorrecto)
+                        txtEmail.error = resources.getString(R.string.email_incorrecto)
                     }
-
                 } catch (ex: RealmPrimaryKeyConstraintException) {
                     txtEmail.error = resources.getString(R.string.isAlreadyExist)
                 }
@@ -81,6 +72,10 @@ class SinginActivity : AppCompatActivity() {
             }
         }
     }
+
+    /**
+     * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
+     */
     private fun addUser() {
         user.name = txtName.text.toString()
         user.password = UtilEncryptor.encrypt(txtPass.text.toString())!!
@@ -88,20 +83,15 @@ class SinginActivity : AppCompatActivity() {
         user.email = txtEmail.text.toString()
         user.image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
         UserController.insertUser(user)
+        USER = user
         Log.i("user", user.toString())
-        val intent = Intent(this, LoginActivity::class.java)
-        startActivity(intent)
     }
 
     /**
      * Metodo para validar el EMAIL
      */
     private fun isMailValid(mail: String): Boolean {
-        return if (mail.contains('@')) {
-            Patterns.EMAIL_ADDRESS.matcher(mail).matches()
-        } else {
-            mail.isNotBlank()
-        }
+        return Patterns.EMAIL_ADDRESS.matcher(mail).matches()
     }
 
     /**
@@ -134,38 +124,6 @@ class SinginActivity : AppCompatActivity() {
         }
         return valid
     }
-    /**
-     * Método sobreescrito que salva el estado en el ciclo del vida
-     */
-    override fun onSaveInstanceState(outState: Bundle) {
-        // Salvamos en un bundle estas variables o estados de la interfaz
-        outState.run {
-            // Actualizamos los datos o los recogemos de la interfaz
-            putString("EMAIL", email)
-            putString("NAME", name)
-            putString("NAMEUSER", nameuser)
-            putString("PASSWORD", pass)
-            putString("IMAGE", image?.let { UtilImage.toBase64(it) })
-        }
-        // llama a la clase padre para salvar los datos
-        super.onSaveInstanceState(outState)
-    }
-
-    /**
-     * Metodo sobreescrito para recuperar el estado del ciclo de vida
-     */
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        // Recuperamos las variables y los estados
-        super.onRestoreInstanceState(savedInstanceState)
-        // Recuperamos del Bundle
-        savedInstanceState.run {
-            name = getString("NAME").toString()
-            email = getString("EMAIL").toString()
-            nameuser = getString("NAMEUSER").toString()
-            pass = getString("PASSWORD").toString()
-            image = UtilImage.toBitmap(getString("IMAGE").toString())
-        }
-    }
     //************************************************************
     //METODOS PARA LA IMAGEN**************************************
 
@@ -173,13 +131,11 @@ class SinginActivity : AppCompatActivity() {
      * Inicia la interfaz y los eventos de la apliación
      */
     private fun initUI() {
-
-        // Eventos botones
         initBotones()
-
-        // Iniciamos los permisos
         initPermisos()
+        singin()
     }
+
     /**
      * Inicia los eventos de los botones
      */
@@ -197,13 +153,13 @@ class SinginActivity : AppCompatActivity() {
             getString(R.string.Gallery),
             getString(R.string.Photo)
         )
-        // Creamos el dialog con su builder
+        //Dialogo para eligir opciones
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.SelectOption))
-            .setItems(fotoDialogoItems) { dialog, modo ->
+            .setItems(fotoDialogoItems) { _, modo ->
                 when (modo) {
-                    0 -> elegirFotoGaleria()
-                    1 -> tomarFotoCamara()
+                    0 -> takephotoFromGallery()
+                    1 -> takePhotoFromCamera()
                 }
             }
             .show()
@@ -212,36 +168,26 @@ class SinginActivity : AppCompatActivity() {
     /**
      * Elige una foto de la galeria
      */
-    private fun elegirFotoGaleria() {
+    private fun takephotoFromGallery() {
         val galleryIntent = Intent(
             Intent.ACTION_PICK,
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
-        startActivityForResult(galleryIntent, GALERIA)
-    }
-
-    //Llamamos al intent de la camara
-    private fun tomarFotoCamara() {
-
-        // Si queremos hacer uso de fotos en alta calidad
-        val builder = VmPolicy.Builder()
-        StrictMode.setVmPolicy(builder.build())
-
-        // Eso para alta o baja
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        // Nombre de la imagen
-        IMAGEN_NOMBRE = UtilImage.crearNombreFichero()
-        // Salvamos el fichero
-        val fichero = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, applicationContext)!!
-        IMAGEN_URI = Uri.fromFile(fichero)
-
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGEN_URI)
-        // Esto para alta y baja
-        startActivityForResult(intent, CAMARA)
+        startActivityForResult(galleryIntent, GALLERY)
     }
 
     /**
-     * Siempre se ejecuta al realizar una acción
+     * Metodo que llama al intent de la camamara para tomar una foto
+     */
+    private fun takePhotoFromCamera() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        //CAPTURA LA FOTO Y LA METE DETRO DE LA VARIABLE
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
+        startActivityForResult(intent, CAMERA)
+    }
+
+    /**
+     * Cuando ejecutamos una actividad y da un resultado
      * @param requestCode Int
      * @param resultCode Int
      * @param data Intent?
@@ -249,85 +195,78 @@ class SinginActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         Log.d("sing", "Opción::--->$requestCode")
         super.onActivityResult(requestCode, resultCode, data)
+        //Si cancela no hace nada
         if (resultCode == RESULT_CANCELED) {
             Log.d("sing", "Se ha cancelado")
         }
-        if (requestCode == GALERIA) {
+        //si elige la opcion de galeria entra en la galeria
+        if (requestCode == GALLERY) {
             Log.d("sing", "Entramos en Galería")
             if (data != null) {
-                // Obtenemos su URI con su dirección temporal
+                // Obtenemos su URI
                 val contentURI = data.data!!
                 try {
-                    // Obtenemos el bitmap de su almacenamiento externo
-                    // Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
-                    val bitmap: Bitmap
-                    if (Build.VERSION.SDK_INT < 28) {
-                        bitmap = MediaStore.Images.Media.getBitmap(contentResolver, contentURI);
-                    } else {
-                        val source: ImageDecoder.Source = ImageDecoder.createSource(contentResolver, contentURI)
-                        bitmap = ImageDecoder.decodeBitmap(source)
-                    }
-                    // Para jugar con las proporciones y ahorrar en memoria no cargando toda la foto, solo carga 600px max
-                    val prop = PROPORCION / bitmap.width.toFloat()
-                    // Actualizamos el bitmap para ese tamaño, luego podríamos reducir su calidad
-                    val foto = Bitmap.createScaledBitmap(bitmap, PROPORCION, (bitmap.height * prop).toInt(), false)
-                    Toast.makeText(this, "¡Foto rescatada de la galería!", Toast.LENGTH_SHORT).show()
-                    imgBtnPhoto.setImageBitmap(bitmap)
-                    // Vamos a compiar nuestra imagen en nuestro directorio
-                    UtilImage.copiarImagen(bitmap, IMAGEN_DIR, IMAGEN_COMPRES, applicationContext)
+                    val bitmap = differentVersion(contentURI)
+                    imgBtnPhoto.setImageBitmap(bitmap)//mostramos la imagen
+                    UtilImage.redondearFoto(imgBtnPhoto)
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    Toast.makeText(this, "¡Fallo Galeria!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getText(R.string.error_gallery), Toast.LENGTH_SHORT).show()
                 }
             }
-        } else if (requestCode == CAMARA) {
+        } else if (requestCode == CAMERA) {
             Log.d("sing", "Entramos en Camara")
-            // Cogemos la imagen, pero podemos coger la imagen o su modo en baja calidad (thumbnail)
+            //cogemos la imagen
             try {
-                val foto: Bitmap
-                //Para controlar la version de android usar uno u otro
-                if (Build.VERSION.SDK_INT < 28) {
-                    foto = MediaStore.Images.Media.getBitmap(contentResolver, IMAGEN_URI)
-                } else {
-                    val source: ImageDecoder.Source = ImageDecoder.createSource(contentResolver, IMAGEN_URI)
-                    foto = ImageDecoder.decodeBitmap(source)
-                }
-                // Mostramos
+                val foto = differentVersion(IMAGE)
+                // Mostramos la imagen
                 imgBtnPhoto.setImageBitmap(foto)
-                //mainTvPath.text = IMAGEN_URI.toString()
-                Log.i("sing","Foto guardada")
+                UtilImage.redondearFoto(imgBtnPhoto)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.i("sing","Fallo con la camara")
+                Toast.makeText(this, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
         }
     }
+
+    /**
+     * Metodo que devuleve un bitmap depende de la version
+     * @return un bitmap
+     */
+    fun differentVersion(contentURI: Uri): Bitmap {
+        //Para controlar la version de android usar uno u otro
+        val bitmap: Bitmap
+        bitmap = if (Build.VERSION.SDK_INT < 28) {
+            MediaStore.Images.Media.getBitmap(contentResolver, contentURI);
+        } else {
+            val source: ImageDecoder.Source = ImageDecoder.createSource(contentResolver, contentURI)
+            ImageDecoder.decodeBitmap(source)
+        }
+        return bitmap;
+    }
+    //************************************************************
+    //METODO  PARA LOS PERMISOS**********************
     /**
      * Comprobamos los permisos de la aplicación
      */
     private fun initPermisos() {
-        // Indicamos el permisos y el manejador de eventos de los mismos
+        //ACTIVIDAD DONDE TRABAJA
         Dexter.withContext(this)
-            // Lista de permisos a comprobar
+            //PERMISOS
             .withPermissions(
                 Manifest.permission.CAMERA,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-            )
-            // Listener a ejecutar
+            )//LISTENER DE MULTIPLES PERMISOS
             .withListener(object : MultiplePermissionsListener {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    // ccomprbamos si tenemos los permisos de todos ellos
                     if (report.areAllPermissionsGranted()) {
-                        Log.i("sing","¡Todos los permisos concedidos!")
+                        Log.i("sing", "Ha aceptado todos los permisos")
                     }
-
-                    // comprobamos si hay un permiso que no tenemos concedido ya sea temporal o permanentemente
+                    // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
                     if (report.isAnyPermissionPermanentlyDenied) {
-                        // abrimos un diálogo a los permisos
-                        //openSettingsDialog();
                     }
-                }
+                }//NOTIFICAR DE LOS PERMISOS
 
                 override fun onPermissionRationaleShouldBeShown(
                     permissions: List<PermissionRequest?>?,
@@ -335,8 +274,48 @@ class SinginActivity : AppCompatActivity() {
                 ) {
                     token.continuePermissionRequest()
                 }
-            }).withErrorListener { Toast.makeText(applicationContext, "Existe errores! ", Toast.LENGTH_SHORT).show() }
+            }).withErrorListener {
+                Toast.makeText(
+                    applicationContext,
+                    getString(R.string.error_permissions),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             .onSameThread()
             .check()
+
+    }
+    //************************************************************
+    //METODOS PARA LA RECUPERACION DE DATOS***********************
+    /**
+     * Método sobreescrito que salva el estado en el ciclo del vida
+     */
+    override fun onSaveInstanceState(outState: Bundle) {
+        // Salvamos en un bundle estas variables o estados de la interfaz
+        outState.run {
+            // Actualizamos los datos o los recogemos de la interfaz
+            putString("EMAIL", email)
+            putString("NAME", name)
+            putString("NAMEUSER", nameuser)
+            putString("PASSWORD", pass)
+            putString("IMAGE", image?.let { UtilImage.toBase64(it) })
+        }
+        // llama a la clase padre para salvar los datos
+        super.onSaveInstanceState(outState)
+    }
+    /**
+     * Metodo sobreescrito para recuperar el estado del ciclo de vida
+     */
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        // Recuperamos las variables y los estados
+        super.onRestoreInstanceState(savedInstanceState)
+        // Recuperamos del Bundle
+        savedInstanceState.run {
+            name = getString("NAME").toString()
+            email = getString("EMAIL").toString()
+            nameuser = getString("NAMEUSER").toString()
+            pass = getString("PASSWORD").toString()
+            image = UtilImage.toBitmap(getString("IMAGE").toString())
+        }
     }
 }

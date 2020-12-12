@@ -11,10 +11,10 @@ import kotlin.experimental.and
 object UtilEncryptor {
 
     /**
-     *
+     * Convierte de string a byteArray
      */
     fun encrypt(pwd: String): String? {
-        var md: MessageDigest? = null
+        var md: MessageDigest?
         var bytes: ByteArray? = null
         try {
             md = MessageDigest.getInstance("SHA-256")

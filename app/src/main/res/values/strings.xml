@@ -8,8 +8,12 @@
 
     <string name="login">Login</string>
     <string name="singin">Sing in</string>
+    <string name="logout">Logout</string>
+
+    <string name="want_to_logout">Do you want to Logout?</string>
 
     <string name="my_sites">My Sites</string>
+    <string name="it_site">Site</string>
     <string name="next_to_me">Next To Me</string>
     <string name="my_profile">My Profile</string>
     <string name="exit">Exit</string>
@@ -58,7 +62,11 @@
     <string name="error_no_flash">The device does not have Flash</string>
     <string name="ok">OK</string>
     <string name="deleteCount">Delete count</string>
+    <string name="error_permissions">Error: error with permissions</string>
+    <string name="error_gallery">Error: error with Gallery</string>
+    <string name="error_camera">Error: error with Camera</string>
     <string name="update_user">Updated user</string>
+
 
 
 

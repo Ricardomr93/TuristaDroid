@@ -2,10 +2,10 @@ package android.ricardoflor.turistdroid.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionController
-import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilSession
@@ -18,11 +18,6 @@ class LoginActivity : AppCompatActivity() {
 
     var email: String = ""
     var pass: String = ""
-    //Variable estatica
-    companion object{
-        var USER = User()
-        var SESSION = Session()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,10 +35,11 @@ class LoginActivity : AppCompatActivity() {
             pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
             if (userExists()) {
                 Log.i("realm", "usuario logeado")
-                UtilSession.deleteSession()//borrado provisional
                 UtilSession.createSession(email)
                 SESSION = SessionController.selectSession()!!
                 val intent = Intent(this,NavigationActivity::class.java)
+                //Elimina la pila trasera para que el boton no vuelva a esta actividad
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                 startActivity(intent)
             } else {
                 editTextLoginMail.error = getString(R.string.userNotCorrect)

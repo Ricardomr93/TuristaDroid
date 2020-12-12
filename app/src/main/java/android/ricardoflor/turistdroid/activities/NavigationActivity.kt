@@ -3,27 +3,20 @@ package android.ricardoflor.turistdroid.activities
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
-import android.ricardoflor.turistdroid.bd.session.SessionController
-import android.ricardoflor.turistdroid.bd.user.User
-import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilImage
-import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -33,15 +26,12 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContentProviderCompat
-import kotlinx.android.synthetic.main.activity_singin.*
-import kotlinx.android.synthetic.main.nav_header_main.*
-import java.io.File
+import kotlin.system.exitProcess
+
 
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-
 
     //LINTERNA
     private lateinit var cameraManager: CameraManager
@@ -50,7 +40,6 @@ class NavigationActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_navigation)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -98,7 +87,7 @@ class NavigationActivity : AppCompatActivity() {
             }
 
             R.id.action_light -> {
-                if (encendida){
+                if (encendida) {
                     //Log.i("light", "Linterna OFF")
                     item.setIcon(R.drawable.ic_ricflor_lantern_white_off)
                     encendida = false
@@ -117,15 +106,21 @@ class NavigationActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Funcion para arrancar la linterna
+     */
     private fun initLight() {
-        val isFlashAvailable = applicationContext?.packageManager?.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)
+        val isFlashAvailable =
+            applicationContext?.packageManager?.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)
         if (!isFlashAvailable!!) {
             val alert = AlertDialog.Builder(applicationContext)
                 .create()
             alert.setTitle(R.string.error)
             alert.setMessage(R.string.error_no_flash.toString())
-            alert.setButton(DialogInterface.BUTTON_POSITIVE, R.string.ok.toString()) { _, _ -> Log.i("Linterna", "Sin linterna")}
-            alert.show()
+            alert.setButton(DialogInterface.BUTTON_POSITIVE, R.string.ok.toString()) { _, _ ->
+                Log.i("Linterna", "Sin linterna")
+            }
+            //alert.show()
         }
         cameraManager = applicationContext?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
@@ -150,15 +145,7 @@ class NavigationActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-
-    fun logout(navigationView: NavigationView) {
-
-        UtilSession.deleteSession()
-        startActivity(Intent(this, LoginActivity::class.java))
-    }
-
     private fun getInformation() {
-
         // actualizamos el perfil con los datos de la sesion
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         val headerView: View = navigationView.getHeaderView(0)
@@ -177,5 +164,4 @@ class NavigationActivity : AppCompatActivity() {
             UtilImage.redondearFoto(navUserImage)
         }
     }
-
 }

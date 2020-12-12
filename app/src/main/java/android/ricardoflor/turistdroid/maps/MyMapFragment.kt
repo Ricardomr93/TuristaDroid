@@ -1,22 +1,19 @@
-package android.ricardoflor.turistdroid.activities.ui.nexttome
+package android.ricardoflor.turistdroid.maps
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.location.Location
+import androidx.fragment.app.Fragment
+
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.image.Image
-import android.ricardoflor.turistdroid.bd.image.ImageController
-import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
-import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -33,7 +30,7 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 
-class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class MyMapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
 
     // Variables a usar y permisos del mapa
     private lateinit var mMap: GoogleMap
@@ -58,7 +55,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             return@setOnTouchListener true
         }
         init()
-       // anadirLugares()
     }
 
     private fun init() {
@@ -73,7 +69,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      */
     private fun initMap() {
         val mapFragment = (childFragmentManager
-            .findFragmentById(R.id.mapNextToMe) as SupportMapFragment?)!!
+            .findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment.getMapAsync(this)
     }
 
@@ -84,7 +80,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
         val uiSettings = mMap.uiSettings
         uiSettings.isCompassEnabled = true
-      //  mMap.setMinZoomPreference(16.0f)//zoom maximo
+        mMap.setMinZoomPreference(16.0f)//zoom maximo
     }
 
     /**
@@ -98,7 +94,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         getPosition()
         locationReq()
         getLatitudeOnClick()
-        addMarkerSite()
     }
 
     /**
@@ -114,7 +109,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         ).show()
         return false
     }
-
     /**
      * Metodo que coge la posicion al pulsar y pinta un marcador
      */
@@ -141,18 +135,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         )
     }
 
-    private fun addMarkerSite() {
-        var listSites = SiteController.selectAllSite()
-
-        //si hay lugares los pinta
-        if (listSites != null) {
-            for (site in listSites) {
-                Log.i("mape",site.toString())
-                var loc = LatLng(site.latitude, site.longitude)
-                markCurrentPostition(loc)
-            }
-        }
-    }
     //************************************************************
     //METODOS GPS*************************************************
     /**
@@ -253,35 +235,5 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             }
             .onSameThread()
             .check()
-    }
-
-    private fun anadirLugares() {
-
-
-        //Ciudad Real
-        val lugar = Site("Lugar 1", "fecha", "ciudad", 4.3, -3.940100, 38.981782)
-        var lugar2 = Site("Lugar 2", "fecha", "ciudad", 3.5, -3.945000, 38.981000)
-        var lugar3 = Site(3, "Lugar 3", "fecha", "ciudad", 0.5, -3.940900, 38.981500)
-
-        val lugar7 = Site(7, "Lugar 1", "fecha", "ciudad", 4.3, -3.918120, 38.980935)
-        var lugar8 = Site(8, "Lugar 2", "fecha", "ciudad", 3.5, -3.940031, 38.993067)
-        var lugar9 = Site(9, "Lugar 3", "fecha", "ciudad", 0.5, -3.942874, 38.971091)
-
-        //Puertollano
-        val lugar4 = Site(4, "Lugar 1", "fecha", "ciudad", 4.3, -4.11179038, 38.707595)
-        var lugar5 = Site(5, "Lugar 2", "fecha", "ciudad", 3.5, -4.11017800, 38.702733)
-        var lugar6 = Site(6, "Lugar 3", "fecha", "ciudad", 0.5, -4.08364100, 38.682322)
-
-
-
-        SiteController.insertSite(lugar)
-        SiteController.insertSite(lugar2)
-        SiteController.insertSite(lugar3)
-        SiteController.insertSite(lugar4)
-        SiteController.insertSite(lugar5)
-        SiteController.insertSite(lugar6)
-        SiteController.insertSite(lugar7)
-        SiteController.insertSite(lugar8)
-        SiteController.insertSite(lugar9)
     }
 }

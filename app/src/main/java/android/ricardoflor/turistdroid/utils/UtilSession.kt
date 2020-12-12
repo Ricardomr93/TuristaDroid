@@ -1,6 +1,6 @@
 package android.ricardoflor.turistdroid.utils
 
-import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.SESSION
+import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
 import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.util.Log
@@ -36,7 +36,7 @@ object UtilSession {
         /**
          * Borra la session del email y lo pone a vacio
          */
-        fun deleteSession() {
+        fun closeSession() {
             try {
                 SESSION = SessionController.selectSession()!!
                 Log.i("util", "SESSION "+SESSION.useremail)
@@ -45,5 +45,6 @@ object UtilSession {
             }
 
         }
+
 
     }

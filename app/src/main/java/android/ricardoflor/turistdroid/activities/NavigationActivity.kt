@@ -38,6 +38,12 @@ class NavigationActivity : AppCompatActivity() {
     private lateinit var cameraId: String
     private var encendida: Boolean = false
 
+    companion object {
+        lateinit var navUsername: TextView
+        lateinit var navUserEmail: TextView
+        lateinit var navUserImage: ImageView
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
@@ -149,9 +155,9 @@ class NavigationActivity : AppCompatActivity() {
         // actualizamos el perfil con los datos de la sesion
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         val headerView: View = navigationView.getHeaderView(0)
-        val navUsername: TextView = headerView.findViewById(R.id.txtNavUser)
-        val navUserEmail: TextView = headerView.findViewById(R.id.txtNavEmail)
-        val navUserImage: ImageView = headerView.findViewById(R.id.imgNavUser)
+        navUsername = headerView.findViewById(R.id.txtNavUser)
+        navUserEmail = headerView.findViewById(R.id.txtNavEmail)
+        navUserImage = headerView.findViewById(R.id.imgNavUser)
 
         //obtenemos el email de la sesion y obtenemos el usuario
         Log.i("util", USER.toString())

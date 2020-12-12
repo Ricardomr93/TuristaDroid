@@ -36,7 +36,7 @@ object UtilSession {
         /**
          * Borra la session del email y lo pone a vacio
          */
-        fun deleteSession() {
+        fun closeSession() {
             try {
                 SESSION = SessionController.selectSession()!!
                 Log.i("util", "SESSION "+SESSION.useremail)
@@ -45,5 +45,6 @@ object UtilSession {
             }
 
         }
+
 
     }

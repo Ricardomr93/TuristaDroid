@@ -2,6 +2,7 @@ package android.ricardoflor.turistdroid.activities.ui.myprofile
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -15,28 +16,28 @@ import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.LoginActivity
 import android.ricardoflor.turistdroid.activities.NavigationActivity
+import android.ricardoflor.turistdroid.bd.image.ImageController
 import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
+import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
-import com.google.android.material.navigation.NavigationView
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_my_profile.*
 import java.io.IOException
@@ -50,6 +51,7 @@ class MyProfileFragment : Fragment() {
     private lateinit var FOTO: Bitmap
     private lateinit var IMAGEN_NOMBRE: String
     private var user = User()
+    private val im: String = ""
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -70,6 +72,11 @@ class MyProfileFragment : Fragment() {
         initBotones()
         initPermisos()
     }
+
+    fun emailChanges(): Boolean {
+        return USER.email != txtEmailMyProfile.text.toString()
+    }
+
     /**
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
@@ -77,12 +84,15 @@ class MyProfileFragment : Fragment() {
         var name = txtNameMyProfile.text.toString()
         var nameUser = txtUserNameMyProfile.text.toString()
         var email = txtEmailMyProfile.text.toString()
-        Log.d("profile",name+nameUser+email)
+        Log.d("profile", name + nameUser + email)
         user.name = name
         user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
         user.nameUser = nameUser
         user.email = email
-        user.image = UtilImage.toBase64(FOTO)!!
+        try {
+            user.image = UtilImage.toBase64(FOTO)!!
+        } catch (ex: UninitializedPropertyAccessException) {
+        }
         UserController.updateUser(user)
     }
 
@@ -91,17 +101,71 @@ class MyProfileFragment : Fragment() {
             if (isMailValid(txtEmailMyProfile.text.toString())) {
                 if (!isPasswordValid(txtPassMyprofile.text.toString())) {
                     if (!someIsEmpty()) {
-                        update()
+                        Log.i("updater", "usuario cambia")
+                        deleteAndInsertUser()
+                        Log.i("updater", UserController.selectAllUser().toString())
+                        changeNavigation()
                         Toast.makeText(context!!, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
                     }
-                 } else {
+                } else {
                     txtPassMyprofile.error = resources.getString(R.string.pwd_incorrecto)
                 }
             } else {
                 txtEmailMyProfile.error = resources.getString(R.string.email_incorrecto)
-
             }
         }
+    }
+
+    fun changeNavigation() {
+        NavigationActivity.navUsername.text = USER.nameUser
+        NavigationActivity.navUserEmail.text = USER.email
+        if (USER.image != "") {
+            Log.i("util", "Carga imagen")
+            NavigationActivity.navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
+            UtilImage.redondearFoto(NavigationActivity.navUserImage)
+        }
+    }
+
+    /**
+     * Metodo que borra e inserta
+     */
+    fun deleteAndInsertUser() {
+        UserController.deleteUser(USER.email)
+        UtilSession.closeSession()
+        addUser()
+        SESSION = SessionController.selectSession()!!
+    }
+
+    /**
+     * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
+     */
+    private fun addUser() {
+        try {
+            user.name = txtNameMyProfile.text.toString()
+            user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
+            user.nameUser = txtUserNameMyProfile.text.toString()
+            user.email = txtEmailMyProfile.text.toString()
+            try {
+                user.image = UtilImage.toBase64(FOTO)!!
+            } catch (ex: UninitializedPropertyAccessException) {
+            }
+            UserController.insertUser(user)
+            USER = user
+            UtilSession.createSession(user.email)
+            Log.i("user", user.toString())
+        } catch (ex: RealmPrimaryKeyConstraintException) {
+            txtEmailMyProfile.error = resources.getString(R.string.isAlreadyExist)
+            restauredUser()//restaura el usuario para no perder los datos
+        }
+
+
+    }
+
+    /**
+     * Restaura los datos del usuario borrado por si ocurre algun error
+     */
+    fun restauredUser() {
+        UserController.insertUser(USER)
     }
 
     /**
@@ -144,11 +208,28 @@ class MyProfileFragment : Fragment() {
 
     private fun deleteUser() {
         btnUnsubMyProfile.setOnClickListener {
-            UserController.deleteUser(USER.email)
-            SessionController.deleteSession(SESSION)
-            startActivity(Intent(context, LoginActivity::class.java))
-            Toast.makeText(context!!, "USUARIO BORRADO", Toast.LENGTH_SHORT).show()
+            showDialogAlertSimple()
         }
+    }
+
+    /**
+     * Cuadro de dialogo para advertir al usuario si queire borrar su cuenta
+     */
+    fun showDialogAlertSimple() {
+        AlertDialog.Builder(context)
+            .setTitle(getText(R.string.caution))
+            .setMessage(getText(R.string.sure_delete))
+            .setPositiveButton(android.R.string.ok,
+                DialogInterface.OnClickListener { dialog, which ->
+                    UserController.deleteUser(USER.email)
+                    SessionController.deleteSession(SESSION)
+                    startActivity(Intent(context, LoginActivity::class.java))
+                    Toast.makeText(context!!, "USUARIO BORRADO", Toast.LENGTH_SHORT).show()
+                })
+            .setNegativeButton(android.R.string.cancel,
+                DialogInterface.OnClickListener { dialog, which ->
+                })
+            .show()
     }
 
     /**
@@ -161,8 +242,9 @@ class MyProfileFragment : Fragment() {
         if (USER.image != "") {
             Log.i("util", "Carga imagen")
             imgMyprofile.setImageBitmap(UtilImage.toBitmap(USER.image))
+            UtilImage.redondearFoto(imgMyprofile)
         }
-        UtilImage.redondearFoto(imgMyprofile)
+
     }
     //************************************************************
     //METODO  PARA LOS PERMISOS**********************
@@ -216,6 +298,7 @@ class MyProfileFragment : Fragment() {
             initDialogFoto()
         }
     }
+
     /**
      * Muestra el diálogo para tomar foto o elegir de la galería
      */
@@ -267,6 +350,7 @@ class MyProfileFragment : Fragment() {
         // Esto para alta y baja
         startActivityForResult(intent, CAMERA)
     }
+
     /**
      * Cuando ejecutamos una actividad y da un resultado
      * @param requestCode Int
@@ -308,6 +392,7 @@ class MyProfileFragment : Fragment() {
             }
         }
     }
+
     /**
      * Metodo que devuleve un bitmap depende de la version
      * @return un bitmap

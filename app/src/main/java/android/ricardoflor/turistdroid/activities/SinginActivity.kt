@@ -38,8 +38,9 @@ class SinginActivity : AppCompatActivity() {
     private var email = ""
     private var pass = ""
     private var user = User()
-    private var image: Bitmap? = null
+    private lateinit var FOTO: Bitmap
     private lateinit var IMAGE: Uri
+    private var image : Bitmap? = null
     // Constantes
     private val GALLERY = 1
     private val CAMERA = 2
@@ -81,7 +82,10 @@ class SinginActivity : AppCompatActivity() {
         user.password = UtilEncryptor.encrypt(txtPass.text.toString())!!
         user.nameUser = txtUserName.text.toString()
         user.email = txtEmail.text.toString()
-        user.image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+        try {
+            user.image = UtilImage.toBase64(FOTO)!!
+        } catch (ex: UninitializedPropertyAccessException) {
+        }
         UserController.insertUser(user)
         USER = user
         Log.i("user", user.toString())
@@ -206,8 +210,8 @@ class SinginActivity : AppCompatActivity() {
                 // Obtenemos su URI
                 val contentURI = data.data!!
                 try {
-                    val bitmap = differentVersion(contentURI)
-                    imgBtnPhoto.setImageBitmap(bitmap)//mostramos la imagen
+                    FOTO = differentVersion(contentURI)
+                    imgBtnPhoto.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgBtnPhoto)
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -218,9 +222,9 @@ class SinginActivity : AppCompatActivity() {
             Log.d("sing", "Entramos en Camara")
             //cogemos la imagen
             try {
-                val foto = differentVersion(IMAGE)
+                FOTO = differentVersion(IMAGE)
                 // Mostramos la imagen
-                imgBtnPhoto.setImageBitmap(foto)
+                imgBtnPhoto.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgBtnPhoto)
             } catch (e: Exception) {
                 e.printStackTrace()

@@ -10,11 +10,16 @@
         <item name="android:textColor">@color/primary_text</item>
         <item name="android:windowBackground">@drawable/background_app</item>
     </style>
-    <!--Thema para el splash screen-->
+    <!--Tema para el splash screen-->
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <!--Tema para el Date Picker-->
+<!--    <style name="AppTheme.datePickerTheme">-->
+<!--        <item name="colorPrimaryDark">@color/primary_dark</item>-->
+<!--    </style>-->
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 

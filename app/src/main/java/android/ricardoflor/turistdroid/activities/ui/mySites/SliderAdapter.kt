@@ -1,6 +1,7 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
 import android.content.Context
+import android.content.res.Resources
 import android.ricardoflor.turistdroid.R
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,13 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.viewpager.widget.PagerAdapter
 import kotlinx.android.synthetic.main.item_slider_image.view.*
+
+import android.graphics.BitmapFactory
+
+import android.graphics.Bitmap
+
+
+
 
 class SliderAdapter: PagerAdapter{
 
@@ -30,6 +38,10 @@ class SliderAdapter: PagerAdapter{
         inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         var view: View = inflater.inflate(R.layout.item_slider_image, container, false)
         image = view.findViewById(R.id.slider_image)
+
+       // val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.ic_ricflor_add_photo)
+      //  image.setImageBitmap(bitmap)
+
         image.setBackgroundResource(images[position])
         container!!.addView(view)
         return view

@@ -11,12 +11,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import com.karumi.dexter.Dexter
@@ -30,9 +32,10 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     // Variables a usar y permisos del mapa
     private lateinit var mMap: GoogleMap
     private lateinit var myPosition: FusedLocationProviderClient
-    private var marcadorTouch: Marker? = null
-    private var localizacion: Location? = null
+    private var marker: Marker? = null
+    private var location: Location? = null
     private var posicion: LatLng? = null
+    private var locationRequest: LocationRequest? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,11 +53,143 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         }
         init()
     }
+
     private fun init() {
         initPermisos()
         initMap()
         myActualPosition()
     }
+    //************************************************************
+    //METODOS MAP*************************************************
+    /**
+     * metodo que inicia el mapa
+     */
+    private fun initMap() {
+        val mapFragment = (childFragmentManager
+            .findFragmentById(R.id.mapNextToMe) as SupportMapFragment?)!!
+        mapFragment.getMapAsync(this)
+    }
+
+    /**
+     * Configuración del mapa con zoom
+     */
+    private fun configurarIUMapa() {
+        mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
+        val uiSettings = mMap.uiSettings
+        uiSettings.isCompassEnabled = true
+        mMap.setMinZoomPreference(16.0f)//zoom maximo
+    }
+
+    /**
+     * Metodo que se inicia cuando el mapa está listo
+     * @param maps : GoogleMap
+     */
+    override fun onMapReady(maps: GoogleMap) {
+        mMap = maps
+        mMap.isMyLocationEnabled = true
+        configurarIUMapa()
+        getPosition()
+        locationReq()
+        getLatitudeOnClick()
+    }
+
+    /**
+     * metodo cuando pulsas un marcador
+     * @param marker : Marker
+     */
+    override fun onMarkerClick(marker: Marker): Boolean {
+        Log.i("mape", marker.toString())
+        Toast.makeText(
+            context, marker.title.toString() +
+                    " Mal sitio para ir.",
+            Toast.LENGTH_SHORT
+        ).show()
+        return false
+    }
+    /**
+     * Metodo que coge la posicion al pulsar y pinta un marcador
+     */
+    private fun getLatitudeOnClick() {
+        mMap.setOnMapClickListener { lat ->
+            posicion = LatLng(lat.latitude, lat.longitude)
+            markCurrentPostition(posicion!!)
+        }
+    }
+
+    /**
+     * Metodo que pinta un marcador en la posicion indicada
+     */
+    private fun markCurrentPostition(loc: LatLng) {
+        marker?.remove()//borra el marcardor si existe
+        marker = mMap.addMarker(
+            MarkerOptions()
+                .position(loc) // posicion
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))// Color icono
+        )
+    }
+    //************************************************************
+    //METODOS GPS*************************************************
+    /**
+     * Metodo que recoge la ubicacion actual y la mete en una variable
+     */
+    private fun myActualPosition() {
+        myPosition = LocationServices.getFusedLocationProviderClient(activity!!)
+    }
+
+    /**
+     * Metodo que actualiza la posicion
+     */
+    fun locationReq() {
+        locationRequest = LocationRequest.create()
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            .setInterval(10 * 1000)        // 10 segundos en milisegundos
+            .setFastestInterval(1 * 1000) // 1 segundo en milisegundos
+    }
+
+    /**
+     * Obtiene la posición
+     */
+    private fun getPosition() {
+        Log.i("Mape", "Opteniendo posición")
+        try {
+            // Lo lanzamos como tarea concurrente
+            val local: Task<Location> = myPosition!!.lastLocation
+            local.addOnCompleteListener(
+                activity!!
+            ) { task ->
+                if (task.isSuccessful) {
+                    // Actualizamos la última posición conocida
+                    location = task.result
+                    if (location != null) {
+                        posicion = LatLng(
+                            location!!.latitude,
+                            location!!.longitude
+                        )
+                        cameraMap()
+                    }
+                } else {
+                    Log.i("GPS", "No se encuetra la última posición.")
+                    Log.e("GPS", "Exception: %s", task.exception)
+                }
+            }
+        } catch (e: SecurityException) {
+            Snackbar.make(
+                view!!,
+                "No se ha encontrado su posoción actual o el GPS está desactivado",
+                Snackbar.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    /**
+     * Metodo que mueve la camara hasta la posicion actual
+     */
+    private fun cameraMap() {
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(posicion))
+    }
+
+    //************************************************************
+    //METODOS PERMISOS********************************************
     /**
      * Comprobamos los permisos de la aplicación
      */
@@ -92,82 +227,5 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             }
             .onSameThread()
             .check()
-    }
-
-    private fun initMap() {
-        val mapFragment = (childFragmentManager
-            .findFragmentById(R.id.mapNextToMe) as SupportMapFragment?)!!
-        mapFragment.getMapAsync(this)
-    }
-
-    override fun onMapReady(maps: GoogleMap) {
-        mMap = maps
-        mMap.isMyLocationEnabled = true
-        configurarIUMapa()
-        obtenerPosicion()
-    }
-
-    override fun onMarkerClick(marker: Marker): Boolean {
-        Log.i("mape", marker.toString())
-        Toast.makeText(
-             context, marker.title.toString() +
-                       " Mal sitio para ir.",
-               Toast.LENGTH_SHORT
-            ).show()
-        return false
-    }
-
-    /**
-     * Configuración por defecto del modo de mapa
-     */
-    private fun configurarIUMapa() {
-        Log.i("mape", "Configurando IU Mapa")
-        mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
-        val uiSettings: UiSettings = mMap.uiSettings
-        uiSettings.isScrollGesturesEnabled = true
-        uiSettings.isTiltGesturesEnabled = true
-        uiSettings.isCompassEnabled = true
-        uiSettings.isZoomControlsEnabled = true
-        uiSettings.isMapToolbarEnabled = true
-        mMap.setMinZoomPreference(15.0f)
-    }
-
-    private fun myActualPosition() {
-        myPosition = LocationServices.getFusedLocationProviderClient(activity!!)
-    }
-
-    /**
-     * Obtiene la posición
-     */
-    private fun obtenerPosicion() {
-        Log.i("Mape", "Opteniendo posición")
-        try {
-            // Lo lanzamos como tarea concurrente
-            val local: Task<Location> = myPosition!!.lastLocation
-            local.addOnCompleteListener(
-                activity!!
-            ) { task ->
-                if (task.isSuccessful) {
-                    // Actualizamos la última posición conocida
-                    //try {
-                    localizacion = task.result
-                    posicion = LatLng(
-                        localizacion!!.latitude,
-                        localizacion!!.longitude
-                    )
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(posicion));
-                } else {
-                    Log.i("GPS", "No se encuetra la última posición.")
-                    Log.e("GPS", "Exception: %s", task.exception)
-                }
-            }
-        } catch (e: SecurityException) {
-            Snackbar.make(
-                view!!,
-                "No se ha encontrado su posoción actual o el GPS está desactivado",
-                Snackbar.LENGTH_LONG
-            ).show();
-            Log.e("Exception: %s", e.message.toString())
-        }
     }
 }

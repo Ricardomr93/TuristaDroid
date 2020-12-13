@@ -8,5 +8,5 @@ open class Image (
     var id: Long = 0,
     var image : String = ""
 ): RealmObject(){
-    constructor(foto:String):this(System.currentTimeMillis()/1000,foto)
+    constructor(image:String):this(System.currentTimeMillis()/1000,image)
 }

@@ -25,12 +25,12 @@ open class Site(
     var site: String = "",
     var date: String = "",
     var rating: Double = 0.0,
+    var longitude: Double = 0.0,
     var latitude: Double = 0.0,
-    var longitude: Double = 0.0
 ) : RealmObject(){
     override fun toString(): String {
-        return "Site(id=$id, name='$name', image='$image', site='$site', date=$date, rating=$rating, latitude=$latitude, longitude=$longitude)"
+        return "Site(id=$id, name='$name', image='$image', site='$site', date=$date, rating=$rating, longitude=$longitude, latitude=$latitude)"
     }
-    constructor(name: String,image: RealmList<Image>,site: String,date: String,rating: Double,latitude: Double,longitude: Double)
-            :this(System.currentTimeMillis()/1000,name, image, site, date, rating, latitude, longitude)
+    constructor(name: String, image: RealmList<Image>, site: String, date: String, rating: Double, longitude: Double, latitude: Double)
+            :this(System.currentTimeMillis()/1000,name, image, site, date, rating, longitude, latitude)
 }

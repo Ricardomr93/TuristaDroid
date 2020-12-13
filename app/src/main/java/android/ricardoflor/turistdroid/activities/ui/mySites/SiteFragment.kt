@@ -11,6 +11,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.StrictMode
 import android.os.Vibrator
 import android.provider.MediaStore
 import androidx.fragment.app.Fragment
@@ -21,8 +22,11 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.utils.UtilImage
+import android.util.Base64
 import android.util.Log
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
@@ -33,13 +37,27 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.RealmList
+import kotlinx.android.synthetic.main.activity_singin.*
+import kotlinx.android.synthetic.main.fragment_site.*
 import java.io.IOException
+import java.util.ArrayList
 
 class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
     private val modo = modo
     private val sitio: Site? = site
     private lateinit var root: View
+
+    // Botones y Cajas de Texto
+    private var btnAddUpdate: Button? = null
+    private var btnMail: FloatingActionButton? = null
+    private var btnFace: FloatingActionButton? = null
+    private var btnTwit: FloatingActionButton? = null
+    private var btnInsta: FloatingActionButton? = null
+    private var cajaSiteName: EditText? = null
+    private var cajaLocalizacion: Spinner? = null
+    private var cajaFecha: EditText? = null
+    private var cajaRating: RatingBar? = null
 
     // Variables Site
     private lateinit var lugar: Site
@@ -51,14 +69,17 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
 
-    // Variables de camara
+    // Variables Camara
     private val GALLERY = 1
     private val CAMERA = 2
-    private lateinit var IMAGEN: Uri
-    private var modoFoto: Int = 0
+    private lateinit var IMAGEN_NOMBRE: String
+    private val IMAGEN_DIR = "/TuristDroid"
+    lateinit var IMAGE: Uri
+    private lateinit var FOTO: Bitmap
+    private var imagenIni: Boolean = true
 
     // Variables Slider Images
-    private var images: Array<Bitmap> = arrayOf()
+    private var imagesSlider: RealmList<Bitmap> = RealmList()
     private lateinit var adapter: PagerAdapter
 
     // Vibrador
@@ -69,15 +90,43 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         root = inflater.inflate(R.layout.fragment_site, container, false)
-        initEditCreateMode()
-        initPermisos()
-
-        val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
-        cajafecha.setOnClickListener {
-            showDatePickerDialog()
-        }
+        init()
 
         return root
+    }
+
+    private fun init() {
+        initButtons()
+        initEditCreateMode()
+
+        cajaFecha?.setOnClickListener {
+            showDatePickerDialog()
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initCamara()
+    }
+
+    private fun initCamara() {
+        initBotonesCamara()
+        initPermisos()
+    }
+
+    /**
+     * Inicializamos todos los botones
+     */
+    private fun initButtons() {
+        btnAddUpdate = root.findViewById(R.id.buttonSiteAddUpdate)
+        btnMail = root.findViewById(R.id.btnGMail)
+        btnFace = root.findViewById(R.id.btnFacebook)
+        btnTwit = root.findViewById(R.id.btnTwitter)
+        btnInsta = root.findViewById(R.id.btnInstagram)
+        cajaSiteName = root.findViewById(R.id.txtNameSiteSite)
+        cajaLocalizacion = root.findViewById(R.id.txtSiteSite)
+        cajaFecha = root.findViewById(R.id.txtDateSite)
+        cajaRating = root.findViewById(R.id.ratingBar)
     }
 
     /**
@@ -88,99 +137,85 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         datePicker.show(this.parentFragmentManager, "datePicker")
     }
 
-    fun onDateSelected(day: Int, month: Int, year: Int) {
-        val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
-        cajafecha.setText("$day/$month/$year")
+    private fun onDateSelected(day: Int, month: Int, year: Int) {
+        cajaFecha?.setText("$day/$month/$year")
     }
 
     /**
      * Metodo para abrir el fragment en edicion o en creacion
      */
-    fun initEditCreateMode() {
-        initBotonCamara()
-
-        val btn: Button = root.findViewById(R.id.buttonSiteAddUpdate)
-
-        val btnMail: FloatingActionButton = root.findViewById(R.id.btnGMail)
-        val btnFace: FloatingActionButton = root.findViewById(R.id.btnFacebook)
-        val btnTwit: FloatingActionButton = root.findViewById(R.id.btnTwitter)
-        val btnInsta: FloatingActionButton = root.findViewById(R.id.btnInstagram)
-
-        val cajaSiteName: EditText = root.findViewById(R.id.txtNameSiteSite)
-        val cajaLocalizacion: EditText = root.findViewById(R.id.txtSiteSite)
-        val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
-        val cajaRating: RatingBar = root.findViewById(R.id.ratingBar)
+    private fun initEditCreateMode() {
 
         when (modo) {
             1 -> {
                 // Obtiene instancia a Vibrator
                 vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
+                // Slider Images
                 val b1 = BitmapFactory.decodeResource(resources, R.drawable.add)
-                images = arrayOf(b1)
+                imagesSlider.add(b1)
 
-                adapter = SliderAdapter(context!!, images)
+                adapter = SliderAdapter(context!!, imagesSlider)
                 val slider: ViewPager = root.findViewById(R.id.imageSite)
                 slider.adapter = adapter
 
                 // Fragment de Creacion
-                btn.text = getString(R.string.add)
-
-                btnMail.isVisible = false
-                btnFace.isVisible = false
-                btnTwit.isVisible = false
-                btnInsta.isVisible = false
-
-                add(btn)
+                btnAddUpdate?.text = getString(R.string.add)
+                mostrarBotonesSocial(false)
+                add(btnAddUpdate!!)
             }
 
             2 -> {
                 // Fragment de Edicion
                 cargarDatosSite()
-                btn.text = getString(R.string.update)
-
-                btnMail.isVisible = false
-                btnFace.isVisible = false
-                btnTwit.isVisible = false
-                btnInsta.isVisible = false
-
-                update(btn)
+                btnAddUpdate?.text = getString(R.string.update)
+                mostrarBotonesSocial(false)
+                update(btnAddUpdate!!)
             }
 
             3 -> {
                 // Fragment de Consulta
                 cargarDatosSite()
-                btn.isVisible = false
+                btnAddUpdate?.isVisible = false
+                mostrarBotonesSocial(true)
 
-                btnMail.isVisible = true
-                btnFace.isVisible = true
-                btnTwit.isVisible = true
-                btnInsta.isVisible = true
-
-                cajaSiteName.isEnabled = false
-                cajaLocalizacion.isEnabled = false
-                cajafecha.isEnabled = false
-                cajaRating.isEnabled = false
+                cajaSiteName?.isEnabled = false
+                cajaLocalizacion?.isEnabled = false
+                cajaFecha?.isEnabled = false
+                cajaRating?.isEnabled = false
 
             }
         }
+    }
 
+    private fun mostrarBotonesSocial(bool: Boolean) {
+        btnMail?.isVisible = bool
+        btnFace?.isVisible = bool
+        btnTwit?.isVisible = bool
+        btnInsta?.isVisible = bool
     }
 
     /**
      * Metodo para cargar los datos del Sitio en el Fragment
      */
     private fun cargarDatosSite() {
+        cajaSiteName?.setText(sitio?.name)
 
-        val cajaSiteName: EditText = root.findViewById(R.id.txtNameSiteSite)
-        val cajaLocalizacion: EditText = root.findViewById(R.id.txtSiteSite)
-        val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
-        val cajaRating: RatingBar = root.findViewById(R.id.ratingBar)
+        // Cargamos el spinner con la opcion correcta
+        var lista: Array<String> = resources.getStringArray(R.array.sites_types)
 
-        cajaSiteName.setText(sitio?.name)
-        cajaLocalizacion.setText(sitio?.site)
-        cajafecha.setText(sitio?.date)
-        cajaRating.rating = ((sitio?.rating)?.toFloat() ?: 0.0) as Float
+        var opc: Int = 0
+
+        for (it in lista){
+            if (it.equals(sitio?.site.toString())){
+                break
+            }
+            opc ++
+        }
+        cajaLocalizacion?.setSelection(opc)
+
+        cajaFecha?.setText(sitio?.date)
+        cajaRating?.rating = ((sitio?.rating)?.toFloat() ?: 0.0) as Float
     }
 
     /**
@@ -189,17 +224,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     fun add(btn: Button) {
 
         btn.setOnClickListener {
-            val cajaSiteName: EditText = root.findViewById(R.id.txtNameSiteSite)
-            val cajaLocalizacion: EditText = root.findViewById(R.id.txtSiteSite)
-            val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
-            val cajaRating: RatingBar = root.findViewById(R.id.ratingBar)
-            // Recuperamos las fotos subidas
+            // Recuperamos los datos
             // image
-
-            name = cajaSiteName.text.toString()
-            site = cajaLocalizacion.text.toString()
-            date = cajafecha.text.toString()
-            rating = cajaRating.rating.toDouble()
+            name = cajaSiteName?.text.toString()
+            site = cajaLocalizacion?.selectedItem.toString()
+            date = cajaFecha?.text.toString()
+            rating = cajaRating?.rating?.toDouble() ?: 0.0
 //        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
             longitude = 0.0
             latitude = 2.0
@@ -216,7 +246,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
             // Volvemos a MySites Fragment
             volverMySites()
-
         }
     }
 
@@ -226,22 +255,17 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     private fun update(btn: Button) {
 
         btn.setOnClickListener {
-            val cajaSiteName: EditText = root.findViewById(R.id.txtNameSiteSite)
-            val cajaLocalizacion: EditText = root.findViewById(R.id.txtSiteSite)
-            val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
-            val cajaRating: RatingBar = root.findViewById(R.id.ratingBar)
             // Recuperamos las fotos subidas
             // image
-
-            name = cajaSiteName.text.toString()
-            site = cajaLocalizacion.text.toString()
-            date = cajafecha.text.toString()
-            rating = cajaRating.rating.toDouble()
+            name = cajaSiteName?.text.toString()
+            site = cajaLocalizacion?.selectedItem.toString()
+            date = cajaFecha?.text.toString()
+            rating = cajaRating?.rating?.toDouble() ?: 0.0
 //        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
             longitude = 0.0
             latitude = 2.0
 
-            lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
+           // lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
 
             SiteController.updateSite(lugar)
 
@@ -264,118 +288,22 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     }
 
     /**
-     * Inicia los eventos de los botones
+     * Vibrador
      */
-    private fun initBotonCamara() {
-        val btnImg: ViewPager = root.findViewById(R.id.imageSite)
-        btnImg.setOnClickListener {
-            initDialogFoto()
+    fun vibrate() {
+        //Compruebe si dispositivo tiene un vibrador.
+        if (vibrator!!.hasVibrator()) { //Si tiene vibrador
+
+            val tiempo: Long = 500 //en milisegundos
+            vibrator!!.vibrate(tiempo)
+
+        } else { //no tiene
+            //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
         }
     }
 
-    /**
-     * Muestra el diálogo para tomar foto o elegir de la galería
-     */
-    private fun initDialogFoto() {
-        val fotoDialogoItems = arrayOf(
-            getString(R.string.Gallery),
-            getString(R.string.Photo)
-        )
-        //Dialogo para eligir opciones
-        AlertDialog.Builder(context)
-            .setTitle(getString(R.string.SelectOption))
-            .setItems(fotoDialogoItems) { _, modoFoto ->
-                when (modoFoto) {
-                    0 -> takephotoFromGallery()
-                    1 -> takePhotoFromCamera()
-                }
-            }
-            .show()
-    }
-
-    /**
-     * Elige una foto de la galeria
-     */
-    private fun takephotoFromGallery() {
-        val galleryIntent = Intent(
-            Intent.ACTION_PICK,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        )
-        startActivityForResult(galleryIntent, GALLERY)
-    }
-
-    /**
-     * Metodo que llama al intent de la camamara para tomar una foto
-     */
-    private fun takePhotoFromCamera() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        //CAPTURA LA FOTO Y LA METE DETRO DE LA VARIABLE
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGEN)
-        startActivityForResult(intent, CAMERA)
-    }
-
-    /**
-     * Cuando ejecutamos una actividad y da un resultado
-     * @param requestCode Int
-     * @param resultCode Int
-     * @param data Intent?
-     */
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        val btnImg: Button = root.findViewById(R.id.imageSite)
-
-        Log.d("site", "Opción::--->$requestCode")
-        super.onActivityResult(requestCode, resultCode, data)
-        //Si cancela no hace nada
-        if (resultCode == Activity.RESULT_CANCELED) {
-            Log.d("site", "Se ha cancelado")
-        }
-        //si elige la opcion de galeria entra en la galeria
-        if (requestCode == GALLERY) {
-            Log.d("site", "Entramos en Galería")
-            if (data != null) {
-                // Obtenemos su URI
-                val contentURI = data.data!!
-                try {
-                    val bitmap = differentVersion(contentURI)
-                    // btnImg.setImageBitmap(bitmap)//mostramos la imagen
-
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    Toast.makeText(context, getText(R.string.error), Toast.LENGTH_SHORT).show()
-                }
-            }
-        } else if (requestCode == CAMERA) {
-            Log.d("site", "Entramos en Camara")
-            //cogemos la imagen
-            try {
-                val foto = differentVersion(IMAGEN)
-                // Mostramos la imagen
-                // btnImg.setImageBitmap(foto)
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(context, getText(R.string.error), Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    /**
-     * Metodo que devuleve un bitmap depende de la version
-     * @return un bitmap
-     */
-    fun differentVersion(contentURI: Uri): Bitmap {
-        //Para controlar la version de android usar uno u otro
-        val bitmap: Bitmap
-        bitmap = if (Build.VERSION.SDK_INT < 28) {
-            MediaStore.Images.Media.getBitmap(context?.contentResolver, contentURI);
-        } else {
-            val source: ImageDecoder.Source = ImageDecoder.createSource(context!!.contentResolver, contentURI)
-            ImageDecoder.decodeBitmap(source)
-        }
-        return bitmap;
-    }
-    //************************************************************
-    //METODO  PARA LOS PERMISOS**********************
+//**************************************************************************
+    //METODO PARA LOS PERMISOS DE LA GESTION DE LA CAMARA **********************
     /**
      * Comprobamos los permisos de la aplicación
      */
@@ -405,25 +333,195 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                     token.continuePermissionRequest()
                 }
             }).withErrorListener {
-                Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context?.applicationContext,
+                    getString(R.string.error_permissions),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
             .onSameThread()
             .check()
+
+
     }
 
+    //************************************************************
+    //METODOS PARA LA IMAGEN**************************************
     /**
-     * Vibrador
+     * Inicia los eventos de los botones
      */
-    fun vibrate() {
-        //Compruebe si dispositivo tiene un vibrador.
-        if (vibrator!!.hasVibrator()) { //Si tiene vibrador
-
-            val tiempo: Long = 500 //en milisegundos
-            vibrator!!.vibrate(tiempo)
-
-        } else { //no tiene
-            //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
+    private fun initBotonesCamara() {
+        addImageButton.setOnClickListener {
+            initDialogFoto()
         }
     }
 
+    /**
+     * Muestra el diálogo para tomar foto o elegir de la galería
+     */
+    private fun initDialogFoto() {
+        val fotoDialogoItems = arrayOf(
+            getString(R.string.Gallery),
+            getString(R.string.Photo)
+        )
+        //Dialogo para eligir opciones
+        AlertDialog.Builder(context)
+            .setTitle(getString(R.string.SelectOption))
+            .setItems(fotoDialogoItems) { _, modo ->
+                when (modo) {
+                    0 -> takephotoFromGallery()
+                    1 -> takePhotoFromCamera()
+                }
+            }
+            .show()
+    }
+
+    /**
+     * Elige una foto de la galeria
+     */
+    private fun takephotoFromGallery() {
+        val galleryIntent = Intent(
+            Intent.ACTION_PICK,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        )
+        startActivityForResult(galleryIntent, GALLERY)
+    }
+
+    /**
+     * Metodo que llama al intent de la camamara para tomar una foto
+     */
+    private fun takePhotoFromCamera() {
+        // Si queremos hacer uso de fotos en alta calidad
+        val builder = StrictMode.VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
+
+        // Eso para alta o baja
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        // Nombre de la imagen
+        IMAGEN_NOMBRE = UtilImage.crearNombreFichero()
+        // Salvamos el fichero
+        val fichero = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, context!!)
+        IMAGE = Uri.fromFile(fichero)
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
+        // Esto para alta y baja
+        startActivityForResult(intent, CAMERA)
+    }
+
+    /**
+     * Cuando ejecutamos una actividad y da un resultado
+     * @param requestCode Int
+     * @param resultCode Int
+     * @param data Intent?
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        try{
+            //Si cancela no hace nada
+            if (resultCode == AppCompatActivity.RESULT_CANCELED) {
+                Log.d("sing", "Se ha cancelado")
+            }
+            //si elige la opcion de galeria entra en la galeria
+            if (requestCode == GALLERY) {
+                Log.d("profile", "Entramos en Galería")
+                if (data != null) {
+                    // Obtenemos su URI
+                    val contentURI = data.data!!
+                    try {
+                        FOTO = differentVersion(contentURI)
+
+                        val imgStr = UtilImage.toBase64(FOTO)!!
+                        val id = 0
+                        val img = Image(id.toLong(), imgStr)
+                        image.add(img)
+
+                        //Para borrar la imagen de muestra
+                        if (modo == 1 && imagenIni){
+                            imagesSlider = RealmList()
+                            imagenIni = false
+                        }
+
+                        imagesSlider.add(FOTO)
+                        adapter = SliderAdapter(context!!, imagesSlider)
+                        val slider: ViewPager = root.findViewById(R.id.imageSite)
+                        slider.adapter = adapter
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        Toast.makeText(context!!, getText(R.string.error_gallery), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else if (requestCode == CAMERA) {
+                Log.d("profile", "Entramos en Camara")
+                //cogemos la imagen
+                try {
+                    FOTO = differentVersion(IMAGE)
+                    // Mostramos la imagen
+
+                    val imgStr = UtilImage.toBase64(FOTO)!!
+                    val id = 0
+                    val img = Image(id.toLong(), imgStr)
+                    image.add(img)
+
+                    //Para borrar la imagen de muestra
+                    if (modo == 1 && imagenIni){
+                        imagesSlider = RealmList()
+                        imagenIni = false
+                    }
+
+                    imagesSlider.add(FOTO)
+                    adapter = SliderAdapter(context!!, imagesSlider)
+                    val slider: ViewPager = root.findViewById(R.id.imageSite)
+                    slider.adapter = adapter
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(context!!, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+        } catch (e: Exception){
+            Toast.makeText(context,"No se ha podido cargar la imagen",5)
+        }
+    }
+
+    /**
+     * Metodo que devuleve un bitmap depende de la version
+     * @return un bitmap
+     */
+    fun differentVersion(contentURI: Uri): Bitmap {
+        //Para controlar la version de android usar uno u otro
+        val bitmap: Bitmap
+        bitmap = if (Build.VERSION.SDK_INT < 28) {
+            MediaStore.Images.Media.getBitmap(context?.contentResolver, contentURI);
+        } else {
+            val source: ImageDecoder.Source = ImageDecoder.createSource(context?.contentResolver!!, contentURI)
+            ImageDecoder.decodeBitmap(source)
+        }
+        return bitmap;
+    }
+
+    // Metodos de Validaciones --------------------------------------------------------------------------------------
+    /**
+     * Metodo que devuelve false si alguno de los valores esta vacio
+     */
+    private fun anyEmpty(): Boolean {
+        var valid = true
+        if (notEmpty(cajaSiteName!!) && notEmpty(txtEmail) && notEmpty(txtPass) && notEmpty(txtUserName)) {
+            valid = false
+        }
+        return valid
+    }
+
+    /**
+     * Método que comprueba si el campo esta vacio y lanza un mensaje
+     * @param txt TextView
+     */
+    private fun notEmpty(txt: TextView): Boolean {
+        var empty = false
+        if (txt.text.isEmpty()) {
+            txt.error = resources.getString(R.string.isEmpty)
+            empty = true
+        }
+        return empty
+    }
 }

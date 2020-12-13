@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.ricardoflor.turistdroid.bd.image.Image
 import android.util.Base64
 import android.widget.ImageView
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
@@ -18,7 +19,6 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.net.toFile
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
 import java.util.*
 
 object UtilImage {

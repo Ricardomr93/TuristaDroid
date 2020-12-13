@@ -19,8 +19,6 @@ class LoginActivity : AppCompatActivity() {
     var email: String = ""
     var pass: String = ""
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -40,6 +38,8 @@ class LoginActivity : AppCompatActivity() {
                 UtilSession.createSession(email)
                 SESSION = SessionController.selectSession()!!
                 val intent = Intent(this,NavigationActivity::class.java)
+                //Elimina la pila trasera para que el boton no vuelva a esta actividad
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                 startActivity(intent)
             } else {
                 editTextLoginMail.error = getString(R.string.userNotCorrect)

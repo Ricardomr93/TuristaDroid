@@ -5,7 +5,8 @@
                                                    android:layout_width="match_parent"
                                                    android:layout_height="match_parent"
                                                    tools:context=".activities.ui.mySites.MySitesFragment"
-                                                   android:background="@drawable/background_app">
+                                                   android:background="@drawable/background_app"
+                                                   android:id="@+id/fragment_my_sites">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             app:fabSize="normal"
@@ -18,6 +19,14 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:backgroundTint="@color/accent"/>
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+
     <Spinner
             android:id="@+id/spinnerOrder"
             android:layout_width="match_parent"
@@ -30,43 +39,43 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            android:entries="@array/Filters"/>
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/my_sites_swipe"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="24dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinnerOrder">
-
-        <ScrollView
-                android:id="@+id/my_sites_scroll"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/my_sites_swipe"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent" tools:layout_editor_absoluteY="0dp"
+                tools:layout_editor_absoluteX="0dp">
 
-
-            <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/my_sites_recicler"
+            <ScrollView
+                    android:id="@+id/my_sites_scroll"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    tools:layout_editor_absoluteX="222dp"
-                    tools:layout_editor_absoluteY="169dp"
-                    tools:listitem="@layout/item_site"/>
+                    android:layout_height="match_parent">
 
-        </ScrollView>
 
-        <ProgressBar
-                android:id="@+id/my_sites_progress_bar"
-                style="?android:attr/progressBarStyle"
-                android:layout_width="117dp"
-                android:layout_height="78dp"
-                tools:layout_editor_absoluteX="147dp"
-                tools:layout_editor_absoluteY="250dp"/>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/my_sites_recicler"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        tools:layout_editor_absoluteX="222dp"
+                        tools:layout_editor_absoluteY="169dp"
+                        tools:listitem="@layout/item_site"/>
+
+            </ScrollView>
+
+            <ProgressBar
+                    android:id="@+id/my_sites_progress_bar"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="117dp"
+                    android:layout_height="78dp"
+                    tools:layout_editor_absoluteX="147dp"
+                    tools:layout_editor_absoluteY="250dp"/>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    </LinearLayout>
+
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

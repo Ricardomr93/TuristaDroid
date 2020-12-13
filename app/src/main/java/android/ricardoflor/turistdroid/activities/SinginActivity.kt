@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
@@ -26,6 +27,7 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
+import io.realm.internal.Util
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
 
@@ -35,9 +37,10 @@ class SinginActivity : AppCompatActivity() {
     private var nameuser = ""
     private var email = ""
     private var pass = ""
-    private var user = User();
-    private var image: Bitmap? = null
+    private var user = User()
+    private lateinit var FOTO: Bitmap
     private lateinit var IMAGE: Uri
+    private var image : Bitmap? = null
     // Constantes
     private val GALLERY = 1
     private val CAMERA = 2
@@ -57,18 +60,12 @@ class SinginActivity : AppCompatActivity() {
                 try {
                     if (isMailValid(txtEmail.text.toString())) {//campo email correcto
                         //Comprobar el campo password
-                        if (isPasswordValid(txtPass.text.toString())) {
                             addUser()
                             val intent = Intent(this, LoginActivity::class.java)
                             startActivity(intent)
-                        } else {
-                            txtPass.error = resources.getString(R.string.pwd_incorrecto)
-                        }
                     } else {
                         txtEmail.error = resources.getString(R.string.email_incorrecto)
                     }
-
-
                 } catch (ex: RealmPrimaryKeyConstraintException) {
                     txtEmail.error = resources.getString(R.string.isAlreadyExist)
                 }
@@ -85,8 +82,11 @@ class SinginActivity : AppCompatActivity() {
         user.password = UtilEncryptor.encrypt(txtPass.text.toString())!!
         user.nameUser = txtUserName.text.toString()
         user.email = txtEmail.text.toString()
-        user.image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+        if (this::FOTO.isInitialized) {
+            user.image = UtilImage.toBase64(FOTO)!!
+        }
         UserController.insertUser(user)
+        USER = user
         Log.i("user", user.toString())
     }
 
@@ -209,8 +209,9 @@ class SinginActivity : AppCompatActivity() {
                 // Obtenemos su URI
                 val contentURI = data.data!!
                 try {
-                    val bitmap = differentVersion(contentURI)
-                    imgBtnPhoto.setImageBitmap(bitmap)//mostramos la imagen
+                    FOTO = differentVersion(contentURI)
+                    imgBtnPhoto.setImageBitmap(FOTO)//mostramos la imagen
+                    UtilImage.redondearFoto(imgBtnPhoto)
                 } catch (e: IOException) {
                     e.printStackTrace()
                     Toast.makeText(this, getText(R.string.error_gallery), Toast.LENGTH_SHORT).show()
@@ -220,9 +221,10 @@ class SinginActivity : AppCompatActivity() {
             Log.d("sing", "Entramos en Camara")
             //cogemos la imagen
             try {
-                val foto = differentVersion(IMAGE)
+                FOTO = differentVersion(IMAGE)
                 // Mostramos la imagen
-                imgBtnPhoto.setImageBitmap(foto)
+                imgBtnPhoto.setImageBitmap(FOTO)
+                UtilImage.redondearFoto(imgBtnPhoto)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
@@ -284,7 +286,6 @@ class SinginActivity : AppCompatActivity() {
             }
             .onSameThread()
             .check()
-
 
     }
     //************************************************************

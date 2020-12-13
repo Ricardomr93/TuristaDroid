@@ -12,10 +12,10 @@ import java.util.*
  * @property name String
  * @property image String
  * @property site String
- * @property date Date
- * @property rating Int
- * @property latitude Int
- * @property longitude Int
+ * @property date String
+ * @property rating Double
+ * @property latitude Double
+ * @property longitude Double
  */
 open class Site(
     @PrimaryKey
@@ -23,14 +23,14 @@ open class Site(
     var name: String = "",
     var image: RealmList<Image> = RealmList(),
     var site: String = "",
-    var date: Date = Date(),
-    var rating: Int = 0,
-    var latitude: Int = 0,
-    var longitude: Int = 0
+    var date: String = "",
+    var rating: Double = 0.0,
+    var latitude: Double = 0.0,
+    var longitude: Double = 0.0
 ) : RealmObject(){
     override fun toString(): String {
         return "Site(id=$id, name='$name', image='$image', site='$site', date=$date, rating=$rating, latitude=$latitude, longitude=$longitude)"
     }
-    constructor(name: String,image: RealmList<Image>,site: String,date: Date,rating: Int,latitude: Int,longitude: Int)
+    constructor(name: String,image: RealmList<Image>,site: String,date: String,rating: Double,latitude: Double,longitude: Double)
             :this(System.currentTimeMillis()/1000,name, image, site, date, rating, latitude, longitude)
 }

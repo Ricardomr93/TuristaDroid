@@ -35,7 +35,7 @@ open class User(
      */
     override fun toString(): String {
 
-        return "Usuario(name='$name', nameUser='$nameUser',email='$email', password='$password', twitter='$twitter', instagram='$instagram', facebook='$facebook', places$places, image='$image',)"
+        return "Usuario(name='$name', nameUser='$nameUser',email='$email', password='$password', twitter='$twitter', instagram='$instagram', facebook='$facebook', places$places, image='$image',\n)"
     }
 }
 

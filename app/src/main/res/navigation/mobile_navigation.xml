@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_my_sites">
+
+    <fragment
+        android:id="@+id/nav_my_sites"
+        android:name="android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment"
+        android:label="@string/my_sites"
+        tools:layout="@layout/fragment_my_sites" >
+        <action
+            android:id="@+id/action_nav_my_sites_to_nav_next_to_me2"
+            app:destination="@id/nav_next_to_me" />
+        <action
+            android:id="@+id/action_nav_my_sites_to_nav_my_profile"
+            app:destination="@id/nav_my_profile" />
+        <action android:id="@+id/action_nav_my_sites_to_nav_site" app:destination="@id/nav_site"/>
+        <action android:id="@+id/action_nav_my_sites_to_nav_logout" app:destination="@id/nav_logout"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_next_to_me"
+        android:name="android.ricardoflor.turistdroid.activities.ui.nexttome.NextToMeFragment"
+        android:label="@string/next_to_me"
+        tools:layout="@layout/fragment_next_to_me" />
+
+    <fragment
+        android:id="@+id/nav_my_profile"
+        android:name="android.ricardoflor.turistdroid.activities.ui.myprofile.MyProfileFragment"
+        android:label="@string/my_profile"
+        tools:layout="@layout/fragment_my_profile" />
+
+    <fragment
+            android:id="@+id/nav_site"
+            android:name="android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment"
+            android:label="@string/it_site"
+            tools:layout="@layout/fragment_site" />
+
+    <fragment
+            android:id="@+id/nav_logout"
+            android:name="android.ricardoflor.turistdroid.activities.ui.CerrarSesionFragment"
+            tools:layout="@layout/fragment_my_sites"/>
+
+</navigation>

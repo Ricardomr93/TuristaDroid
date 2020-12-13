@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_my_sites"
+            android:icon="@drawable/ic_ricflor_mysites"
+            android:title="@string/my_sites" />
+        <item
+            android:id="@+id/nav_next_to_me"
+            android:icon="@drawable/ic_ricflor_nexttome"
+            android:title="@string/next_to_me" />
+        <item
+                android:id="@+id/nav_my_profile"
+                android:icon="@drawable/ic_ricflor_user"
+                android:title="@string/my_profile"/>
+        <item
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/ic_ricflor_exit"
+                android:title="@string/exit"/>
+    </group>
+</menu>

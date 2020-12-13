@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+            android:id="@+id/action_import"
+            android:orderInCategory="100"
+            android:title="@string/menu_import"
+            android:icon="@drawable/ic_bandeja_de_entrada"
+            app:showAsAction="never"/>
+    <item
+            android:id="@+id/action_export"
+            android:icon="@drawable/ic_bandeja_de_salida"
+            android:title="@string/menu_export"/>
+
+
+    <item
+            android:id="@+id/action_light"
+            android:title="@string/menu_light" app:showAsAction="ifRoom"
+            android:icon="@drawable/ic_ricflor_lantern_white_off"/>
+
+</menu>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".activities.SinginActivity">
+
+    <ImageView
+            android:layout_width="192dp"
+            android:layout_height="162dp" android:id="@+id/imgBtnPhoto"
+            android:scaleType="centerCrop"
+            android:layout_marginTop="42dp" android:layout_marginBottom="32dp" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/textInputLayout2" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" app:srcCompat="@drawable/ic_ricflor_add_photo"/>
+    <Button
+            android:text="@string/singin"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" android:id="@+id/btnSing"
+            android:textColor="@color/white"
+            android:background="@drawable/buttom_round"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout4"
+            android:layout_marginBottom="67dp" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="32dp" android:layout_marginStart="32dp"/>
+    <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayout2"
+            app:layout_constraintTop_toBottomOf="@+id/imgBtnPhoto" android:layout_marginBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/textInputLayout5"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginEnd="32dp"
+            android:layout_marginStart="32dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:hint="@string/name" android:id="@+id/txtName"/>
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayout5"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout2" android:layout_marginBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/textInputLayout3"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginEnd="32dp"
+            android:layout_marginStart="32dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/username" android:id="@+id/txtUserName"/>
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayout3"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout5" android:layout_marginBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/textInputLayout4"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp" android:layout_marginEnd="32dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/email" android:id="@+id/txtEmail"/>
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayout4"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout3" android:layout_marginBottom="32dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/btnSing"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginEnd="32dp"
+            app:passwordToggleEnabled="true"
+            android:layout_marginStart="32dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/password" android:id="@+id/txtPass"
+                android:inputType="textPassword"/>
+    </com.google.android.material.textfield.TextInputLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

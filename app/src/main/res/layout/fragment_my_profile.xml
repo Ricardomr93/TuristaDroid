@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                   xmlns:tools="http://schemas.android.com/tools"
+                                                   android:layout_width="match_parent"
+                                                   android:layout_height="match_parent"
+                                                   tools:context=".activities.ui.myprofile.MyProfileFragment"
+                                                   android:background="@drawable/background_app">
+    <ImageView
+            android:src="@drawable/ic_ricflor_add_photo"
+            android:layout_width="188dp"
+            android:layout_height="134dp" android:id="@+id/imgMyprofile"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" android:layout_marginTop="32dp"
+    />
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="358dp"
+            android:layout_height="516dp" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintTop_toBottomOf="@+id/imgMyprofile"
+            app:layout_constraintVertical_bias="0.0" android:layout_marginStart="32dp" android:layout_marginEnd="32dp"
+            android:layout_marginTop="16dp">
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="356dp"
+                android:layout_height="516dp" app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent">
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textInputLayout2"
+                    app:layout_constraintTop_toBottomOf="@+id/imgBtnPhoto"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/textInputLayout5"
+                    app:layout_constraintStart_toStartOf="parent"
+            >
+
+                <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:hint="@string/name" android:id="@+id/txtNameMyProfile"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textInputLayout5"
+                    app:layout_constraintTop_toBottomOf="@+id/textInputLayout2"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/textInputLayout3"
+                    app:layout_constraintStart_toStartOf="parent"
+            >
+
+                <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/username" android:id="@+id/txtUserNameMyProfile"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textInputLayout3"
+                    app:layout_constraintTop_toBottomOf="@+id/textInputLayout5"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/textInputLayout4"
+                    app:layout_constraintStart_toStartOf="parent"
+            >
+
+                <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/email" android:id="@+id/txtEmailMyProfile"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textInputLayout4"
+                    app:layout_constraintTop_toBottomOf="@+id/textInputLayout3" android:layout_marginBottom="32dp"
+                    app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/btnSing"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:passwordToggleEnabled="true"
+            >
+
+                <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/password" android:id="@+id/txtPassMyprofile"
+                        android:inputType="textPassword"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <Button
+                    android:text="@string/update"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:id="@+id/btnUpdateMyprofile"
+                    android:background="@drawable/buttom_round" android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp" android:textColor="@color/white"/>
+            <Button
+                    android:text="@string/deleteCount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" android:id="@+id/btnUnsubMyProfile"
+                    android:background="@drawable/buttom_round_red" android:textColor="@color/white"
+                    android:layout_marginTop="8dp" android:layout_marginBottom="8dp"/>
+            <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="51dp" android:layout_marginTop="10dp"
+            >
+                <ImageView
+                        android:src="@drawable/ic_gmail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:id="@+id/imgEmailMyProfile"
+                        android:layout_weight="1"/>
+                <ImageView
+                        android:src="@drawable/ic_instagram"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:id="@+id/imgInstaMyProfile"
+                        android:layout_weight="1"/>
+                <ImageView
+                        android:src="@drawable/ic_twitter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:id="@+id/imgTwitterMyProfile"
+                        android:layout_weight="1"/>
+                <ImageView
+                        android:src="@drawable/ic_facebook"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:id="@+id/imgFaceMyProfile"
+                        android:layout_weight="1"/>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -20,6 +20,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.image.ImageController
 import android.ricardoflor.turistdroid.bd.site.Site
@@ -44,13 +45,17 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.WriterException
+import com.google.zxing.integration.android.IntentIntegrator
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.RealmList
-import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_site.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -64,7 +69,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private lateinit var positionSite :LatLng
+    private lateinit var positionSite: LatLng
 
     private val modo = modo
     private val sitio: Site? = site
@@ -140,7 +145,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         val uri = getImageUri(requireContext(), qrShare)
         val intent = Intent().apply {
             Intent(Intent.ACTION_SENDTO)
-            data = Uri.parse("mailto:" )
+            data = Uri.parse("mailto:")
             putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_mysite))
             putExtra(Intent.EXTRA_TEXT, getString(R.string.share_mysite))
             putExtra(Intent.EXTRA_STREAM, uri)
@@ -221,7 +226,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(txtDateSite) && notEmpty(txtNameSiteSite)) {
+        if (notEmpty(txtDateSite) && notEmpty(txtDateSite)) {
             valid = false
         }
         return valid
@@ -325,8 +330,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         val slider: ViewPager = root.findViewById(R.id.imageSite)
         slider.adapter = adapter
 
-        // TODO Falta informacion del mapa - longi y latit ---------------------------------------------------------------------
-        var textoQr: String = sitio?.name + ";" + opc + ";" + sitio?.date + ";" + (sitio?.rating)?.toFloat()
+
+        var textoQr: String =
+            sitio?.name + ";" + opc + ";" + sitio?.date + ";" +
+                    (sitio?.rating)?.toFloat() + ";" + (sitio.latitude) + ";" + (sitio.longitude)
 
         generateQRCode(textoQr)
         positionSite = LatLng(sitio!!.latitude, sitio!!.longitude)
@@ -338,13 +345,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun cargarDatosSiteQr(text: String) {
 
         val parts = text.split(";")
-
         cajaSiteName?.setText(parts[0])
         cajaLocalizacion?.setSelection(parts[1].toInt())
         cajaFecha?.setText(parts[2])
         cajaRating?.rating = ((parts[3])?.toFloat() ?: 0.0) as Float
-
-        // TODO Falta informacion del mapa - longi y latit ---------------------------------------------------------------------
+        latitude = ((parts[4])?.toFloat() ?: 0.0) as Double
+        longitude = ((parts[5])?.toFloat() ?: 0.0) as Double
+        posicion = LatLng(latitude, longitude)
     }
 
     /**
@@ -359,12 +366,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
-
-            longitude = 0.0
-            latitude = 2.0
-
-
-            if(anyEmpty()){
+            if (anyEmpty()) {
                 // Recuperamos los datos
                 // image
                 name = cajaSiteName?.text.toString()
@@ -386,10 +388,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 } else {
                     Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
                 }
-            }else{
-                Toast.makeText(context!!, R.string.isEmpty, Toast.LENGTH_SHORT).show()
             }
-
         }
     }
 
@@ -405,18 +404,21 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
-//        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
-            if (posicion != null) {
-                latitude = posicion!!.latitude
-                longitude = posicion!!.longitude
-                lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
-                SiteController.updateSite(lugar)
-                Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-                // Volvemos a MySites Fragment
-                volverMySites()
-            } else {
-                Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
+            if (anyEmpty()) {
+               // image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+                if (posicion != null) {
+                    latitude = posicion!!.latitude
+                    longitude = posicion!!.longitude
+                    lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
+                    SiteController.updateSite(lugar)
+                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+                    // Volvemos a MySites Fragment
+                    volverMySites()
+                } else {
+                    Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
+                }
             }
+//
         }
     }
 
@@ -727,6 +729,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
     }
 
+    /**
+     * Depende el modo deshabilita el el mapa no no
+     */
     private fun typeMap() {
 
         val uiSettings = mMap.uiSettings
@@ -743,8 +748,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 uiSettings.isMyLocationButtonEnabled = false
                 uiSettings.isScrollGesturesEnabledDuringRotateOrZoom = false
                 uiSettings.isScrollGesturesEnabled = false
-                mMap.setMinZoomPreference(16.0f)
-                positionShow()
+                mMap.setMinZoomPreference(15.0f)
+
             }
         }
     }
@@ -756,10 +761,22 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     override fun onMapReady(maps: GoogleMap) {
         mMap = maps
         mMap.isMyLocationEnabled = true
-        getPosition()
+        when (modo) {
+            1 -> {
+                getPosition()
+                getLatitudeOnClick()
+            }
+            2 -> {
+                sitePositionShow()
+                getLatitudeOnClick()
+            }
+            else -> {
+                sitePositionShow()
+            }
+        }
         locationReq()
-        getLatitudeOnClick()
         configurarIUMapa()
+
     }
 
     /**
@@ -800,13 +817,14 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     /**
      * Metodo que muestra la ubicacion del sitio y mueve la camara
      */
-    fun positionShow() {
+    fun sitePositionShow() {
         sitePosition()
     }
+
     /**
      * Metodo que mueve la camara hasta la posicion actual
      */
-    private fun cameraMapSite(position : LatLng) {
+    private fun cameraMapSite(position: LatLng) {
         mMap.moveCamera(CameraUpdateFactory.newLatLng(position))
     }
 
@@ -814,7 +832,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Posicion del sitio
      */
     private fun sitePosition() {
-        if (this::positionSite.isInitialized){
+        if (this::positionSite.isInitialized) {
             val icon = BitmapDescriptorFactory.fromBitmap(
                 BitmapFactory
                     .decodeResource(context?.resources, R.drawable.ic_marker)
@@ -884,6 +902,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun cameraMap() {
         mMap.moveCamera(CameraUpdateFactory.newLatLng(posicion))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BdController.close()
     }
 
 

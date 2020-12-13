@@ -105,4 +105,6 @@
     <string name="errorImport">Error:file not found</string>
     <string name="needPosition">Error : error your position is necessary</string>
 
+    <string name="share_mysite">This is my Site</string>
+
 </resources>

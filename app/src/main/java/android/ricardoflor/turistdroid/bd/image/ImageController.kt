@@ -14,6 +14,15 @@ object ImageController {
         )
     }
 
+    fun getIdImage(): Long {
+        val imageId = Realm.getDefaultInstance().where<Image>().max("id")
+        return if (imageId == null) {
+            1
+        } else {
+            imageId.toLong() + 1
+        }
+    }
+
     /**
      * Inserta una imagen
      */

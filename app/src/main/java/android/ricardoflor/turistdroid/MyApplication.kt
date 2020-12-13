@@ -6,7 +6,6 @@ import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
-import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 
 class MyApplication : Application() {

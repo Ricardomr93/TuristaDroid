@@ -1,5 +1,6 @@
 package android.ricardoflor.turistdroid.bd.site
 
+import com.google.android.gms.maps.model.LatLng
 import io.realm.Realm
 import io.realm.kotlin.where
 
@@ -23,6 +24,24 @@ object SiteController {
         Realm.getDefaultInstance().executeTransaction() {
             it.where<Site>().equalTo("id", site.id).findFirst()?.deleteFromRealm()
         }
+    }
+    fun deleteAllSite(){
+        Realm.getDefaultInstance().executeTransaction {
+            it.where<Site>().findAll().deleteAllFromRealm()
+        }
+    }
+
+    /**
+     * Busca todos los sitios que esten entre los parametros dados
+     * @param site : Site
+     * @param distance : Double
+     */
+    fun selectByNear(latitude:Double,longitude:Double,distance:Double):MutableList<Site>?{
+        return Realm.getDefaultInstance().copyFromRealm(
+            Realm.getDefaultInstance().where<Site>().between("longitude",(longitude-distance),
+                (longitude+distance)).and()
+                .between("latitude",(latitude-distance),(latitude+distance)).findAll()
+        )
     }
 
     /**

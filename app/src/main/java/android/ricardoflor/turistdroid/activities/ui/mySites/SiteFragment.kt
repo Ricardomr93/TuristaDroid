@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
@@ -15,13 +16,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.activities.SinginActivity
 import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
 import android.util.Log
 import android.widget.*
+import androidx.core.view.isVisible
+import androidx.fragment.app.FragmentTransaction
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -33,7 +38,7 @@ import java.io.IOException
 class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
     private val modo = modo
-    private val sitio = site
+    private val sitio: Site? = site
     private lateinit var root: View
 
     // Variables Site
@@ -53,7 +58,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     private var modoFoto: Int = 0
 
     // Variables Slider Images
-    private var images: Array<Int> = arrayOf()
+    private var images: Array<Bitmap> = arrayOf()
     private lateinit var adapter: PagerAdapter
 
     override fun onCreateView(
@@ -91,34 +96,85 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     fun initEditCreateMode() {
         initBotonCamara()
 
-        adapter = SliderAdapter(context!!, images)
-        val slider: ViewPager = root.findViewById(R.id.imageSite)
-        slider.adapter = adapter
-
         val btn: Button = root.findViewById(R.id.buttonSiteAddUpdate)
+
+        val btnMail: FloatingActionButton = root.findViewById(R.id.btnGMail)
+        val btnFace: FloatingActionButton = root.findViewById(R.id.btnFacebook)
+        val btnTwit: FloatingActionButton = root.findViewById(R.id.btnTwitter)
+        val btnInsta: FloatingActionButton = root.findViewById(R.id.btnInstagram)
+
+        val cajaSiteName: EditText = root.findViewById(R.id.txtNameSiteSite)
+        val cajaLocalizacion: EditText = root.findViewById(R.id.txtSiteSite)
+        val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
+        val cajaRating: RatingBar = root.findViewById(R.id.ratingBar)
 
         when (modo) {
             1 -> {
+                val b1 = BitmapFactory.decodeResource(resources, R.drawable.add)
+                images = arrayOf(b1)
+
+                adapter = SliderAdapter(context!!, images)
+                val slider: ViewPager = root.findViewById(R.id.imageSite)
+                slider.adapter = adapter
+
                 // Fragment de Creacion
                 btn.text = getString(R.string.add)
+
+                btnMail.isVisible = false
+                btnFace.isVisible = false
+                btnTwit.isVisible = false
+                btnInsta.isVisible = false
 
                 add(btn)
             }
 
             2 -> {
                 // Fragment de Edicion
+                cargarDatosSite()
                 btn.text = getString(R.string.update)
+
+                btnMail.isVisible = false
+                btnFace.isVisible = false
+                btnTwit.isVisible = false
+                btnInsta.isVisible = false
 
                 update(btn)
             }
 
             3 -> {
                 // Fragment de Consulta
-                btn.text = getString(R.string.share)
+                cargarDatosSite()
+                btn.isVisible = false
+
+                btnMail.isVisible = true
+                btnFace.isVisible = true
+                btnTwit.isVisible = true
+                btnInsta.isVisible = true
+
+                cajaSiteName.isEnabled = false
+                cajaLocalizacion.isEnabled = false
+                cajafecha.isEnabled = false
+                cajaRating.isEnabled = false
 
             }
         }
 
+    }
+
+    /**
+     * Metodo para cargar los datos del Sitio en el Fragment
+     */
+    private fun cargarDatosSite() {
+
+        val cajaSiteName: EditText = root.findViewById(R.id.txtNameSiteSite)
+        val cajaLocalizacion: EditText = root.findViewById(R.id.txtSiteSite)
+        val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
+        val cajaRating: RatingBar = root.findViewById(R.id.ratingBar)
+
+        cajaSiteName.setText(sitio?.name)
+        cajaLocalizacion.setText(sitio?.site)
+        cajafecha.setText(sitio?.date)
+        cajaRating.rating = ((sitio?.rating)?.toFloat() ?: 0.0) as Float
     }
 
     /**
@@ -127,7 +183,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     fun add(btn: Button) {
 
         btn.setOnClickListener {
-            // lugar.name = root.findViewById(R.id.txtNameSiteSite)
             val cajaSiteName: EditText = root.findViewById(R.id.txtNameSiteSite)
             val cajaLocalizacion: EditText = root.findViewById(R.id.txtSiteSite)
             val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
@@ -147,6 +202,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
             Log.i("site", lugar.toString())
 
+            // Volvemos a MySites Fragment
+            volverMySites()
+
         }
     }
 
@@ -156,12 +214,41 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     private fun update(btn: Button) {
 
         btn.setOnClickListener {
+            val cajaSiteName: EditText = root.findViewById(R.id.txtNameSiteSite)
+            val cajaLocalizacion: EditText = root.findViewById(R.id.txtSiteSite)
+            val cajafecha: EditText = root.findViewById(R.id.txtDateSite)
+            val cajaRating: RatingBar = root.findViewById(R.id.ratingBar)
+            // Recuperamos las fotos subidas
+            // image
 
-            //SiteController.insertSite(lugar)
+            name = cajaSiteName.text.toString()
+            site = cajaLocalizacion.text.toString()
+            date = cajafecha.text.toString()
+            rating = cajaRating.rating.toDouble()
+//        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+            longitude = 0.0
+            latitude = 2.0
 
+            lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
+
+            SiteController.updateSite(lugar)
 
             Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+
+            // Volvemos a MySites Fragment
+            volverMySites()
         }
+    }
+
+    /**
+     * Funcion que devuelve al MySitesFragment
+     */
+    private fun volverMySites() {
+        val fragm = MySitesFragment()
+        val transaction = activity!!.supportFragmentManager.beginTransaction()
+        transaction.add(R.id.nav_host_fragment, fragm)
+        transaction.addToBackStack(null)
+        transaction.commit()
     }
 
     /**

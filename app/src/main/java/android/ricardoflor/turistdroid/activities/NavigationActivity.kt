@@ -143,6 +143,9 @@ class NavigationActivity : AppCompatActivity() {
             }
         } catch (e: CameraAccessException) {
             e.printStackTrace()
+
+        } catch (e: Exception) {
+            Log.i("util", "Se ha producido un error con la linterna: " + e.printStackTrace())
         }
     }
 

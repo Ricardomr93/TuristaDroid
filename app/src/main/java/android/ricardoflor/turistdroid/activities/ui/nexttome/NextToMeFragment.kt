@@ -301,4 +301,5 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             .onSameThread()
             .check()
     }
+
 }

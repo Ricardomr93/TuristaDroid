@@ -1,6 +1,7 @@
 package android.ricardoflor.turistdroid.bd.site
 
 import com.google.android.gms.maps.model.LatLng
+import android.ricardoflor.turistdroid.bd.user.User
 import io.realm.Realm
 import io.realm.kotlin.where
 
@@ -28,6 +29,16 @@ object SiteController {
     fun deleteAllSite(){
         Realm.getDefaultInstance().executeTransaction {
             it.where<Site>().findAll().deleteAllFromRealm()
+        }
+    }
+
+    /**
+     * Update Site
+     * @param site Site
+     */
+    fun updateSite(site: Site) {
+        Realm.getDefaultInstance().executeTransaction {
+            it.copyToRealmOrUpdate(site)
         }
     }
 

@@ -1,6 +1,7 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
 import android.app.AlertDialog
+import android.content.Context
 import android.graphics.*
 import android.os.AsyncTask
 import android.os.Bundle
@@ -19,8 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
-import android.content.Intent
-import android.widget.ArrayAdapter
+import android.os.Vibrator
 import android.widget.Toast
 
 
@@ -33,6 +33,9 @@ class MySitesFragment : Fragment() {
     private lateinit var adapter: SiteListAdapter
     private lateinit var tarea: TareaCargarSitio // Tarea en segundo plano
     private var paintSweep = Paint()
+
+    // Vibrador
+    private var vibrator: Vibrator? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,6 +67,9 @@ class MySitesFragment : Fragment() {
 
         //Boton flotante anadir
         btnAddSiteFloating.setOnClickListener { addSite() }
+
+        // Obtiene instancia a Vibrator
+        vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
     }
 
     /**
@@ -230,7 +236,7 @@ class MySitesFragment : Fragment() {
             SiteController.deleteSite(site)
             Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
-            Log.i("sites", print(sitios).toString())
+            vibrate()
 
         } catch (e: Exception) {
             Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()
@@ -322,6 +328,26 @@ class MySitesFragment : Fragment() {
         transaction.add(R.id.nav_host_fragment, addSites)
         transaction.addToBackStack(null)
         transaction.commit()
+    }
+
+    /**
+     * Vibrador
+     */
+    fun vibrate() {
+        //Compruebe si dispositivo tiene un vibrador.
+        if (vibrator!!.hasVibrator()) { //Si tiene vibrador
+
+            val pattern = longArrayOf(
+                400,  //sleep
+                600,  //vibrate
+                100, 300, 100, 150, 100, 75
+            )
+            // con -1 se indica desactivar repeticion del patron
+            vibrator!!.vibrate(pattern, -1)
+
+        } else { //no tiene
+            //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
+        }
     }
 
 }

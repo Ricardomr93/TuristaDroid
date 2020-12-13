@@ -20,14 +20,12 @@ import android.util.Patterns
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.drawable.toBitmap
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
-import io.realm.internal.Util
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
 

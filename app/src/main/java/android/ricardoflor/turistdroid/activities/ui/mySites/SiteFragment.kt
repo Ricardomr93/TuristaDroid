@@ -229,7 +229,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             longitude = 0.0
             latitude = 2.0
 
-            lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
+           // lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
 
             SiteController.updateSite(lugar)
 

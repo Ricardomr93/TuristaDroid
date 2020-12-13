@@ -19,14 +19,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
-import android.content.Intent
-import android.widget.ArrayAdapter
 import android.widget.Toast
 
 
 class MySitesFragment : Fragment() {
 
-    private lateinit var mySitesViewModel: MySitesViewModel
     private var sitios = mutableListOf<Site>()
 
     // Interfaz gráfica

@@ -2,7 +2,6 @@ package android.ricardoflor.turistdroid.activities.ui.myprofile
 
 import android.Manifest
 import android.app.AlertDialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -106,11 +105,7 @@ class MyProfileFragment : Fragment() {
             if (isMailValid(txtEmailMyProfile.text.toString())) {
                 if (isPasswordValid(txtPassMyprofile.text.toString())) {
                     if (!someIsEmpty()) {
-                        Log.i("updater", "usuario cambia")
-                        deleteAndInsertUser()
-                        Log.i("updater", UserController.selectAllUser().toString())
-                        changeNavigation()
-                        Toast.makeText(context!!, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
+                        dialogUpdate()
                     }
                 } else {
                     txtPassMyprofile.error = resources.getString(R.string.pwd_incorrecto)
@@ -152,9 +147,9 @@ class MyProfileFragment : Fragment() {
         try {
             user.name = txtNameMyProfile.text.toString()
             //si la contraseña está vacia mantiene la que ya tiene
-            if(txtPassMyprofile.text.isNullOrEmpty()){
+            if (txtPassMyprofile.text.isNullOrEmpty()) {
                 user.password = USER.password
-            }else{
+            } else {
                 user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
             }
             user.nameUser = txtUserNameMyProfile.text.toString()
@@ -192,7 +187,7 @@ class MyProfileFragment : Fragment() {
      * Metodo para validar la PASSWORD
      */
     private fun isPasswordValid(password: String): Boolean {
-        return password.length > 5
+        return password.length > 5 || password.isNullOrEmpty()
     }
 
     /**
@@ -213,7 +208,7 @@ class MyProfileFragment : Fragment() {
      */
     private fun someIsEmpty(): Boolean {
         var valid = false
-        if (empty(txtEmailMyProfile) || empty(txtNameMyProfile) ||  empty(txtUserNameMyProfile)) {
+        if (empty(txtEmailMyProfile) || empty(txtNameMyProfile) || empty(txtUserNameMyProfile)) {
             valid = true
         }
         return valid
@@ -224,7 +219,7 @@ class MyProfileFragment : Fragment() {
      */
     private fun deleteUser() {
         btnUnsubMyProfile.setOnClickListener {
-            showDialogAlertSimple()
+            dialogDelete()
         }
     }
 
@@ -232,20 +227,32 @@ class MyProfileFragment : Fragment() {
      * Cuadro de dialogo para advertir al usuario si queire borrar su cuenta
      * si acepta borra al usuario
      */
-    fun showDialogAlertSimple() {
+    private fun dialogDelete() {
         AlertDialog.Builder(context)
             .setTitle(getText(R.string.caution))
             .setMessage(getText(R.string.sure_delete))
-            .setPositiveButton(android.R.string.ok
-            ) { _, _ ->
+            .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 UserController.deleteUser(USER.email)
-                SessionController.deleteSession(SESSION)
+                UtilSession.closeSession()
                 startActivity(Intent(context, LoginActivity::class.java))
-                Toast.makeText(context!!, "USUARIO BORRADO", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton(android.R.string.cancel
-            ) { _, _ ->
+            .setNegativeButton(getString(R.string.Cancel), null)
+            .show()
+    }
+
+    private fun dialogUpdate() {
+        AlertDialog.Builder(context)
+            .setTitle(getText(R.string.caution))
+            .setMessage(getText(R.string.sure_update))
+            .setPositiveButton(getString(R.string.ok)) { _, _ ->
+                Log.i("updater", "usuario cambia")
+                deleteAndInsertUser()
+                Log.i("updater", UserController.selectAllUser().toString())
+                changeNavigation()
+                Toast.makeText(context!!, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
             }
+            .setNegativeButton(getString(R.string.Cancel), null)
             .show()
     }
 

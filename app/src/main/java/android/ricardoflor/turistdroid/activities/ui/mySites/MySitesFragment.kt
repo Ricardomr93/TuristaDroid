@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
 import android.os.Vibrator
+import android.ricardoflor.turistdroid.bd.BdController
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
@@ -405,6 +406,11 @@ class MySitesFragment : Fragment() {
         } else { //no tiene
             //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BdController.close()
     }
 
 }

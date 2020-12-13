@@ -1,5 +1,6 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
+import android.app.AlertDialog
 import android.graphics.*
 import android.os.AsyncTask
 import android.os.Bundle
@@ -16,13 +17,18 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_my_sites.*
+import android.content.DialogInterface
+import android.content.Intent
+import android.widget.ArrayAdapter
+import android.widget.Toast
+
 
 class MySitesFragment : Fragment() {
 
     private lateinit var mySitesViewModel: MySitesViewModel
     private var sitios = mutableListOf<Site>()
+
     // Interfaz gráfica
     private lateinit var adapter: SiteListAdapter
     private lateinit var tarea: TareaCargarSitio // Tarea en segundo plano
@@ -44,7 +50,6 @@ class MySitesFragment : Fragment() {
     }
 
     private fun init() {
-
         // Iniciamos el swipe para recargar
         iniciarSwipeRecarga()
 
@@ -55,7 +60,7 @@ class MySitesFragment : Fragment() {
         iniciarSwipeHorizontal()
 
         // Mostramos las vistas de listas y adaptador asociado
-        my_sites_recicler.layoutManager = LinearLayoutManager(context);
+        my_sites_recicler.layoutManager = LinearLayoutManager(context)
 
         //Boton flotante anadir
         btnAddSiteFloating.setOnClickListener { addSite() }
@@ -76,6 +81,7 @@ class MySitesFragment : Fragment() {
      * Carga los Sitios
      */
     private fun cargaSitios() {
+        sitios = mutableListOf<Site>()
         tarea = TareaCargarSitio()
         tarea.execute()
     }
@@ -94,8 +100,6 @@ class MySitesFragment : Fragment() {
                         sitios.add(it)
                     }
                 }
-
-
             } catch (e: Exception) {
             }
             return null
@@ -125,7 +129,7 @@ class MySitesFragment : Fragment() {
          */
         private fun eventoClicFila(site: Site) {
             if ((activity as NavigationActivity?)!!.isClicEventoFila) {
-                openSite(site,3)
+                openSite(site, 3)
             }
         }
     }
@@ -151,14 +155,13 @@ class MySitesFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
                 // Si pulsamos a la de izquierda o a la derecha
-                // Programamos la accion
                 when (direction) {
                     ItemTouchHelper.LEFT -> {
-                        // Borrar
+                        // Borramos el elemento
                         borrarElemento(position)
                     }
                     else -> {
-                        // Editar
+                        // Editamos el elemento
                         editarElemento(position)
                     }
                 }
@@ -199,27 +202,56 @@ class MySitesFragment : Fragment() {
     //TODO BORRAR DE BD Y MENSAJE DE CONFIRMACION!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     private fun borrarElemento(position: Int) {
         // Acciones
-        val deletedModel = sitios[position]
+        val deletedSite = sitios[position]
         adapter.removeItem(position)
-        // Mostramos la barra. Se la da opción al usuario de recuperar lo borrado con el el snackbar
-        val snackbar = Snackbar.make(view!!, "Sitio eliminado", Snackbar.LENGTH_LONG)
-        snackbar.setAction("DESHACER") { // undo is selected, restore the deleted item
-            adapter.restoreItem(deletedModel, position)
+
+        confirmDialog(deletedSite, position)
+
+    }
+
+    /**
+     * Metodo que crea un AlertDialog para confirmar el borrado
+     */
+    private fun confirmDialog(site: Site, position: Int) {
+        val dialogo: AlertDialog.Builder = AlertDialog.Builder(activity)
+        dialogo.setTitle(R.string.delete_site)
+        dialogo.setMessage(R.string.delete_question)
+        dialogo.setCancelable(false)
+        dialogo.setPositiveButton(R.string.accept,
+            DialogInterface.OnClickListener { dialogo1, id -> acceptDelete(site) })
+        dialogo.setNegativeButton(R.string.Cancel,
+            DialogInterface.OnClickListener { dialogo1, id -> cancelDelete(site, position) })
+        dialogo.show()
+    }
+
+    fun acceptDelete(site: Site) {
+        try {
+            // Borramos el sitio de Base de Datos
+            SiteController.deleteSite(site)
+            Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
+
+            Log.i("sites", print(sitios).toString())
+
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()
         }
-        snackbar.setActionTextColor(resources.getColor(R.color.primary))
-        snackbar.show()
+    }
+
+    fun cancelDelete(site: Site, position: Int) {
+        Toast.makeText(requireContext(), R.string.Cancel, Toast.LENGTH_SHORT)
+        adapter.restoreItem(site, position)
     }
 
     /**
      * Acción secundaria: Ver/Editar
      * @param position Int
      */
-    private fun editarElemento(position: Int){
+    private fun editarElemento(position: Int) {
         val site = sitios[position]
-        openSite(site,2)
+        openSite(site, 2)
         // Esto es para que no se quede el color
         adapter.removeItem(position)
-        adapter.restoreItem(site, position);
+        adapter.restoreItem(site, position)
     }
 
     /**
@@ -291,5 +323,5 @@ class MySitesFragment : Fragment() {
         transaction.addToBackStack(null)
         transaction.commit()
     }
-    
+
 }

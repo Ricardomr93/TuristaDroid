@@ -15,16 +15,13 @@ import android.graphics.BitmapFactory
 
 import android.graphics.Bitmap
 
-
-
-
 class SliderAdapter: PagerAdapter{
 
     var context: Context
-    var images: Array<Int>
+    var images: Array<Bitmap>
     lateinit var inflater: LayoutInflater
 
-    constructor(context: Context, images: Array<Int>): super(){
+    constructor(context: Context, images: Array<Bitmap>): super(){
         this.context = context
         this.images = images
     }
@@ -39,10 +36,8 @@ class SliderAdapter: PagerAdapter{
         var view: View = inflater.inflate(R.layout.item_slider_image, container, false)
         image = view.findViewById(R.id.slider_image)
 
-       // val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.ic_ricflor_add_photo)
-      //  image.setImageBitmap(bitmap)
+        image.setImageBitmap(images[position])
 
-        image.setBackgroundResource(images[position])
         container!!.addView(view)
         return view
     }
@@ -50,5 +45,4 @@ class SliderAdapter: PagerAdapter{
     override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
         container!!.removeView(`object` as RelativeLayout)
     }
-
 }

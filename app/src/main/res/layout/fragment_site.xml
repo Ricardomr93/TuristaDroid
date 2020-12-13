@@ -20,13 +20,18 @@
                 android:layout_height="182dp"
                 android:id="@+id/imageSite"
                 android:elevation="10dp"
-                android:background="@drawable/sombra_slider"/>
+                android:background="@drawable/sombra_slider">
+        </androidx.viewpager.widget.ViewPager>
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:id="@+id/txtNameSiteSite"
-                android:textSize="24sp" android:textStyle="bold"
-                android:textAllCaps="true" android:textAlignment="center" android:hint="@string/site_name"/>
+                android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/name" android:id="@+id/txtNameSiteSite"/>
+        </com.google.android.material.textfield.TextInputLayout>
         <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"

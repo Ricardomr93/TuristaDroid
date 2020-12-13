@@ -104,4 +104,6 @@
     <string name="exportok">Export successfully</string>
     <string name="errorImport">Error: file not found</string>
 
+    <string name="share_mysite">This is my Site</string>
+
 </resources>

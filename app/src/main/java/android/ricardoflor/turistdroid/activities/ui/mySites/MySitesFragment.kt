@@ -26,7 +26,6 @@ import android.widget.Toast
 
 class MySitesFragment : Fragment() {
 
-    private lateinit var mySitesViewModel: MySitesViewModel
     private var sitios = mutableListOf<Site>()
 
     // Interfaz gráfica

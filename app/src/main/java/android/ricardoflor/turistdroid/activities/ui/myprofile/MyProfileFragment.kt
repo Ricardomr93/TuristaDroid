@@ -49,7 +49,6 @@ class MyProfileFragment : Fragment() {
     private lateinit var FOTO: Bitmap
     private lateinit var IMAGEN_NOMBRE: String
     private var user = User()
-    private val im: String = ""
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -67,10 +66,14 @@ class MyProfileFragment : Fragment() {
         updateUser()
         deleteUser()
         getInformation()
-        initBotones()
-        initPermisos()
+        initButtoms()
+        initPermisses()
     }
 
+    /**
+     * Metodo que devuelve un boolean si el email cambia o no
+     * @return true si cambia false si no
+     */
     fun emailChanges(): Boolean {
         return USER.email != txtEmailMyProfile.text.toString()
     }
@@ -79,9 +82,9 @@ class MyProfileFragment : Fragment() {
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
     private fun update() {
-        var name = txtNameMyProfile.text.toString()
-        var nameUser = txtUserNameMyProfile.text.toString()
-        var email = txtEmailMyProfile.text.toString()
+        val name = txtNameMyProfile.text.toString()
+        val nameUser = txtUserNameMyProfile.text.toString()
+        val email = txtEmailMyProfile.text.toString()
         Log.d("profile", name + nameUser + email)
         user.name = name
         user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
@@ -89,18 +92,19 @@ class MyProfileFragment : Fragment() {
         user.email = email
         if (this::FOTO.isInitialized) {
             user.image = UtilImage.toBase64(FOTO)!!
-        }else{
-            if (USER.image != null){
-                user.image = USER.image
-            }
+        } else {
+            user.image = USER.image
         }
         UserController.updateUser(user)
     }
 
+    /**
+     * Metodo que modifica al usuario si los campos son correctos
+     */
     private fun updateUser() {
         btnUpdateMyprofile.setOnClickListener {
             if (isMailValid(txtEmailMyProfile.text.toString())) {
-                if (!isPasswordValid(txtPassMyprofile.text.toString())) {
+                if (isPasswordValid(txtPassMyprofile.text.toString())) {
                     if (!someIsEmpty()) {
                         Log.i("updater", "usuario cambia")
                         deleteAndInsertUser()
@@ -117,6 +121,9 @@ class MyProfileFragment : Fragment() {
         }
     }
 
+    /**
+     * Método que cambia los datos del usuario en el navigation
+     */
     fun changeNavigation() {
         NavigationActivity.navUsername.text = USER.nameUser
         NavigationActivity.navUserEmail.text = USER.email
@@ -137,21 +144,25 @@ class MyProfileFragment : Fragment() {
         SESSION = SessionController.selectSession()!!
     }
 
+
     /**
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
     private fun addUser() {
         try {
             user.name = txtNameMyProfile.text.toString()
-            user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
+            //si la contraseña está vacia mantiene la que ya tiene
+            if(txtPassMyprofile.text.isNullOrEmpty()){
+                user.password = USER.password
+            }else{
+                user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
+            }
             user.nameUser = txtUserNameMyProfile.text.toString()
             user.email = txtEmailMyProfile.text.toString()
             if (this::FOTO.isInitialized) {
                 user.image = UtilImage.toBase64(FOTO)!!
-            }else{
-                if (USER.image != null){
-                    user.image = USER.image
-                }
+            } else {
+                user.image = USER.image
             }
             UserController.insertUser(user)
             USER = user
@@ -202,12 +213,15 @@ class MyProfileFragment : Fragment() {
      */
     private fun someIsEmpty(): Boolean {
         var valid = false
-        if (empty(txtEmailMyProfile) || empty(txtNameMyProfile) || empty(txtPassMyprofile) || empty(txtUserNameMyProfile)) {
+        if (empty(txtEmailMyProfile) || empty(txtNameMyProfile) ||  empty(txtUserNameMyProfile)) {
             valid = true
         }
         return valid
     }
 
+    /**
+     * Metodo que al pulsar pide un cuadro de dialogo para confirmar
+     */
     private fun deleteUser() {
         btnUnsubMyProfile.setOnClickListener {
             showDialogAlertSimple()
@@ -216,21 +230,22 @@ class MyProfileFragment : Fragment() {
 
     /**
      * Cuadro de dialogo para advertir al usuario si queire borrar su cuenta
+     * si acepta borra al usuario
      */
     fun showDialogAlertSimple() {
         AlertDialog.Builder(context)
             .setTitle(getText(R.string.caution))
             .setMessage(getText(R.string.sure_delete))
-            .setPositiveButton(android.R.string.ok,
-                DialogInterface.OnClickListener { dialog, which ->
-                    UserController.deleteUser(USER.email)
-                    SessionController.deleteSession(SESSION)
-                    startActivity(Intent(context, LoginActivity::class.java))
-                    Toast.makeText(context!!, "USUARIO BORRADO", Toast.LENGTH_SHORT).show()
-                })
-            .setNegativeButton(android.R.string.cancel,
-                DialogInterface.OnClickListener { dialog, which ->
-                })
+            .setPositiveButton(android.R.string.ok
+            ) { _, _ ->
+                UserController.deleteUser(USER.email)
+                SessionController.deleteSession(SESSION)
+                startActivity(Intent(context, LoginActivity::class.java))
+                Toast.makeText(context!!, "USUARIO BORRADO", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(android.R.string.cancel
+            ) { _, _ ->
+            }
             .show()
     }
 
@@ -253,7 +268,7 @@ class MyProfileFragment : Fragment() {
     /**
      * Comprobamos los permisos de la aplicación
      */
-    private fun initPermisos() {
+    private fun initPermisses() {
         //ACTIVIDAD DONDE TRABAJA
         Dexter.withContext(context)
             //PERMISOS
@@ -295,16 +310,16 @@ class MyProfileFragment : Fragment() {
     /**
      * Inicia los eventos de los botones
      */
-    private fun initBotones() {
+    private fun initButtoms() {
         imgMyprofile.setOnClickListener {
-            initDialogFoto()
+            initDialogPhoto()
         }
     }
 
     /**
      * Muestra el diálogo para tomar foto o elegir de la galería
      */
-    private fun initDialogFoto() {
+    private fun initDialogPhoto() {
         val fotoDialogoItems = arrayOf(
             getString(R.string.Gallery),
             getString(R.string.Photo)
@@ -336,20 +351,15 @@ class MyProfileFragment : Fragment() {
      * Metodo que llama al intent de la camamara para tomar una foto
      */
     private fun takePhotoFromCamera() {
-        // Si queremos hacer uso de fotos en alta calidad
         val builder = StrictMode.VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
-
-        // Eso para alta o baja
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         // Nombre de la imagen
         IMAGEN_NOMBRE = UtilImage.crearNombreFichero()
-        // Salvamos el fichero
+        // guardamos el fichero en una variable
         val fichero = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, context!!)
         IMAGE = Uri.fromFile(fichero)
-
         intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
-        // Esto para alta y baja
         startActivityForResult(intent, CAMERA)
     }
 

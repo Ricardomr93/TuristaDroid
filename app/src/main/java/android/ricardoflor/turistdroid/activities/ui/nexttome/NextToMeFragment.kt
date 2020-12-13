@@ -44,7 +44,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 0.050000
+    private var DISTANCE = 1.050000
 
 
     override fun onCreateView(
@@ -88,7 +88,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         val uiSettings = mMap.uiSettings
         mMap.setOnMarkerClickListener(this)//al pulsas un marker
         uiSettings.isCompassEnabled = true
-        //mMap.setMinZoomPreference(16.0f)//zoom maximo
     }
 
     /**
@@ -110,7 +109,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      */
     override fun onMarkerClick(marker: Marker): Boolean {
         val site = marker.tag as Site
-        Log.i("mape", "cojones que sueño$site")
         infoWindow()
         return false
     }
@@ -122,7 +120,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             BitmapFactory
                 .decodeResource(context?.resources, R.drawable.ic_marker)
         )
-        // marker?.remove()//borra el marcardor si existe
         val marker = mMap.addMarker(
             MarkerOptions()
                 .position(loc) // posicion
@@ -152,8 +149,10 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * @param loc :LatLng
      */
     private fun addMarkerSite(loc: LatLng) {
-        Log.i("mape", loc.latitude.toString() + "-" + loc.longitude.toString())
+        Log.i("mape", loc.latitude.toString() + "-+" + loc.longitude.toString())
         var listSites = SiteController.selectByNear(loc.latitude, loc.longitude, DISTANCE)
+        //var listSites = SiteController.selectAllSite()
+        Log.i("mape", listSites.toString())
         //si hay lugares los pinta
         if (listSites != null) {
             for (site in listSites) {
@@ -162,6 +161,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 markCurrentPostition(loc, site)
             }
             allSeeMarker(listSites)
+        }else{
+            Log.i("mape", "ningun lugar cercano)")
         }
     }
 

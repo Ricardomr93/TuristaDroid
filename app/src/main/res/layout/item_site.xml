@@ -36,7 +36,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintHorizontal_bias="1.0"
             android:layout_marginTop="24dp"
-    />
+            android:textAllCaps="true"/>
 
     <ImageView
             android:id="@+id/imgSite"
@@ -51,7 +51,6 @@
             app:srcCompat="@drawable/ic_ricflor_add_photo" android:layout_marginEnd="24dp"
             android:layout_marginStart="24dp" app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintHorizontal_bias="0.0"/>
-
     <TextView
             android:id="@+id/txtSite2"
             android:layout_width="0dp"

@@ -46,7 +46,9 @@
             android:layout_margin="15dp"
             app:layout_constraintTop_toBottomOf="@+id/txtNameSiteSite" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/mapViewAddSite"
-            android:layout_marginStart="16dp" app:layout_constraintVertical_bias="0.19"/>
+            android:layout_marginStart="16dp" app:layout_constraintVertical_bias="0.19"
+            app:layout_constraintEnd_toStartOf="@+id/txtSiteSite" android:layout_marginEnd="8dp"/>
+
     <Spinner
             android:layout_width="240dp"
             android:layout_height="wrap_content" android:id="@+id/txtSiteSite"
@@ -59,7 +61,6 @@
             app:layout_constraintTop_toBottomOf="@+id/txtNameSiteSite"
             app:layout_constraintBottom_toTopOf="@+id/txtDateSite" android:layout_marginStart="5dp"
             android:entries="@array/sites_types"/>
-
     <EditText
             android:layout_width="240dp"
             android:layout_height="wrap_content"
@@ -108,7 +109,7 @@
             app:layout_constraintTop_toBottomOf="@+id/mapViewAddSite" app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="20dp" android:layout_marginStart="30dp" android:layout_marginEnd="30dp"
-            app:layout_constraintHorizontal_bias="0.0"/>
+            app:layout_constraintHorizontal_bias="0.0" android:textColor="@color/white"/>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             app:fabSize="normal"
             android:src="@drawable/ic_gmail"

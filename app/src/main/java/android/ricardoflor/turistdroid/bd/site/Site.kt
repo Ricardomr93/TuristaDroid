@@ -25,8 +25,8 @@ open class Site(
     var site: String = "",
     var date: String = "",
     var rating: Double = 0.0,
-    var longitude: Double = 0.0,
     var latitude: Double = 0.0,
+    var longitude: Double = 0.0
 ) : RealmObject(){
     override fun toString(): String {
         return "Site(id=$id, name='$name', image='$image', site='$site', date=$date, rating=$rating, longitude=$longitude, latitude=$latitude)"

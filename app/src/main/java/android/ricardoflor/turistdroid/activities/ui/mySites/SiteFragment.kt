@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.ImageDecoder
+import android.location.Location
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +20,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.image.ImageController
 import android.ricardoflor.turistdroid.bd.site.Site
@@ -30,7 +32,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
@@ -41,12 +56,20 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.RealmList
-import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_site.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
-class SiteFragment(modo: Int, site: Site?) : Fragment() {
+class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+
+    // Variables a usar y permisos del mapa
+    private lateinit var mMap: GoogleMap
+    private lateinit var myPosition: FusedLocationProviderClient
+    private var marker: Marker? = null
+    private var location: Location? = null
+    private var posicion: LatLng? = null
+    private var locationRequest: LocationRequest? = null
+    private lateinit var positionSite: LatLng
 
     private val modo = modo
     private val sitio: Site? = site
@@ -105,6 +128,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     private fun init() {
         initButtons()
         initEditCreateMode()
+        initMap()
+        myActualPosition()
 
         cajaFecha?.setOnClickListener { showDatePickerDialog() }
         btnMail?.setOnClickListener { shareGmail() }
@@ -120,7 +145,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         val uri = getImageUri(requireContext(), qrShare)
         val intent = Intent().apply {
             Intent(Intent.ACTION_SENDTO)
-            data = Uri.parse("mailto:" )
+            data = Uri.parse("mailto:")
             putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_mysite))
             putExtra(Intent.EXTRA_TEXT, getString(R.string.share_mysite))
             putExtra(Intent.EXTRA_STREAM, uri)
@@ -195,6 +220,30 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     private fun onDateSelected(day: Int, month: Int, year: Int) {
         cajaFecha?.setText("$day/$month/$year")
     }
+    // Metodos de Validaciones --------------------------------------------------------------------------------------
+    /**
+     * Metodo que devuelve false si alguno de los valores esta vacio
+     */
+    private fun anyEmpty(): Boolean {
+        var valid = true
+        if (notEmpty(txtDateSite) && notEmpty(txtDateSite)) {
+            valid = false
+        }
+        return valid
+    }
+
+    /**
+     * Método que comprueba si el campo esta vacio y lanza un mensaje
+     * @param txt TextView
+     */
+    private fun notEmpty(txt: TextView): Boolean {
+        var empty = false
+        if (txt.text.isEmpty()) {
+            txt.error = resources.getString(R.string.isEmpty)
+            empty = true
+        }
+        return empty
+    }
 
     /**
      * Metodo para abrir el fragment en edicion o en creacion
@@ -239,7 +288,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                 cajaLocalizacion?.isEnabled = false
                 cajaFecha?.isEnabled = false
                 cajaRating?.isEnabled = false
-
             }
         }
     }
@@ -282,10 +330,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         val slider: ViewPager = root.findViewById(R.id.imageSite)
         slider.adapter = adapter
 
-        // TODO Falta informacion del mapa - longi y latit ---------------------------------------------------------------------
-        var textoQr: String = sitio?.name + ";" + opc + ";" + sitio?.date + ";" + (sitio?.rating)?.toFloat()
+
+        var textoQr: String =
+            sitio?.name + ";" + opc + ";" + sitio?.date + ";" +
+                    (sitio?.rating)?.toFloat() + ";" + (sitio.latitude) + ";" + (sitio.longitude)
 
         generateQRCode(textoQr)
+        positionSite = LatLng(sitio!!.latitude, sitio!!.longitude)
     }
 
     /**
@@ -294,13 +345,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     private fun cargarDatosSiteQr(text: String) {
 
         val parts = text.split(";")
-
         cajaSiteName?.setText(parts[0])
         cajaLocalizacion?.setSelection(parts[1].toInt())
         cajaFecha?.setText(parts[2])
         cajaRating?.rating = ((parts[3])?.toFloat() ?: 0.0) as Float
-
-        // TODO Falta informacion del mapa - longi y latit ---------------------------------------------------------------------
+        latitude = ((parts[4])?.toFloat() ?: 0.0) as Double
+        longitude = ((parts[5])?.toFloat() ?: 0.0) as Double
+        posicion = LatLng(latitude, longitude)
     }
 
     /**
@@ -315,22 +366,29 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
-
-            longitude = 0.0
-            latitude = 2.0
-
-            lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
-
-            SiteController.insertSite(lugar)
-
-            Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
-            Log.i("site", lugar.toString())
-
-            // Vibracion
-            vibrate()
-
-            // Volvemos a MySites Fragment
-            volverMySites()
+            if (anyEmpty()) {
+                // Recuperamos los datos
+                // image
+                name = cajaSiteName?.text.toString()
+                site = cajaLocalizacion?.selectedItem.toString()
+                date = cajaFecha?.text.toString()
+                rating = cajaRating?.rating?.toDouble() ?: 0.0
+//        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+                if (posicion != null) {
+                    latitude = posicion!!.latitude
+                    longitude = posicion!!.longitude
+                    lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
+                    SiteController.insertSite(lugar)
+                    Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
+                    Log.i("site", lugar.toString())
+                    // Vibracion
+                    vibrate()
+                    // Volvemos a MySites Fragment
+                    volverMySites()
+                } else {
+                    Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -346,18 +404,21 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
-
-            longitude = 0.0
-            latitude = 2.0
-
-            lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
-
-            SiteController.updateSite(lugar)
-
-            Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-
-            // Volvemos a MySites Fragment
-            volverMySites()
+            if (anyEmpty()) {
+               // image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+                if (posicion != null) {
+                    latitude = posicion!!.latitude
+                    longitude = posicion!!.longitude
+                    lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
+                    SiteController.updateSite(lugar)
+                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+                    // Volvemos a MySites Fragment
+                    volverMySites()
+                } else {
+                    Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
+                }
+            }
+//
         }
     }
 
@@ -388,7 +449,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     }
 
 //**************************************************************************
-    //METODO PARA LOS PERMISOS DE LA GESTION DE LA CAMARA **********************
+    //METODO PARA LOS PERMISOS **********************
     /**
      * Comprobamos los permisos de la aplicación
      */
@@ -400,6 +461,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                 Manifest.permission.CAMERA,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.ACCESS_NETWORK_STATE,
+                Manifest.permission.INTERNET,
+                Manifest.permission.ACCESS_FINE_LOCATION,
             )//LISTENER DE MULTIPLES PERMISOS
             .withListener(object : MultiplePermissionsListener {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
@@ -497,8 +561,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         //Dialogo para eligir opciones
         AlertDialog.Builder(context)
             .setTitle(getString(R.string.SelectOption))
-            .setItems(fotoDialogoItems) { _, modo ->
-                when (modo) {
+            .setItems(fotoDialogoItems) { _, mode ->
+                when (mode) {
                     0 -> takephotoFromGallery()
                     1 -> takePhotoFromCamera()
                 }
@@ -643,28 +707,207 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         return bitmap;
     }
 
-    // Metodos de Validaciones --------------------------------------------------------------------------------------
+
+    //************************************************************
+    //METODOS MAP*************************************************
     /**
-     * Metodo que devuelve false si alguno de los valores esta vacio
+     * metodo que inicia el mapa
      */
-    private fun anyEmpty(): Boolean {
-        var valid = true
-        if (notEmpty(cajaSiteName!!) && notEmpty(txtEmail) && notEmpty(txtPass) && notEmpty(txtUserName)) {
-            valid = false
-        }
-        return valid
+    private fun initMap() {
+        val mapFragment = (childFragmentManager
+            .findFragmentById(R.id.mapViewAddSite) as SupportMapFragment?)!!
+        mapFragment.getMapAsync(this)
+    }
+
+
+    /**
+     * Configuración del mapa con zoom
+     */
+    private fun configurarIUMapa() {
+        mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
+        typeMap()
+
     }
 
     /**
-     * Método que comprueba si el campo esta vacio y lanza un mensaje
-     * @param txt TextView
+     * Depende el modo deshabilita el el mapa no no
      */
-    private fun notEmpty(txt: TextView): Boolean {
-        var empty = false
-        if (txt.text.isEmpty()) {
-            txt.error = resources.getString(R.string.isEmpty)
-            empty = true
+    private fun typeMap() {
+
+        val uiSettings = mMap.uiSettings
+        when (modo) {
+            1, 2 -> {
+                uiSettings.isRotateGesturesEnabled = true
+            }
+            3 -> {
+                uiSettings.isRotateGesturesEnabled = false
+                uiSettings.isCompassEnabled = false
+                uiSettings.isMapToolbarEnabled = false
+                uiSettings.isIndoorLevelPickerEnabled = false
+                uiSettings.isZoomControlsEnabled = false
+                uiSettings.isMyLocationButtonEnabled = false
+                uiSettings.isScrollGesturesEnabledDuringRotateOrZoom = false
+                uiSettings.isScrollGesturesEnabled = false
+                mMap.setMinZoomPreference(15.0f)
+
+            }
         }
-        return empty
     }
+
+    /**
+     * Metodo que se inicia cuando el mapa está listo
+     * @param maps : GoogleMap
+     */
+    override fun onMapReady(maps: GoogleMap) {
+        mMap = maps
+        mMap.isMyLocationEnabled = true
+        when (modo) {
+            1 -> {
+                getPosition()
+                getLatitudeOnClick()
+            }
+            2 -> {
+                sitePositionShow()
+                getLatitudeOnClick()
+            }
+            else -> {
+                sitePositionShow()
+            }
+        }
+        locationReq()
+        configurarIUMapa()
+
+    }
+
+    /**
+     * metodo cuando pulsas un marcador
+     * @param marker : Marker
+     */
+    override fun onMarkerClick(marker: Marker): Boolean {
+        return false
+    }
+
+    /**
+     * Metodo que coge la posicion al pulsar y pinta un marcador
+     */
+    private fun getLatitudeOnClick() {
+        mMap.setOnMapClickListener { lat ->
+            posicion = LatLng(lat.latitude, lat.longitude)
+            markCurrentPostition(posicion!!)
+            Toast.makeText(context!!, posicion.toString(), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Metodo que pinta un marcador en la posicion indicada
+     */
+    private fun markCurrentPostition(loc: LatLng) {
+        val icon = BitmapDescriptorFactory.fromBitmap(
+            BitmapFactory
+                .decodeResource(context?.resources, R.drawable.ic_marker)
+        )
+        marker?.remove()//borra el marcardor si existe
+        marker = mMap.addMarker(
+            MarkerOptions()
+                .position(loc) // posicion
+                .icon(icon)
+        )
+    }
+
+    /**
+     * Metodo que muestra la ubicacion del sitio y mueve la camara
+     */
+    fun sitePositionShow() {
+        sitePosition()
+    }
+
+    /**
+     * Metodo que mueve la camara hasta la posicion actual
+     */
+    private fun cameraMapSite(position: LatLng) {
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(position))
+    }
+
+    /**
+     * Posicion del sitio
+     */
+    private fun sitePosition() {
+        if (this::positionSite.isInitialized) {
+            val icon = BitmapDescriptorFactory.fromBitmap(
+                BitmapFactory
+                    .decodeResource(context?.resources, R.drawable.ic_marker)
+            )
+            //marker?.remove()//borra el marcardor si existe
+            marker = mMap.addMarker(
+                MarkerOptions()
+                    .position(positionSite!!) // posicion
+                    .icon(icon)
+            )
+            cameraMapSite(positionSite)
+        }
+
+    }
+    //************************************************************
+    //METODOS GPS*************************************************
+    /**
+     * Metodo que recoge la ubicacion actual y la mete en una variable
+     */
+    private fun myActualPosition() {
+        myPosition = LocationServices.getFusedLocationProviderClient(activity!!)
+    }
+
+    /**
+     * Metodo que actualiza la posicion
+     */
+    fun locationReq() {
+        locationRequest = LocationRequest.create()
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            .setInterval(10 * 1000)        // 10 segundos en milisegundos
+            .setFastestInterval(1 * 1000) // 1 segundo en milisegundos
+    }
+
+    /**
+     * Obtiene la posicion
+     */
+    private fun getPosition() {
+        Log.i("Mape", "Obteniendo posición")
+        try {
+            val local: Task<Location> = myPosition.lastLocation
+            local.addOnCompleteListener(
+                activity!!
+            ) { task ->
+                if (task.isSuccessful) {
+                    // Actualizamos la última posición conocida
+                    location = task.result
+                    if (location != null) {
+                        posicion = LatLng(
+                            location!!.latitude,
+                            location!!.longitude
+                        )
+                        cameraMap()
+                    }
+                }
+            }
+        } catch (e: SecurityException) {
+            Snackbar.make(
+                view!!,
+                "No se ha encontrado su posoción actual o el GPS está desactivado",
+                Snackbar.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    /**
+     * Metodo que mueve la camara hasta la posicion actual
+     */
+    private fun cameraMap() {
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(posicion))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BdController.close()
+    }
+
+
 }

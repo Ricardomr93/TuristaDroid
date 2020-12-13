@@ -50,14 +50,6 @@ class SiteListAdapter(
             } else {
                 holder.siteName.text = siteName
             }
-
-            //Usando Picasso para poder obtener las fotos y redondearlas
-            /*Picasso.get()
-                .load(listaNoticias[position].imagen) //Instanciamos un objeto de la clase (creada más abajo) para redondear la imagen
-                .transform(CirculoTransformacion())
-                .resize(375, 200)
-                .into(holder.ivNoticia)*/
-
             if (siteLocation.length >= 30) {
                 siteLocation = siteLocation.substring(0, 30)
                 holder.siteLocation.text = "$siteLocation..."

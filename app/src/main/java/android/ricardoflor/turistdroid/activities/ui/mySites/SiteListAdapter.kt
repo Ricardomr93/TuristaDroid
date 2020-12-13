@@ -69,7 +69,7 @@ class SiteListAdapter(
             holder.siteRating.text = siteRatings
 
             // Programamos el clic de cada fila (itemView)
-            holder.relativeLayout
+            holder.btnViewSiteFloating
                 .setOnClickListener {
                     // Devolvemos el sitio
                     listener(listaSitios[position])
@@ -119,6 +119,7 @@ class SiteListAdapter(
             var siteRating = itemView.txtRatings2
 
             // Indicamos el Layout para el click
-            var relativeLayout = itemView.item_site
+            //var relativeLayout = itemView.item_site
+            var btnViewSiteFloating = itemView.btnViewSiteFloating
         }
     }

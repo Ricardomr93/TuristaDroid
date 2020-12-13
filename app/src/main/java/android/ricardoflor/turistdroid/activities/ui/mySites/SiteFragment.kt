@@ -43,6 +43,7 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_site.*
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 
 class SiteFragment(modo: Int, site: Site?) : Fragment() {
@@ -53,6 +54,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
     // Botones y Cajas de Texto
     private var btnAddUpdate: Button? = null
+    private var btnAddImage: FloatingActionButton? = null
     private var btnMail: FloatingActionButton? = null
     private var btnFace: FloatingActionButton? = null
     private var btnTwit: FloatingActionButton? = null
@@ -81,6 +83,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     private lateinit var FOTO: Bitmap
     private var imagenIni: Boolean = true
     private var idFoto: Long = 1
+    private lateinit var qrShare: Bitmap
 
     // Variables Slider Images
     private var imagesSlider: RealmList<Bitmap> = RealmList()
@@ -103,9 +106,56 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         initButtons()
         initEditCreateMode()
 
-        cajaFecha?.setOnClickListener {
-            showDatePickerDialog()
+        cajaFecha?.setOnClickListener { showDatePickerDialog() }
+        btnMail?.setOnClickListener { shareGmail() }
+        btnFace?.setOnClickListener { shareSite("com.facebook.katana") }
+        btnTwit?.setOnClickListener { shareSite("com.twitter.android") }
+        btnInsta?.setOnClickListener { shareSite("com.instagram.android") }
+    }
+
+    /**
+     * Funcion para compartir con Gmail
+     */
+    private fun shareGmail() {
+        val uri = getImageUri(requireContext(), qrShare)
+        val intent = Intent().apply {
+            Intent(Intent.ACTION_SENDTO)
+            data = Uri.parse("mailto:" )
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_mysite))
+            putExtra(Intent.EXTRA_TEXT, getString(R.string.share_mysite))
+            putExtra(Intent.EXTRA_STREAM, uri)
+            type = "image/jpeg"
         }
+        val shareIntent = Intent.createChooser(intent, null)
+        startActivity(shareIntent)
+    }
+
+    /**
+     * Funcion para compartir con Twitter, Facebook e Instagram
+     */
+    fun shareSite(str: String) {
+        val msg: String = getString(R.string.share_mysite)
+        val uri = getImageUri(requireContext(), qrShare)
+        val intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, msg)
+            type = "text/plain"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            type = "image/jpeg"
+            setPackage(str)
+        }
+        val shareIntent = Intent.createChooser(intent, null)
+        startActivity(shareIntent)
+    }
+
+    /**
+     * Funcion que coge la Uri de una imagen Bitmap
+     */
+    fun getImageUri(inContext: Context, inImage: Bitmap): Uri? {
+        val bytes = ByteArrayOutputStream()
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+        val path = MediaStore.Images.Media.insertImage(inContext.contentResolver, inImage, "Title", null)
+        return Uri.parse(path)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -131,6 +181,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         cajaLocalizacion = root.findViewById(R.id.txtSiteSite)
         cajaFecha = root.findViewById(R.id.txtDateSite)
         cajaRating = root.findViewById(R.id.ratingBar)
+        btnAddImage = root.findViewById(R.id.addImageButton)
     }
 
     /**
@@ -181,6 +232,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             3 -> { // Fragment de Consulta
                 cargarDatosSite()
                 btnAddUpdate?.isVisible = false
+                btnAddImage?.isVisible = false
                 mostrarBotonesSocial(true)
 
                 cajaSiteName?.isEnabled = false
@@ -210,11 +262,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
         var opc: Int = 0
 
-        for (it in lista){
-            if (it.equals(sitio?.site.toString())){
+        for (it in lista) {
+            if (it.equals(sitio?.site.toString())) {
                 break
             }
-            opc ++
+            opc++
         }
         cajaLocalizacion?.setSelection(opc)
 
@@ -222,7 +274,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         cajaRating?.rating = ((sitio?.rating)?.toFloat() ?: 0.0) as Float
 
         //Rellena la lista con las imagenes de la BD
-        for (img in sitio!!.image){
+        for (img in sitio!!.image) {
             imagesSlider.add(UtilImage.toBitmap(img!!.image))
         }
 
@@ -231,7 +283,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         slider.adapter = adapter
 
         // TODO Falta informacion del mapa - longi y latit ---------------------------------------------------------------------
-        var textoQr: String = sitio?.name + ";" +  opc + ";" + sitio?.date + ";" + (sitio?.rating)?.toFloat()
+        var textoQr: String = sitio?.name + ";" + opc + ";" + sitio?.date + ";" + (sitio?.rating)?.toFloat()
 
         generateQRCode(textoQr)
     }
@@ -419,13 +471,15 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             val bitMatrix = codeWriter.encode(text, BarcodeFormat.QR_CODE, width, height)
             for (x in 0 until width) {
                 for (y in 0 until height) {
-                    bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.TRANSPARENT)
+                    bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
                 }
             }
 
             //Pasa la imagen al objeto en pantalla
             val qrImg: ImageView = root.findViewById(R.id.qrView)
             qrImg.setImageBitmap(bitmap)
+            // Almacenamos el QR para compartirlo en Redes
+            qrShare = bitmap
 
         } catch (e: WriterException) {
             Log.d("QR", "Error QR")
@@ -493,13 +547,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        try{
+        try {
 
             //Recupera la informacion si ha escaneado un QR
             val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
             if (result != null) {
                 //Si no tiene informacion se cancela
-                if (result.contents == null){
+                if (result.contents == null) {
                     Toast.makeText(context, getText(R.string.error), Toast.LENGTH_LONG).show()
                 } else {
                     //Carga la informacion obtenida del QR
@@ -526,7 +580,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                         image.add(img)
 
                         //Para borrar la imagen de muestra
-                        if (modo == 1 && imagenIni){
+                        if (modo == 1 && imagenIni) {
                             imagesSlider = RealmList()
                             imagenIni = false
                         }
@@ -553,7 +607,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                     image.add(img)
 
                     //Para borrar la imagen de muestra
-                    if (modo == 1 && imagenIni){
+                    if (modo == 1 && imagenIni) {
                         imagesSlider = RealmList()
                         imagenIni = false
                     }
@@ -568,8 +622,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                 }
             }
 
-        } catch (e: Exception){
-            Toast.makeText(context,"No se ha podido cargar la imagen",5)
+        } catch (e: Exception) {
+            Toast.makeText(context, "No se ha podido cargar la imagen", 5)
         }
     }
 

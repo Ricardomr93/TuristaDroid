@@ -203,11 +203,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
 //        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
             longitude = 0.0
             latitude = 2.0
-
-            lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
-
+            //lugar = Site(name!!, site!!, date!!, rating, latitude, longitude)
             SiteController.insertSite(lugar)
-
             Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
             Log.i("site", lugar.toString())
 

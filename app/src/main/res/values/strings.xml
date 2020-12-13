@@ -102,6 +102,6 @@
     <string name="userDelete">User deleted successfully</string>
     <string name="importok">Import successfully</string>
     <string name="exportok">Export successfully</string>
-    <string name="errorImport">Error:file not found</string>
+    <string name="errorImport">Error: file not found</string>
 
 </resources>

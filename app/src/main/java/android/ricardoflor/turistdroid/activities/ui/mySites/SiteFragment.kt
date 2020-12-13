@@ -1,12 +1,12 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
 import android.Manifest
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
@@ -20,10 +20,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.image.Image
+import android.ricardoflor.turistdroid.bd.image.ImageController
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
 import android.ricardoflor.turistdroid.utils.UtilImage
-import android.util.Base64
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -31,6 +31,10 @@ import androidx.core.view.isVisible
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.WriterException
+import com.google.zxing.integration.android.IntentIntegrator
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -40,7 +44,6 @@ import io.realm.RealmList
 import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_site.*
 import java.io.IOException
-import java.util.ArrayList
 
 class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
@@ -77,6 +80,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     lateinit var IMAGE: Uri
     private lateinit var FOTO: Bitmap
     private var imagenIni: Boolean = true
+    private var idFoto: Long = 1
 
     // Variables Slider Images
     private var imagesSlider: RealmList<Bitmap> = RealmList()
@@ -106,10 +110,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initCamara()
+        initCamaraQr()
     }
 
-    private fun initCamara() {
+    private fun initCamaraQr() {
         initBotonesCamara()
         initPermisos()
     }
@@ -146,8 +150,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
      */
     private fun initEditCreateMode() {
 
+        //Obtiene el ultimo ID de las imagenes de la BD
+        idFoto = ImageController.getIdImage()
+
         when (modo) {
-            1 -> {
+            1 -> { // Fragment de Creacion
                 // Obtiene instancia a Vibrator
                 vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
@@ -159,22 +166,19 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                 val slider: ViewPager = root.findViewById(R.id.imageSite)
                 slider.adapter = adapter
 
-                // Fragment de Creacion
                 btnAddUpdate?.text = getString(R.string.add)
                 mostrarBotonesSocial(false)
                 add(btnAddUpdate!!)
             }
 
-            2 -> {
-                // Fragment de Edicion
+            2 -> { // Fragment de Edicion
                 cargarDatosSite()
                 btnAddUpdate?.text = getString(R.string.update)
                 mostrarBotonesSocial(false)
                 update(btnAddUpdate!!)
             }
 
-            3 -> {
-                // Fragment de Consulta
+            3 -> { // Fragment de Consulta
                 cargarDatosSite()
                 btnAddUpdate?.isVisible = false
                 mostrarBotonesSocial(true)
@@ -216,6 +220,35 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
         cajaFecha?.setText(sitio?.date)
         cajaRating?.rating = ((sitio?.rating)?.toFloat() ?: 0.0) as Float
+
+        //Rellena la lista con las imagenes de la BD
+        for (img in sitio!!.image){
+            imagesSlider.add(UtilImage.toBitmap(img!!.image))
+        }
+
+        adapter = SliderAdapter(context!!, imagesSlider)
+        val slider: ViewPager = root.findViewById(R.id.imageSite)
+        slider.adapter = adapter
+
+        // TODO Falta informacion del mapa - longi y latit ---------------------------------------------------------------------
+        var textoQr: String = sitio?.name + ";" +  opc + ";" + sitio?.date + ";" + (sitio?.rating)?.toFloat()
+
+        generateQRCode(textoQr)
+    }
+
+    /**
+     * Metodo para cargar los datos del Sitio en el Fragment
+     */
+    private fun cargarDatosSiteQr(text: String) {
+
+        val parts = text.split(";")
+
+        cajaSiteName?.setText(parts[0])
+        cajaLocalizacion?.setSelection(parts[1].toInt())
+        cajaFecha?.setText(parts[2])
+        cajaRating?.rating = ((parts[3])?.toFloat() ?: 0.0) as Float
+
+        // TODO Falta informacion del mapa - longi y latit ---------------------------------------------------------------------
     }
 
     /**
@@ -230,7 +263,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
-//        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+
             longitude = 0.0
             latitude = 2.0
 
@@ -261,11 +294,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
-//        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+
             longitude = 0.0
             latitude = 2.0
 
-           // lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
+            lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
 
             SiteController.updateSite(lugar)
 
@@ -351,8 +384,51 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
      * Inicia los eventos de los botones
      */
     private fun initBotonesCamara() {
+        // Solo se puede escanear un QR en el Modo Creacion
+        if (modo == 1) {
+            qrView.setOnClickListener {
+                scanQRCode()
+            }
+        }
         addImageButton.setOnClickListener {
             initDialogFoto()
+        }
+    }
+
+    /**
+     * Ecanea un codigo QR
+     */
+    private fun scanQRCode() {
+        val integrator = IntentIntegrator.forSupportFragment(this).apply {
+            captureActivity = CaptureActivity::class.java
+            setOrientationLocked(false)
+            setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES)
+        }
+        integrator.initiateScan()
+    }
+
+    /**
+     * Genera una imagen QR desde un texto dado y la pinta en la pantalla
+     */
+    private fun generateQRCode(text: String) {
+        val width = 500
+        val height = 500
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val codeWriter = MultiFormatWriter()
+        try {
+            val bitMatrix = codeWriter.encode(text, BarcodeFormat.QR_CODE, width, height)
+            for (x in 0 until width) {
+                for (y in 0 until height) {
+                    bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.TRANSPARENT)
+                }
+            }
+
+            //Pasa la imagen al objeto en pantalla
+            val qrImg: ImageView = root.findViewById(R.id.qrView)
+            qrImg.setImageBitmap(bitmap)
+
+        } catch (e: WriterException) {
+            Log.d("QR", "Error QR")
         }
     }
 
@@ -418,6 +494,19 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
 
         try{
+
+            //Recupera la informacion si ha escaneado un QR
+            val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+            if (result != null) {
+                //Si no tiene informacion se cancela
+                if (result.contents == null){
+                    Toast.makeText(context, getText(R.string.error), Toast.LENGTH_LONG).show()
+                } else {
+                    //Carga la informacion obtenida del QR
+                    cargarDatosSiteQr(result.contents)
+                }
+            }
+
             //Si cancela no hace nada
             if (resultCode == AppCompatActivity.RESULT_CANCELED) {
                 Log.d("sing", "Se ha cancelado")
@@ -432,8 +521,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                         FOTO = differentVersion(contentURI)
 
                         val imgStr = UtilImage.toBase64(FOTO)!!
-                        val id = 0
-                        val img = Image(id.toLong(), imgStr)
+                        idFoto += 1
+                        val img = Image(idFoto, imgStr)
                         image.add(img)
 
                         //Para borrar la imagen de muestra
@@ -459,8 +548,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
                     // Mostramos la imagen
 
                     val imgStr = UtilImage.toBase64(FOTO)!!
-                    val id = 0
-                    val img = Image(id.toLong(), imgStr)
+                    idFoto += 1
+                    val img = Image(idFoto, imgStr)
                     image.add(img)
 
                     //Para borrar la imagen de muestra

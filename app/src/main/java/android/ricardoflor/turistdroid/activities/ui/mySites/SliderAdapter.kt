@@ -14,14 +14,15 @@ import kotlinx.android.synthetic.main.item_slider_image.view.*
 import android.graphics.BitmapFactory
 
 import android.graphics.Bitmap
+import io.realm.RealmList
 
 class SliderAdapter: PagerAdapter{
 
     var context: Context
-    var images: Array<Bitmap>
+    var images: RealmList<Bitmap>
     lateinit var inflater: LayoutInflater
 
-    constructor(context: Context, images: Array<Bitmap>): super(){
+    constructor(context: Context, images:  RealmList<Bitmap>): super(){
         this.context = context
         this.images = images
     }

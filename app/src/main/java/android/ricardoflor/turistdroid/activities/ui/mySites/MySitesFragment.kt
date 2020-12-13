@@ -21,12 +21,17 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
 import android.os.Vibrator
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toast
+import java.text.SimpleDateFormat
 
 
 class MySitesFragment : Fragment() {
 
     private var sitios = mutableListOf<Site>()
+    private var spinnerOrder: Spinner? = null
 
     // Interfaz gráfica
     private lateinit var adapter: SiteListAdapter
@@ -41,8 +46,9 @@ class MySitesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_my_sites, container, false)
-
+        var root = inflater.inflate(R.layout.fragment_my_sites, container, false)
+        spinnerOrder = root.findViewById(R.id.spinnerOrder)
+        return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -61,6 +67,9 @@ class MySitesFragment : Fragment() {
         // Solo si hemos cargado hacemos sl swipeHorizontal
         iniciarSwipeHorizontal()
 
+        // Iniciamos el spinner
+        iniciarSpinner()
+
         // Mostramos las vistas de listas y adaptador asociado
         my_sites_recicler.layoutManager = LinearLayoutManager(context)
 
@@ -69,6 +78,8 @@ class MySitesFragment : Fragment() {
 
         // Obtiene instancia a Vibrator
         vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+
     }
 
     /**
@@ -170,6 +181,7 @@ class MySitesFragment : Fragment() {
                         editarElemento(position)
                     }
                 }
+                cargaSitios()
             }
 
             // Dibujamos los botones
@@ -204,7 +216,52 @@ class MySitesFragment : Fragment() {
         itemTouchHelper.attachToRecyclerView(my_sites_recicler)
     }
 
-    //TODO BORRAR DE BD Y MENSAJE DE CONFIRMACION!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    /**
+     *
+     */
+    private fun iniciarSpinner() {
+        val orderBy = resources.getStringArray(R.array.Filters)
+        val adapter = ArrayAdapter(
+            context!!,
+            android.R.layout.simple_spinner_item, orderBy
+        )
+        spinnerOrder?.adapter = adapter
+        spinnerOrder?.onItemSelectedListener = object :
+            AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                orderSites(position)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // write code to perform some action
+            }
+        }
+    }
+
+    private fun orderSites(pos: Int) {
+        when (pos) {
+            1 -> { // Order by NAME
+                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.compareTo(dos.name) }
+            }
+
+            2 -> { // Order by DATE
+                this.sitios.sortWith() { uno: Site, dos: Site ->
+                    SimpleDateFormat("dd/MM/yyyy").parse(uno.date)
+                        .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(dos.date))
+                }
+            }
+
+            3 -> { // Order by RATINGS
+                this.sitios.sortWith() { uno: Site, dos: Site -> dos.rating.compareTo(uno.rating) }
+            }
+
+            else -> {
+
+            }
+        }
+        my_sites_recicler.adapter = adapter
+    }
+
     private fun borrarElemento(position: Int) {
         // Acciones
         val deletedSite = sitios[position]
@@ -268,13 +325,13 @@ class MySitesFragment : Fragment() {
      */
     private fun botonIzquierdo(canvas: Canvas, dX: Float, itemView: View, width: Float) {
         // Pintamos de gris y ponemos el icono
-        paintSweep.setColor(Color.DKGRAY)
+        paintSweep.setColor(Color.YELLOW)
         val background = RectF(
             itemView.left.toFloat(), itemView.top.toFloat(), dX,
             itemView.bottom.toFloat()
         )
         canvas.drawRect(background, paintSweep)
-        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_sweep_detalles)
+        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.lapiz_white)
         val iconDest = RectF(
             itemView.left.toFloat() + width, itemView.top.toFloat() + width, itemView.left
                 .toFloat() + 2 * width, itemView.bottom.toFloat() - width
@@ -297,7 +354,7 @@ class MySitesFragment : Fragment() {
             itemView.top.toFloat(), itemView.right.toFloat(), itemView.bottom.toFloat()
         )
         canvas.drawRect(background, paintSweep)
-        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_sweep_eliminar)
+        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.basura_white)
         val iconDest = RectF(
             itemView.right.toFloat() - 2 * width, itemView.top.toFloat() + width, itemView.right
                 .toFloat() - width, itemView.bottom.toFloat() - width
@@ -327,6 +384,7 @@ class MySitesFragment : Fragment() {
         transaction.add(R.id.nav_host_fragment, addSites)
         transaction.addToBackStack(null)
         transaction.commit()
+        cargaSitios()
     }
 
     /**

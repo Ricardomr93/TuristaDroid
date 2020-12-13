@@ -47,13 +47,14 @@
     <string name="site_name">Site Name</string>
     <string name="site_site">Site</string>
     <string name="site_date">Date</string>
-    <string-array name="Sites">
+    <string-array name="sites_types">
         <item>Site...</item>
         <item>City</item>
         <item>Park</item>
         <item>Bar</item>
         <item>Monument</item>
         <item>Restaurant</item>
+        <item>Shop</item>
     </string-array>
 
     <string name="name_incorrecto">"The name is not in the correct format"</string>

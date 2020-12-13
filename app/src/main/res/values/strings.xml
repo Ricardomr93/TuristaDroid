@@ -103,5 +103,6 @@
     <string name="importok">Import successfully</string>
     <string name="exportok">Export successfully</string>
     <string name="errorImport">Error:file not found</string>
+    <string name="needPosition">Error : error your position is necessary</string>
 
 </resources>

@@ -2,10 +2,10 @@ package android.ricardoflor.turistdroid.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionController
-import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilSession
@@ -19,12 +19,6 @@ class LoginActivity : AppCompatActivity() {
     var email: String = ""
     var pass: String = ""
 
-    //Variable estatica
-    companion object{
-        var USER = User()
-        var SESSION = Session()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -33,7 +27,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Método
+     * Método que cuando pulsa en en el boton si lo campos son correctos
+     * logea al usuario
      */
     fun login() {
         buttonLoginLogin.setOnClickListener {
@@ -44,6 +39,8 @@ class LoginActivity : AppCompatActivity() {
                 UtilSession.createSession(email)
                 SESSION = SessionController.selectSession()!!
                 val intent = Intent(this,NavigationActivity::class.java)
+                //Elimina la pila trasera para que el boton no vuelva a esta actividad
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                 startActivity(intent)
             } else {
                 editTextLoginMail.error = getString(R.string.userNotCorrect)
@@ -53,7 +50,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Funcion onClick del botón Singin
+     * Funcion onClick del botón Singin para llevarlo a la actividad
      */
     fun SingIn() {
         buttonLoginSingin.setOnClickListener {
@@ -64,7 +61,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Método que busca por email y si lo compara con la contraseña
+     * Método que busca por email y si lo encuentra
+     * lo compara con la contraseña
      */
     private fun userExists(): Boolean {
         try{

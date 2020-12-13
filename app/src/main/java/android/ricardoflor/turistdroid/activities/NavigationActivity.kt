@@ -3,19 +3,15 @@ package android.ricardoflor.turistdroid.activities
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Bundle
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
-import android.ricardoflor.turistdroid.activities.ui.myprofile.MyProfileFragment
-import android.ricardoflor.turistdroid.activities.ui.nexttome.NextToMeFragment
-import android.ricardoflor.turistdroid.activities.LoginActivity.Companion.USER
 import android.ricardoflor.turistdroid.utils.UtilImage
-import android.ricardoflor.turistdroid.utils.UtilSession
+import android.ricardoflor.turistdroid.utils.UtilImpExp
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -31,23 +27,26 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.GravityCompat
-import kotlinx.android.synthetic.main.activity_navigation.*
 
 
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-
+    public var isClicEventoFila = true
 
     //LINTERNA
     private lateinit var cameraManager: CameraManager
     private lateinit var cameraId: String
     private var encendida: Boolean = false
 
+    companion object {
+        lateinit var navUsername: TextView
+        lateinit var navUserEmail: TextView
+        lateinit var navUserImage: ImageView
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_navigation)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -65,8 +64,6 @@ class NavigationActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        navigationListener(navView)
-
         //opciones adicionales
         getInformation()
     }
@@ -79,54 +76,6 @@ class NavigationActivity : AppCompatActivity() {
     }
 
     /**
-     * Funcion para manejar los eventos clic del menu izquierdo (tres rayas)
-     *
-     * @param navigationView
-     */
-    private fun navigationListener(navigationView: NavigationView){
-        navigationView.setNavigationItemSelectedListener {
-            when(it.itemId){
-                R.id.nav_my_sites -> {
-                    openMySites()
-                    // Para abrir y cerrar el menu izquierdo
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    true
-                }
-                R.id.nav_next_to_me -> {
-                    openNextToMe()
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    true
-                }
-                R.id.nav_my_profile -> {
-                    openMyProfile()
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    true
-                }
-                R.id.nav_logout -> {
-                    // Log.i("navig", "exit")
-                    logout()
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    true
-                }
-                else -> {
-                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-                        drawer_layout.closeDrawer(GravityCompat.START)
-                    }
-                    false
-                }
-            }
-        }
-    }
-
-    /**
      * Funcion para manejar los eventos clic del menu derecho (tres puntitos)
      *
      * @param item
@@ -136,11 +85,13 @@ class NavigationActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_import -> {
                 // IMPORTAR
+                UtilImpExp.import(this)
                 true
             }
 
             R.id.action_export -> {
                 // EXPORTAR
+                UtilImpExp.export(this)
                 true
             }
 
@@ -195,6 +146,9 @@ class NavigationActivity : AppCompatActivity() {
             }
         } catch (e: CameraAccessException) {
             e.printStackTrace()
+
+        } catch (e: Exception) {
+            Log.i("util", "Se ha producido un error con la linterna: " + e.printStackTrace())
         }
     }
 
@@ -203,55 +157,13 @@ class NavigationActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    /**
-     * Funcion para abrir el fragment My Sites
-     */
-    private fun openMySites(){
-        val newFragment = MySitesFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, newFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-    }
-
-    /**
-     * Funcion para abrir el fragment Next To Me
-     */
-    private fun openNextToMe(){
-        val newFragment = NextToMeFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, newFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-    }
-
-    /**
-     * Funcion para abrir el fragment My Profile
-     */
-    private fun openMyProfile(){
-        val newFragment = MyProfileFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, newFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-    }
-
-    /**
-     * Funcion para Cerrar Sesion
-     */
-    private fun logout() {
-        UtilSession.deleteSession()
-        startActivity(Intent(this, LoginActivity::class.java))
-    }
-
     private fun getInformation() {
-
         // actualizamos el perfil con los datos de la sesion
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         val headerView: View = navigationView.getHeaderView(0)
-        val navUsername: TextView = headerView.findViewById(R.id.txtNavUser)
-        val navUserEmail: TextView = headerView.findViewById(R.id.txtNavEmail)
-        val navUserImage: ImageView = headerView.findViewById(R.id.imgNavUser)
+        navUsername = headerView.findViewById(R.id.txtNavUser)
+        navUserEmail = headerView.findViewById(R.id.txtNavEmail)
+        navUserImage = headerView.findViewById(R.id.imgNavUser)
 
         //obtenemos el email de la sesion y obtenemos el usuario
         Log.i("util", USER.toString())
@@ -264,5 +176,4 @@ class NavigationActivity : AppCompatActivity() {
             UtilImage.redondearFoto(navUserImage)
         }
     }
-
 }

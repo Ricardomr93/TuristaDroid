@@ -3,6 +3,7 @@ package android.ricardoflor.turistdroid.activities.ui.mySites
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -10,20 +11,19 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Vibrator
 import android.provider.MediaStore
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.activities.SinginActivity
 import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
 import android.util.Log
 import android.widget.*
 import androidx.core.view.isVisible
-import androidx.fragment.app.FragmentTransaction
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -60,6 +60,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
     // Variables Slider Images
     private var images: Array<Bitmap> = arrayOf()
     private lateinit var adapter: PagerAdapter
+
+    // Vibrador
+    private var vibrator: Vibrator? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -110,6 +113,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
 
         when (modo) {
             1 -> {
+                // Obtiene instancia a Vibrator
+                vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
                 val b1 = BitmapFactory.decodeResource(resources, R.drawable.add)
                 images = arrayOf(b1)
 
@@ -201,6 +207,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             SiteController.insertSite(lugar)
             Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
             Log.i("site", lugar.toString())
+
+            // Vibracion
+            vibrate()
 
             // Volvemos a MySites Fragment
             volverMySites()
@@ -398,4 +407,20 @@ class SiteFragment(modo: Int, site: Site?) : Fragment() {
             .onSameThread()
             .check()
     }
+
+    /**
+     * Vibrador
+     */
+    fun vibrate() {
+        //Compruebe si dispositivo tiene un vibrador.
+        if (vibrator!!.hasVibrator()) { //Si tiene vibrador
+
+            val tiempo: Long = 500 //en milisegundos
+            vibrator!!.vibrate(tiempo)
+
+        } else { //no tiene
+            //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
+        }
+    }
+
 }

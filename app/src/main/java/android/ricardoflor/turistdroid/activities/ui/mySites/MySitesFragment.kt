@@ -88,6 +88,7 @@ class MySitesFragment : Fragment() {
         my_sites_swipe.setColorSchemeResources(R.color.primary)
         my_sites_swipe.setProgressBackgroundColorSchemeResource(R.color.primary_text)
         my_sites_swipe.setOnRefreshListener {
+            spinnerOrder?.setSelection(0)
             cargaSitios()
         }
     }
@@ -234,13 +235,13 @@ class MySitesFragment : Fragment() {
     private fun orderSites(pos: Int) {
         when (pos) {
             1 -> { // Order by NAME
-                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.compareTo(dos.name) }
+                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.toLowerCase().compareTo(dos.name.toLowerCase()) }
             }
 
             2 -> { // Order by DATE
                 this.sitios.sortWith() { uno: Site, dos: Site ->
-                    SimpleDateFormat("dd/MM/yyyy").parse(uno.date)
-                        .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(dos.date))
+                    SimpleDateFormat("dd/MM/yyyy").parse(dos.date)
+                        .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(uno.date))
                 }
             }
 
@@ -286,6 +287,7 @@ class MySitesFragment : Fragment() {
             Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
             vibrate()
+            cargaSitios()
 
         } catch (e: Exception) {
             Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()

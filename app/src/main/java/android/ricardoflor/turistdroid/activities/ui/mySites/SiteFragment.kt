@@ -20,6 +20,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.image.ImageController
@@ -249,6 +250,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Metodo para abrir el fragment en edicion o en creacion
      */
     private fun initEditCreateMode() {
+        (activity as NavigationActivity?)!!.isEventoFila = false
 
         //Obtiene el ultimo ID de las imagenes de la BD
         idFoto = ImageController.getIdImage()
@@ -426,6 +428,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Funcion que devuelve al MySitesFragment
      */
     private fun volverMySites() {
+        (activity as NavigationActivity?)!!.isEventoFila = true
         val fragm = MySitesFragment()
         val transaction = activity!!.supportFragmentManager.beginTransaction()
         transaction.add(R.id.nav_host_fragment, fragm)

@@ -50,6 +50,8 @@ class MySitesFragment : Fragment() {
         return root
     }
 
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Inicializamos la pantalla
@@ -221,11 +223,11 @@ class MySitesFragment : Fragment() {
         spinnerOrder?.adapter = adapter
         spinnerOrder?.onItemSelectedListener = object :
             AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 orderSites(position)
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {
+            override fun onNothingSelected(parent: AdapterView<*>?) {
                 // write code to perform some action
             }
         }
@@ -235,6 +237,7 @@ class MySitesFragment : Fragment() {
         when (pos) {
             1 -> { // Order by NAME
                 this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.compareTo(dos.name) }
+                my_sites_recicler.adapter = adapter
             }
 
             2 -> { // Order by DATE
@@ -242,17 +245,14 @@ class MySitesFragment : Fragment() {
                     SimpleDateFormat("dd/MM/yyyy").parse(uno.date)
                         .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(dos.date))
                 }
+                my_sites_recicler.adapter = adapter
             }
 
             3 -> { // Order by RATINGS
                 this.sitios.sortWith() { uno: Site, dos: Site -> dos.rating.compareTo(uno.rating) }
-            }
-
-            else -> {
-
+                my_sites_recicler.adapter = adapter
             }
         }
-        my_sites_recicler.adapter = adapter
     }
 
     private fun borrarElemento(position: Int) {

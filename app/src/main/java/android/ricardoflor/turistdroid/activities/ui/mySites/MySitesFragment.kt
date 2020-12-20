@@ -3,8 +3,6 @@ package android.ricardoflor.turistdroid.activities.ui.mySites
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.*
-import android.os.AsyncTask
-import android.os.Bundle
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.bd.site.Site
@@ -20,13 +18,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
-import android.os.Vibrator
+import android.os.*
 import android.ricardoflor.turistdroid.bd.BdController
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
 import java.text.SimpleDateFormat
+import java.util.concurrent.Executors
 
 
 class MySitesFragment : Fragment() {
@@ -36,7 +35,6 @@ class MySitesFragment : Fragment() {
 
     // Interfaz gráfica
     private lateinit var adapter: SiteListAdapter
-    private lateinit var tarea: TareaCargarSitio // Tarea en segundo plano
     private var paintSweep = Paint()
 
     // Vibrador
@@ -99,16 +97,11 @@ class MySitesFragment : Fragment() {
      */
     private fun cargaSitios() {
         sitios = mutableListOf<Site>()
-        tarea = TareaCargarSitio()
-        tarea.execute()
-    }
 
-    /**
-     * Tarea asíncrona para la carga de los sitios
-     */
-    inner class TareaCargarSitio : AsyncTask<String?, Void?, Void?>() {
-
-        override fun doInBackground(vararg p0: String?): Void? {
+        val executor = Executors.newSingleThreadExecutor()
+        val handler = Handler(Looper.getMainLooper())
+        executor.execute {
+            //doInBackground()
             try {
                 val lista: MutableList<Site>? = SiteController.selectAllSite()
 
@@ -119,35 +112,30 @@ class MySitesFragment : Fragment() {
                 }
             } catch (e: Exception) {
             }
-            return null
-        }
 
-        /**
-         * Procedimiento a realizar al terminar
-         * Cargamos la lista
-         *
-         * @param args
-         */
-        override fun onPostExecute(args: Void?) {
-            adapter = SiteListAdapter(sitios) {
-                eventoClicFila(it)
+            handler.post {
+                //onPostExecute
+                adapter = SiteListAdapter(sitios) {
+                    eventoClicFila(it)
+                }
+
+                my_sites_recicler.adapter = adapter
+                // Avismos que ha cambiado
+                adapter.notifyDataSetChanged()
+                my_sites_recicler.setHasFixedSize(true)
+                my_sites_swipe.isRefreshing = false
+
             }
-
-            my_sites_recicler.adapter = adapter
-            // Avismos que ha cambiado
-            adapter.notifyDataSetChanged()
-            my_sites_recicler.setHasFixedSize(true)
-            my_sites_swipe.isRefreshing = false
         }
+    }
 
-        /**
-         * Evento clic asociado a una fila
-         * @param site Site
-         */
-        private fun eventoClicFila(site: Site) {
-            if ((activity as NavigationActivity?)!!.isClicEventoFila) {
-                openSite(site, 3)
-            }
+    /**
+     * Evento clic asociado a una fila
+     * @param site Site
+     */
+    private fun eventoClicFila(site: Site) {
+        if ((activity as NavigationActivity?)!!.isClicEventoFila) {
+            openSite(site, 3)
         }
     }
 

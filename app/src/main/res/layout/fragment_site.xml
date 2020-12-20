@@ -18,14 +18,14 @@
             app:layout_constraintBottom_toTopOf="@+id/txtNameSiteSite"/>
 
 
-     <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
             app:fabSize="normal"
             android:layout_width="wrap_content"
             android:layout_height="56dp"
             android:id="@+id/addImageButton"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:src="@drawable/ic_ricflor_add_pin_white" app:layout_constraintStart_toStartOf="parent"
+            android:src="@android:drawable/ic_menu_add" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.954"
             app:layout_constraintVertical_bias="0.257"/>
     <EditText

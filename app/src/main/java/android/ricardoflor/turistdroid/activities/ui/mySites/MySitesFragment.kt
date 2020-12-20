@@ -134,7 +134,7 @@ class MySitesFragment : Fragment() {
      * @param site Site
      */
     private fun eventoClicFila(site: Site) {
-        if ((activity as NavigationActivity?)!!.isClicEventoFila) {
+        if ((activity as NavigationActivity?)!!.isEventoFila) {
             openSite(site, 3)
         }
     }
@@ -163,11 +163,15 @@ class MySitesFragment : Fragment() {
                 when (direction) {
                     ItemTouchHelper.LEFT -> {
                         // Borramos el elemento
-                        borrarElemento(position)
+                        if ((activity as NavigationActivity?)!!.isEventoFila) {
+                            borrarElemento(position)
+                        }
                     }
                     else -> {
                         // Editamos el elemento
-                        editarElemento(position)
+                        if ((activity as NavigationActivity?)!!.isEventoFila) {
+                            editarElemento(position)
+                        }
                     }
                 }
                 cargaSitios()

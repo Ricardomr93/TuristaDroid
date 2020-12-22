@@ -233,6 +233,7 @@ class MyProfileFragment : Fragment() {
             .setMessage(getText(R.string.sure_delete))
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 UserController.deleteUser(USER.email)
+
                 UtilSession.closeSession()
                 startActivity(Intent(context, LoginActivity::class.java))
                 Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()

@@ -8,6 +8,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.StrictMode
 import android.provider.MediaStore
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
@@ -37,9 +38,11 @@ class SinginActivity : AppCompatActivity() {
     private var pass = ""
     private var user = User()
     private lateinit var FOTO: Bitmap
-    private lateinit var IMAGE: Uri
+    private var IMAGE: Uri? = null
     private var image : Bitmap? = null
     // Constantes
+    private val IMAGEN_DIR = "/TuristDroid"
+    private lateinit var IMAGEN_NOMBRE: String
     private val GALLERY = 1
     private val CAMERA = 2
 
@@ -181,12 +184,17 @@ class SinginActivity : AppCompatActivity() {
      * Metodo que llama al intent de la camamara para tomar una foto
      */
     private fun takePhotoFromCamera() {
+        val builder = StrictMode.VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        //CAPTURA LA FOTO
+        // Nombre de la imagen
+        IMAGEN_NOMBRE = UtilImage.crearNombreFichero()
+        // guardamos el fichero en una variable
+        val file = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, this)
+        IMAGE = Uri.fromFile(file)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
         startActivityForResult(intent, CAMERA)
     }
-
     /**
      * Cuando ejecutamos una actividad y da un resultado
      * @param requestCode Int
@@ -218,12 +226,13 @@ class SinginActivity : AppCompatActivity() {
             Log.d("sing", "Entramos en Camara")
             //cogemos la imagen
             try {
-                FOTO = differentVersion(IMAGE)
+                FOTO = differentVersion(IMAGE!!)
                 // Mostramos la imagen
                 imgBtnPhoto.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgBtnPhoto)
             } catch (e: Exception) {
                 e.printStackTrace()
+                Log.i("sing",e.toString())
                 Toast.makeText(this, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
         }

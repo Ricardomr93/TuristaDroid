@@ -106,5 +106,6 @@
     <string name="needPosition">Error : error your position is necessary</string>
 
     <string name="share_mysite">This is my Site</string>
+    <string name="not_found">No nearby sites found</string>
 
 </resources>

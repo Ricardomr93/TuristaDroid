@@ -32,7 +32,7 @@ import androidx.appcompat.widget.Toolbar
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    public var isClicEventoFila = true
+    public var isEventoFila = true
 
     //LINTERNA
     private lateinit var cameraManager: CameraManager
@@ -113,6 +113,11 @@ class NavigationActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onBackPressed() {
+        isEventoFila = true
+        super.onBackPressed()
     }
 
     /**

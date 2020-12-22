@@ -1,7 +1,9 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
+import android.graphics.Bitmap
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.site.Site
+import android.ricardoflor.turistdroid.utils.UtilImage
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -60,6 +62,13 @@ class SiteListAdapter(
             holder.siteDate.text = siteDate
             holder.siteRating.text = siteRatings
 
+            if (!listaSitios[position].image.isEmpty()){
+                holder.siteImage.setImageBitmap(UtilImage.toBitmap(listaSitios[position].image[0]!!.image))
+            }
+//            for (it in listaSitios[position].image){
+//                holder.siteImage.setImageBitmap(UtilImage.toBitmap(it.image))
+//            }
+
             // Programamos el clic de cada fila (itemView)
             holder.btnViewSiteFloating
                 .setOnClickListener {
@@ -109,6 +118,7 @@ class SiteListAdapter(
             var siteLocation = itemView.txtSite2
             var siteDate = itemView.txtDate2
             var siteRating = itemView.txtRatings2
+            var siteImage = itemView.imgSite
 
             // Indicamos el Layout para el click
             //var relativeLayout = itemView.item_site

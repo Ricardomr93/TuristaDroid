@@ -3,8 +3,6 @@ package android.ricardoflor.turistdroid.activities.ui.mySites
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.*
-import android.os.AsyncTask
-import android.os.Bundle
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.bd.site.Site
@@ -20,13 +18,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
-import android.os.Vibrator
+import android.os.*
 import android.ricardoflor.turistdroid.bd.BdController
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
 import java.text.SimpleDateFormat
+import java.util.concurrent.Executors
 
 
 class MySitesFragment : Fragment() {
@@ -36,7 +35,6 @@ class MySitesFragment : Fragment() {
 
     // Interfaz gráfica
     private lateinit var adapter: SiteListAdapter
-    private lateinit var tarea: TareaCargarSitio // Tarea en segundo plano
     private var paintSweep = Paint()
 
     // Vibrador
@@ -69,7 +67,7 @@ class MySitesFragment : Fragment() {
         iniciarSwipeHorizontal()
 
         // Iniciamos el spinner
-        iniciarSpinner()
+       // iniciarSpinner()
 
         // Mostramos las vistas de listas y adaptador asociado
         my_sites_recicler.layoutManager = LinearLayoutManager(context)
@@ -90,6 +88,7 @@ class MySitesFragment : Fragment() {
         my_sites_swipe.setColorSchemeResources(R.color.primary)
         my_sites_swipe.setProgressBackgroundColorSchemeResource(R.color.primary_text)
         my_sites_swipe.setOnRefreshListener {
+            spinnerOrder?.setSelection(0)
             cargaSitios()
         }
     }
@@ -99,16 +98,11 @@ class MySitesFragment : Fragment() {
      */
     private fun cargaSitios() {
         sitios = mutableListOf<Site>()
-        tarea = TareaCargarSitio()
-        tarea.execute()
-    }
 
-    /**
-     * Tarea asíncrona para la carga de los sitios
-     */
-    inner class TareaCargarSitio : AsyncTask<String?, Void?, Void?>() {
-
-        override fun doInBackground(vararg p0: String?): Void? {
+        val executor = Executors.newSingleThreadExecutor()
+        val handler = Handler(Looper.getMainLooper())
+        executor.execute {
+            //doInBackground()
             try {
                 val lista: MutableList<Site>? = SiteController.selectAllSite()
 
@@ -119,35 +113,30 @@ class MySitesFragment : Fragment() {
                 }
             } catch (e: Exception) {
             }
-            return null
-        }
 
-        /**
-         * Procedimiento a realizar al terminar
-         * Cargamos la lista
-         *
-         * @param args
-         */
-        override fun onPostExecute(args: Void?) {
-            adapter = SiteListAdapter(sitios) {
-                eventoClicFila(it)
+            handler.post {
+                //onPostExecute
+                adapter = SiteListAdapter(sitios) {
+                    eventoClicFila(it)
+                }
+
+                my_sites_recicler.adapter = adapter
+                // Avismos que ha cambiado
+                adapter.notifyDataSetChanged()
+                my_sites_recicler.setHasFixedSize(true)
+                my_sites_swipe.isRefreshing = false
+
             }
-
-            my_sites_recicler.adapter = adapter
-            // Avismos que ha cambiado
-            adapter.notifyDataSetChanged()
-            my_sites_recicler.setHasFixedSize(true)
-            my_sites_swipe.isRefreshing = false
         }
+    }
 
-        /**
-         * Evento clic asociado a una fila
-         * @param site Site
-         */
-        private fun eventoClicFila(site: Site) {
-            if ((activity as NavigationActivity?)!!.isClicEventoFila) {
-                openSite(site, 3)
-            }
+    /**
+     * Evento clic asociado a una fila
+     * @param site Site
+     */
+    private fun eventoClicFila(site: Site) {
+        if ((activity as NavigationActivity?)!!.isEventoFila) {
+            openSite(site, 3)
         }
     }
 
@@ -175,11 +164,15 @@ class MySitesFragment : Fragment() {
                 when (direction) {
                     ItemTouchHelper.LEFT -> {
                         // Borramos el elemento
-                        borrarElemento(position)
+                        if ((activity as NavigationActivity?)!!.isEventoFila) {
+                            borrarElemento(position)
+                        }
                     }
                     else -> {
                         // Editamos el elemento
-                        editarElemento(position)
+                        if ((activity as NavigationActivity?)!!.isEventoFila) {
+                            editarElemento(position)
+                        }
                     }
                 }
                 cargaSitios()
@@ -226,8 +219,8 @@ class MySitesFragment : Fragment() {
             context!!,
             android.R.layout.simple_spinner_item, orderBy
         )
-        spinnerOrder?.adapter = adapter
-        spinnerOrder?.onItemSelectedListener = object :
+        spinnerOrder!!.adapter = adapter
+        spinnerOrder!!.onItemSelectedListener = object :
             AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 orderSites(position)
@@ -242,13 +235,13 @@ class MySitesFragment : Fragment() {
     private fun orderSites(pos: Int) {
         when (pos) {
             1 -> { // Order by NAME
-                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.compareTo(dos.name) }
+                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.toLowerCase().compareTo(dos.name.toLowerCase()) }
             }
 
             2 -> { // Order by DATE
                 this.sitios.sortWith() { uno: Site, dos: Site ->
-                    SimpleDateFormat("dd/MM/yyyy").parse(uno.date)
-                        .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(dos.date))
+                    SimpleDateFormat("dd/MM/yyyy").parse(dos.date)
+                        .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(uno.date))
                 }
             }
 
@@ -260,7 +253,9 @@ class MySitesFragment : Fragment() {
 
             }
         }
-        my_sites_recicler.adapter = adapter
+        if(this::adapter.isInitialized){
+            my_sites_recicler.adapter = adapter
+        }
     }
 
     private fun borrarElemento(position: Int) {
@@ -294,6 +289,7 @@ class MySitesFragment : Fragment() {
             Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
             vibrate()
+            cargaSitios()
 
         } catch (e: Exception) {
             Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()

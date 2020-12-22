@@ -9,6 +9,7 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -44,7 +45,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 1.050000
+    private var DISTANCE = 0.035000
 
 
     override fun onCreateView(
@@ -108,7 +109,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * @param marker : Marker
      */
     override fun onMarkerClick(marker: Marker): Boolean {
-        val site = marker.tag as Site
         infoWindow()
         return false
     }
@@ -138,9 +138,17 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         for (item in listaLugares!!) {
             bc.include(LatLng(item.latitude, item.longitude))
         }
+        bc.include(LatLng(posicion!!.latitude,posicion!!.longitude))
         //si no encuentra ninguno no entra
         if(listaLugares.size > 0){
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 120))
+        }else{
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion,15f))
+            Toast.makeText(
+                context?.applicationContext,
+                getString(R.string.not_found),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -178,15 +186,22 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
                 val ratin : TextView = row.findViewById(R.id.txtmakerdialograting)
-                //val imaPlaceInfo: ImageView = row.findViewById(R.id.imaPlace_infoWindow)
+                val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
                 val site =  marker.tag as Site
                 txtNamePlaceInfo.text = site.name
                 ratin.text = site.rating.toString()
-                //imaPlaceInfo.setImageBitmap(Utilities.base64ToBitmap(place.imagenes[0]!!.foto))
+                //si no tiene fotos muestra la de por defecto
+                if (site.image.size > 0){
+                    imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
+                }
                 return row
             }
         })
     }
+
+    /**
+     * Método que al hacer click en el cuadro de dialogo abre el sitio
+     */
     private fun clickOnInfoWIndow(){
         if (this::mMap.isInitialized){
             mMap.setOnInfoWindowClickListener {
@@ -196,12 +211,15 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         }
 
     }
+
+    /**
+     * Método que abre un fragment sitio
+     */
     private fun openSite(site: Site, modo: Int){
         val addSites = SiteFragment(modo, site)
         val transaction = activity!!.supportFragmentManager.beginTransaction()
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
         transaction.add(R.id.nav_host_fragment, addSites)
-        transaction.addToBackStack(null)
         transaction.commit()
     }
 

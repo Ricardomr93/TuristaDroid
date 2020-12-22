@@ -327,6 +327,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         for (img in sitio!!.image) {
             imagesSlider.add(UtilImage.toBitmap(img!!.image))
         }
+        image.addAll(sitio?.image)
 
         adapter = SliderAdapter(context!!, imagesSlider)
         val slider: ViewPager = root.findViewById(R.id.imageSite)
@@ -401,18 +402,28 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         btn.setOnClickListener {
             // Recuperamos las fotos subidas
-            // image
             name = cajaSiteName?.text.toString()
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
             if (anyEmpty()) {
-               // image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
+                // image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
                 if (posicion != null) {
                     latitude = posicion!!.latitude
                     longitude = posicion!!.longitude
-                    lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
-                    SiteController.updateSite(lugar)
+
+                    if (sitio != null) {
+                        sitio.name = name!!
+                        sitio.image = image
+                        sitio.site = site!!
+                        sitio.date = date!!
+                        sitio.rating = rating
+                        sitio.latitude = latitude
+                        sitio.longitude = longitude
+
+                        SiteController.updateSite(sitio)
+                    }
+
                     Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
                     // Volvemos a MySites Fragment
                     volverMySites()

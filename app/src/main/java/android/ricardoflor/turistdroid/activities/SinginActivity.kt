@@ -1,6 +1,5 @@
 package android.ricardoflor.turistdroid.activities
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
@@ -10,7 +9,10 @@ import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
+import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
+import android.ricardoflor.turistdroid.MyApplication.Companion.PERMISSIONSCAMERA
+import android.ricardoflor.turistdroid.MyApplication.Companion.PERMISSIONSGALLERY
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
@@ -21,11 +23,6 @@ import android.util.Patterns
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
@@ -39,7 +36,8 @@ class SinginActivity : AppCompatActivity() {
     private var user = User()
     private lateinit var FOTO: Bitmap
     private var IMAGE: Uri? = null
-    private var image : Bitmap? = null
+    private var image: Bitmap? = null
+
     // Constantes
     private val IMAGEN_DIR = "/TuristDroid"
     private lateinit var IMAGEN_NOMBRE: String
@@ -61,9 +59,9 @@ class SinginActivity : AppCompatActivity() {
                 try {
                     if (isMailValid(txtEmail.text.toString())) {//campo email correcto
                         //Comprobar el campo password
-                            addUser()
-                            val intent = Intent(this, LoginActivity::class.java)
-                            startActivity(intent)
+                        addUser()
+                        val intent = Intent(this, LoginActivity::class.java)
+                        startActivity(intent)
                     } else {
                         txtEmail.error = resources.getString(R.string.email_incorrecto)
                     }
@@ -136,7 +134,6 @@ class SinginActivity : AppCompatActivity() {
      */
     private fun initUI() {
         initButtoms()
-        initPermisses()
         singin()
     }
 
@@ -162,8 +159,22 @@ class SinginActivity : AppCompatActivity() {
             .setTitle(getString(R.string.SelectOption))
             .setItems(fotoDialogoItems) { _, modo ->
                 when (modo) {
-                    0 -> takephotoFromGallery()
-                    1 -> takePhotoFromCamera()
+                    0 -> {
+                        if (PERMISSIONSGALLERY) {
+                            takephotoFromGallery()
+                        } else {
+                            (this.application as MyApplication).initPermissesGallery()
+                            Toast.makeText(this, getText(R.string.need_camera), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    1 -> {
+                        if (PERMISSIONSCAMERA) {
+                            takePhotoFromCamera()
+                        } else {
+                            (this.application as MyApplication).initPermissesCamera()
+                            Toast.makeText(this, getText(R.string.need_camera), Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
             .show()
@@ -195,6 +206,7 @@ class SinginActivity : AppCompatActivity() {
         intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
         startActivityForResult(intent, CAMERA)
     }
+
     /**
      * Cuando ejecutamos una actividad y da un resultado
      * @param requestCode Int
@@ -232,7 +244,7 @@ class SinginActivity : AppCompatActivity() {
                 UtilImage.redondearFoto(imgBtnPhoto)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.i("sing",e.toString())
+                Log.i("sing", e.toString())
                 Toast.makeText(this, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
         }
@@ -254,47 +266,6 @@ class SinginActivity : AppCompatActivity() {
         return bitmap;
     }
     //************************************************************
-    //METODO  PARA LOS PERMISOS**********************
-    /**
-     * Comprobamos los permisos de la aplicación
-     */
-    private fun initPermisses() {
-        //ACTIVIDAD DONDE TRABAJA
-        Dexter.withContext(this)
-            //PERMISOS
-            .withPermissions(
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-            )//LISTENER DE MULTIPLES PERMISOS
-            .withListener(object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
-                        Log.i("sing", "Ha aceptado todos los permisos")
-                    }
-                    // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                    }
-                }//NOTIFICAR DE LOS PERMISOS
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: List<PermissionRequest?>?,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            }).withErrorListener {
-                Toast.makeText(
-                    this,
-                    getString(R.string.error_permissions),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            .onSameThread()
-            .check()
-
-    }
-    //************************************************************
     //METODOS PARA LA RECUPERACION DE DATOS***********************
     /**
      * Método sobreescrito que salva el estado en el ciclo del vida
@@ -312,6 +283,7 @@ class SinginActivity : AppCompatActivity() {
         // llama a la clase padre para salvar los datos
         super.onSaveInstanceState(outState)
     }
+
     /**
      * Metodo sobreescrito para recuperar el estado del ciclo de vida
      */

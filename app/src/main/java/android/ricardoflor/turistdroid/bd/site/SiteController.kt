@@ -1,6 +1,7 @@
 package android.ricardoflor.turistdroid.bd.site
 
 import com.google.android.gms.maps.model.LatLng
+import android.ricardoflor.turistdroid.bd.user.User
 import io.realm.Realm
 import io.realm.kotlin.where
 
@@ -25,9 +26,23 @@ object SiteController {
             it.where<Site>().equalTo("id", site.id).findFirst()?.deleteFromRealm()
         }
     }
+
+    /**
+     * Borra todos los sitios
+     */
     fun deleteAllSite(){
         Realm.getDefaultInstance().executeTransaction {
             it.where<Site>().findAll().deleteAllFromRealm()
+        }
+    }
+
+    /**
+     * Update Site
+     * @param site Site
+     */
+    fun updateSite(site: Site) {
+        Realm.getDefaultInstance().executeTransaction {
+            it.copyToRealmOrUpdate(site)
         }
     }
 
@@ -51,32 +66,5 @@ object SiteController {
         return Realm.getDefaultInstance().copyFromRealm(
             Realm.getDefaultInstance().where<Site>().findAll()
         )
-    }
-
-    /**
-     * Ordena segun el Rating
-     */
-    fun orderByRating() {
-        Realm.getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("rating").findAll()
-        }
-    }
-
-    /**
-     * Ordena segun la fecha
-     */
-    fun orderByDate() {
-        Realm.getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("Date").findAll()
-        }
-    }
-
-    /**
-     * Ordena segun nombre
-     */
-    fun orderByName() {
-        Realm.getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("name").findAll()
-        }
     }
 }

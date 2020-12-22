@@ -1,7 +1,9 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
+import android.graphics.Bitmap
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.site.Site
+import android.ricardoflor.turistdroid.utils.UtilImage
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -50,14 +52,6 @@ class SiteListAdapter(
             } else {
                 holder.siteName.text = siteName
             }
-
-            //Usando Picasso para poder obtener las fotos y redondearlas
-            /*Picasso.get()
-                .load(listaNoticias[position].imagen) //Instanciamos un objeto de la clase (creada más abajo) para redondear la imagen
-                .transform(CirculoTransformacion())
-                .resize(375, 200)
-                .into(holder.ivNoticia)*/
-
             if (siteLocation.length >= 30) {
                 siteLocation = siteLocation.substring(0, 30)
                 holder.siteLocation.text = "$siteLocation..."
@@ -68,8 +62,15 @@ class SiteListAdapter(
             holder.siteDate.text = siteDate
             holder.siteRating.text = siteRatings
 
+            if (!listaSitios[position].image.isEmpty()){
+                holder.siteImage.setImageBitmap(UtilImage.toBitmap(listaSitios[position].image[0]!!.image))
+            }
+//            for (it in listaSitios[position].image){
+//                holder.siteImage.setImageBitmap(UtilImage.toBitmap(it.image))
+//            }
+
             // Programamos el clic de cada fila (itemView)
-            holder.relativeLayout
+            holder.btnViewSiteFloating
                 .setOnClickListener {
                     // Devolvemos el sitio
                     listener(listaSitios[position])
@@ -117,8 +118,10 @@ class SiteListAdapter(
             var siteLocation = itemView.txtSite2
             var siteDate = itemView.txtDate2
             var siteRating = itemView.txtRatings2
+            var siteImage = itemView.imgSite
 
             // Indicamos el Layout para el click
-            var relativeLayout = itemView.item_site
+            //var relativeLayout = itemView.item_site
+            var btnViewSiteFloating = itemView.btnViewSiteFloating
         }
     }

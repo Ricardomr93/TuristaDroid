@@ -27,7 +27,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Método
+     * Método que cuando pulsa en en el boton si lo campos son correctos
+     * logea al usuario
      */
     fun login() {
         buttonLoginLogin.setOnClickListener {
@@ -49,7 +50,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Funcion onClick del botón Singin
+     * Funcion onClick del botón Singin para llevarlo a la actividad
      */
     fun SingIn() {
         buttonLoginSingin.setOnClickListener {
@@ -60,7 +61,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Método que busca por email y si lo compara con la contraseña
+     * Método que busca por email y si lo encuentra
+     * lo compara con la contraseña
      */
     private fun userExists(): Boolean {
         try{

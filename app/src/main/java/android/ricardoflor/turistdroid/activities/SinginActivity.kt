@@ -132,15 +132,15 @@ class SinginActivity : AppCompatActivity() {
      * Inicia la interfaz y los eventos de la apliación
      */
     private fun initUI() {
-        initBotones()
-        initPermisos()
+        initButtoms()
+        initPermisses()
         singin()
     }
 
     /**
      * Inicia los eventos de los botones
      */
-    private fun initBotones() {
+    private fun initButtoms() {
         imgBtnPhoto.setOnClickListener {
             initDialogFoto()
         }
@@ -182,7 +182,7 @@ class SinginActivity : AppCompatActivity() {
      */
     private fun takePhotoFromCamera() {
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        //CAPTURA LA FOTO Y LA METE DETRO DE LA VARIABLE
+        //CAPTURA LA FOTO
         intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
         startActivityForResult(intent, CAMERA)
     }
@@ -194,7 +194,6 @@ class SinginActivity : AppCompatActivity() {
      * @param data Intent?
      */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        Log.d("sing", "Opción::--->$requestCode")
         super.onActivityResult(requestCode, resultCode, data)
         //Si cancela no hace nada
         if (resultCode == RESULT_CANCELED) {
@@ -231,7 +230,7 @@ class SinginActivity : AppCompatActivity() {
     }
 
     /**
-     * Metodo que devuleve un bitmap depende de la version
+     * Metodo que devueleve un bitmap dependiendo de la version
      * @return un bitmap
      */
     fun differentVersion(contentURI: Uri): Bitmap {
@@ -250,7 +249,7 @@ class SinginActivity : AppCompatActivity() {
     /**
      * Comprobamos los permisos de la aplicación
      */
-    private fun initPermisos() {
+    private fun initPermisses() {
         //ACTIVIDAD DONDE TRABAJA
         Dexter.withContext(this)
             //PERMISOS
@@ -277,7 +276,7 @@ class SinginActivity : AppCompatActivity() {
                 }
             }).withErrorListener {
                 Toast.makeText(
-                    applicationContext,
+                    this,
                     getString(R.string.error_permissions),
                     Toast.LENGTH_SHORT
                 ).show()

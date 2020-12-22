@@ -62,4 +62,9 @@ dependencies {
     //MAP
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'com.google.android.gms:play-services-location:17.1.0'
+    //GSON
+    implementation 'com.google.code.gson:gson:2.8.5'
+    // QR
+    implementation 'com.google.zxing:core:3.4.1'
+    implementation 'com.journeyapps:zxing-android-embedded:3.4.0'
 }

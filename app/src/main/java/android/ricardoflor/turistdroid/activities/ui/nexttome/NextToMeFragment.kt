@@ -9,6 +9,7 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -44,7 +45,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 0.050000
+    private var DISTANCE = 1.050000
 
 
     override fun onCreateView(
@@ -88,7 +89,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         val uiSettings = mMap.uiSettings
         mMap.setOnMarkerClickListener(this)//al pulsas un marker
         uiSettings.isCompassEnabled = true
-        //mMap.setMinZoomPreference(16.0f)//zoom maximo
     }
 
     /**
@@ -110,7 +110,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      */
     override fun onMarkerClick(marker: Marker): Boolean {
         val site = marker.tag as Site
-        Log.i("mape", "cojones que sueño$site")
         infoWindow()
         return false
     }
@@ -122,7 +121,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             BitmapFactory
                 .decodeResource(context?.resources, R.drawable.ic_marker)
         )
-        // marker?.remove()//borra el marcardor si existe
         val marker = mMap.addMarker(
             MarkerOptions()
                 .position(loc) // posicion
@@ -152,8 +150,10 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * @param loc :LatLng
      */
     private fun addMarkerSite(loc: LatLng) {
-        Log.i("mape", loc.latitude.toString() + "-" + loc.longitude.toString())
+        Log.i("mape", loc.latitude.toString() + "-+" + loc.longitude.toString())
         var listSites = SiteController.selectByNear(loc.latitude, loc.longitude, DISTANCE)
+        //var listSites = SiteController.selectAllSite()
+        Log.i("mape", listSites.toString())
         //si hay lugares los pinta
         if (listSites != null) {
             for (site in listSites) {
@@ -162,6 +162,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 markCurrentPostition(loc, site)
             }
             allSeeMarker(listSites)
+        }else{
+            Log.i("mape", "ningun lugar cercano)")
         }
     }
 
@@ -177,11 +179,14 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
                 val ratin : TextView = row.findViewById(R.id.txtmakerdialograting)
-                //val imaPlaceInfo: ImageView = row.findViewById(R.id.imaPlace_infoWindow)
+                val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
                 val site =  marker.tag as Site
                 txtNamePlaceInfo.text = site.name
                 ratin.text = site.rating.toString()
-                //imaPlaceInfo.setImageBitmap(Utilities.base64ToBitmap(place.imagenes[0]!!.foto))
+                //si no tiene fotos muestra la de por defecto
+                if (site.image.size != 0){
+                    imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
+                }
                 return row
             }
         })
@@ -301,4 +306,5 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             .onSameThread()
             .check()
     }
+
 }

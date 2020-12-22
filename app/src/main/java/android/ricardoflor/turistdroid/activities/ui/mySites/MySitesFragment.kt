@@ -1,8 +1,8 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
+import android.app.AlertDialog
+import android.content.Context
 import android.graphics.*
-import android.os.AsyncTask
-import android.os.Bundle
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.bd.site.Site
@@ -16,25 +16,38 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_my_sites.*
+import android.content.DialogInterface
+import android.os.*
+import android.ricardoflor.turistdroid.bd.BdController
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
+import android.widget.Toast
+import java.text.SimpleDateFormat
+import java.util.concurrent.Executors
+
 
 class MySitesFragment : Fragment() {
 
-    private lateinit var mySitesViewModel: MySitesViewModel
     private var sitios = mutableListOf<Site>()
+    private var spinnerOrder: Spinner? = null
+
     // Interfaz gráfica
     private lateinit var adapter: SiteListAdapter
-    private lateinit var tarea: TareaCargarSitio // Tarea en segundo plano
     private var paintSweep = Paint()
+
+    // Vibrador
+    private var vibrator: Vibrator? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_my_sites, container, false)
-
+        var root = inflater.inflate(R.layout.fragment_my_sites, container, false)
+        spinnerOrder = root.findViewById(R.id.spinnerOrder)
+        return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -44,7 +57,6 @@ class MySitesFragment : Fragment() {
     }
 
     private fun init() {
-
         // Iniciamos el swipe para recargar
         iniciarSwipeRecarga()
 
@@ -54,11 +66,19 @@ class MySitesFragment : Fragment() {
         // Solo si hemos cargado hacemos sl swipeHorizontal
         iniciarSwipeHorizontal()
 
+        // Iniciamos el spinner
+        iniciarSpinner()
+
         // Mostramos las vistas de listas y adaptador asociado
-        my_sites_recicler.layoutManager = LinearLayoutManager(context);
+        my_sites_recicler.layoutManager = LinearLayoutManager(context)
 
         //Boton flotante anadir
         btnAddSiteFloating.setOnClickListener { addSite() }
+
+        // Obtiene instancia a Vibrator
+        vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+
     }
 
     /**
@@ -68,6 +88,7 @@ class MySitesFragment : Fragment() {
         my_sites_swipe.setColorSchemeResources(R.color.primary)
         my_sites_swipe.setProgressBackgroundColorSchemeResource(R.color.primary_text)
         my_sites_swipe.setOnRefreshListener {
+            spinnerOrder?.setSelection(0)
             cargaSitios()
         }
     }
@@ -76,16 +97,12 @@ class MySitesFragment : Fragment() {
      * Carga los Sitios
      */
     private fun cargaSitios() {
-        tarea = TareaCargarSitio()
-        tarea.execute()
-    }
+        sitios = mutableListOf<Site>()
 
-    /**
-     * Tarea asíncrona para la carga de los sitios
-     */
-    inner class TareaCargarSitio : AsyncTask<String?, Void?, Void?>() {
-
-        override fun doInBackground(vararg p0: String?): Void? {
+        val executor = Executors.newSingleThreadExecutor()
+        val handler = Handler(Looper.getMainLooper())
+        executor.execute {
+            //doInBackground()
             try {
                 val lista: MutableList<Site>? = SiteController.selectAllSite()
 
@@ -94,39 +111,32 @@ class MySitesFragment : Fragment() {
                         sitios.add(it)
                     }
                 }
-
-
             } catch (e: Exception) {
             }
-            return null
-        }
 
-        /**
-         * Procedimiento a realizar al terminar
-         * Cargamos la lista
-         *
-         * @param args
-         */
-        override fun onPostExecute(args: Void?) {
-            adapter = SiteListAdapter(sitios) {
-                eventoClicFila(it)
+            handler.post {
+                //onPostExecute
+                adapter = SiteListAdapter(sitios) {
+                    eventoClicFila(it)
+                }
+
+                my_sites_recicler.adapter = adapter
+                // Avismos que ha cambiado
+                adapter.notifyDataSetChanged()
+                my_sites_recicler.setHasFixedSize(true)
+                my_sites_swipe.isRefreshing = false
+
             }
-
-            my_sites_recicler.adapter = adapter
-            // Avismos que ha cambiado
-            adapter.notifyDataSetChanged()
-            my_sites_recicler.setHasFixedSize(true)
-            my_sites_swipe.isRefreshing = false
         }
+    }
 
-        /**
-         * Evento clic asociado a una fila
-         * @param site Site
-         */
-        private fun eventoClicFila(site: Site) {
-            if ((activity as NavigationActivity?)!!.isClicEventoFila) {
-                openSite(site,3)
-            }
+    /**
+     * Evento clic asociado a una fila
+     * @param site Site
+     */
+    private fun eventoClicFila(site: Site) {
+        if ((activity as NavigationActivity?)!!.isEventoFila) {
+            openSite(site, 3)
         }
     }
 
@@ -151,17 +161,21 @@ class MySitesFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
                 // Si pulsamos a la de izquierda o a la derecha
-                // Programamos la accion
                 when (direction) {
                     ItemTouchHelper.LEFT -> {
-                        // Borrar
-                        borrarElemento(position)
+                        // Borramos el elemento
+                        if ((activity as NavigationActivity?)!!.isEventoFila) {
+                            borrarElemento(position)
+                        }
                     }
                     else -> {
-                        // Editar
-                        editarElemento(position)
+                        // Editamos el elemento
+                        if ((activity as NavigationActivity?)!!.isEventoFila) {
+                            editarElemento(position)
+                        }
                     }
                 }
+                cargaSitios()
             }
 
             // Dibujamos los botones
@@ -196,30 +210,105 @@ class MySitesFragment : Fragment() {
         itemTouchHelper.attachToRecyclerView(my_sites_recicler)
     }
 
-    //TODO BORRAR DE BD Y MENSAJE DE CONFIRMACION!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    /**
+     *
+     */
+    private fun iniciarSpinner() {
+        val orderBy = resources.getStringArray(R.array.Filters)
+        val adapter = ArrayAdapter(
+            context!!,
+            android.R.layout.simple_spinner_item, orderBy
+        )
+        spinnerOrder?.adapter = adapter
+        spinnerOrder?.onItemSelectedListener = object :
+            AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                orderSites(position)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // write code to perform some action
+            }
+        }
+    }
+
+    private fun orderSites(pos: Int) {
+        when (pos) {
+            1 -> { // Order by NAME
+                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.toLowerCase().compareTo(dos.name.toLowerCase()) }
+            }
+
+            2 -> { // Order by DATE
+                this.sitios.sortWith() { uno: Site, dos: Site ->
+                    SimpleDateFormat("dd/MM/yyyy").parse(dos.date)
+                        .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(uno.date))
+                }
+            }
+
+            3 -> { // Order by RATINGS
+                this.sitios.sortWith() { uno: Site, dos: Site -> dos.rating.compareTo(uno.rating) }
+            }
+
+            else -> {
+
+            }
+        }
+        my_sites_recicler.adapter = adapter
+    }
+
     private fun borrarElemento(position: Int) {
         // Acciones
-        val deletedModel = sitios[position]
+        val deletedSite = sitios[position]
         adapter.removeItem(position)
-        // Mostramos la barra. Se la da opción al usuario de recuperar lo borrado con el el snackbar
-        val snackbar = Snackbar.make(view!!, "Sitio eliminado", Snackbar.LENGTH_LONG)
-        snackbar.setAction("DESHACER") { // undo is selected, restore the deleted item
-            adapter.restoreItem(deletedModel, position)
+
+        confirmDialog(deletedSite, position)
+
+    }
+
+    /**
+     * Metodo que crea un AlertDialog para confirmar el borrado
+     */
+    private fun confirmDialog(site: Site, position: Int) {
+        val dialogo: AlertDialog.Builder = AlertDialog.Builder(activity)
+        dialogo.setTitle(R.string.delete_site)
+        dialogo.setMessage(R.string.delete_question)
+        dialogo.setCancelable(false)
+        dialogo.setPositiveButton(R.string.accept,
+            DialogInterface.OnClickListener { dialogo1, id -> acceptDelete(site) })
+        dialogo.setNegativeButton(R.string.Cancel,
+            DialogInterface.OnClickListener { dialogo1, id -> cancelDelete(site, position) })
+        dialogo.show()
+    }
+
+    fun acceptDelete(site: Site) {
+        try {
+            // Borramos el sitio de Base de Datos
+            SiteController.deleteSite(site)
+            Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
+
+            vibrate()
+            cargaSitios()
+
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()
         }
-        snackbar.setActionTextColor(resources.getColor(R.color.primary))
-        snackbar.show()
+    }
+
+    fun cancelDelete(site: Site, position: Int) {
+        Toast.makeText(requireContext(), R.string.Cancel, Toast.LENGTH_SHORT)
+        adapter.restoreItem(site, position)
     }
 
     /**
      * Acción secundaria: Ver/Editar
      * @param position Int
      */
-    private fun editarElemento(position: Int){
+    private fun editarElemento(position: Int) {
         val site = sitios[position]
-        openSite(site,2)
+        openSite(site, 2)
         // Esto es para que no se quede el color
         adapter.removeItem(position)
-        adapter.restoreItem(site, position);
+        adapter.restoreItem(site, position)
     }
 
     /**
@@ -231,13 +320,13 @@ class MySitesFragment : Fragment() {
      */
     private fun botonIzquierdo(canvas: Canvas, dX: Float, itemView: View, width: Float) {
         // Pintamos de gris y ponemos el icono
-        paintSweep.setColor(Color.DKGRAY)
+        paintSweep.setColor(Color.YELLOW)
         val background = RectF(
             itemView.left.toFloat(), itemView.top.toFloat(), dX,
             itemView.bottom.toFloat()
         )
         canvas.drawRect(background, paintSweep)
-        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_sweep_detalles)
+        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.lapiz_white)
         val iconDest = RectF(
             itemView.left.toFloat() + width, itemView.top.toFloat() + width, itemView.left
                 .toFloat() + 2 * width, itemView.bottom.toFloat() - width
@@ -260,7 +349,7 @@ class MySitesFragment : Fragment() {
             itemView.top.toFloat(), itemView.right.toFloat(), itemView.bottom.toFloat()
         )
         canvas.drawRect(background, paintSweep)
-        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_sweep_eliminar)
+        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.basura_white)
         val iconDest = RectF(
             itemView.right.toFloat() - 2 * width, itemView.top.toFloat() + width, itemView.right
                 .toFloat() - width, itemView.bottom.toFloat() - width
@@ -290,6 +379,32 @@ class MySitesFragment : Fragment() {
         transaction.add(R.id.nav_host_fragment, addSites)
         transaction.addToBackStack(null)
         transaction.commit()
+        cargaSitios()
     }
-    
+
+    /**
+     * Vibrador
+     */
+    fun vibrate() {
+        //Compruebe si dispositivo tiene un vibrador.
+        if (vibrator!!.hasVibrator()) { //Si tiene vibrador
+
+            val pattern = longArrayOf(
+                400,  //sleep
+                600,  //vibrate
+                100, 300, 100, 150, 100, 75
+            )
+            // con -1 se indica desactivar repeticion del patron
+            vibrator!!.vibrate(pattern, -1)
+
+        } else { //no tiene
+            //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BdController.close()
+    }
+
 }

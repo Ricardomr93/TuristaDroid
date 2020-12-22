@@ -183,8 +183,10 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 val site =  marker.tag as Site
                 txtNamePlaceInfo.text = site.name
                 ratin.text = site.rating.toString()
-                //imaPlaceInfo.setImageBitmap(Utilities.base64ToBitmap(place.imagenes[0]!!.foto))
-                imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
+                //si no tiene fotos muestra la de por defecto
+                if (site.image.size != 0){
+                    imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
+                }
                 return row
             }
         })

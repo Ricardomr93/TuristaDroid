@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-    <FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/white">
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
+        android:layout_height="match_parent"
+>
     <RelativeLayout
             android:layout_width="179dp"
             android:layout_height="127dp"
@@ -33,7 +33,7 @@
                 android:layout_marginStart="58dp" android:layout_alignParentBottom="true"
                 android:layout_marginBottom="5dp" android:layout_marginTop="6dp"
                 android:layout_below="@+id/txtmakerdialoname" android:layout_alignParentEnd="true"
-                android:layout_marginEnd="29dp" android:textAlignment="textEnd"/>
+                android:layout_marginEnd="29dp" android:textAlignment="textEnd" android:textStyle="bold"/>
         <ImageView
                 android:layout_width="20dp"
                 android:layout_height="22dp" app:srcCompat="@drawable/ic_favoritos"

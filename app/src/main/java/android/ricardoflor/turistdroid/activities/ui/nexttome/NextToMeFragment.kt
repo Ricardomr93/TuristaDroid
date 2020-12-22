@@ -45,7 +45,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 1.050000
+    private var DISTANCE = 0.070000
 
 
     override fun onCreateView(
@@ -109,7 +109,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * @param marker : Marker
      */
     override fun onMarkerClick(marker: Marker): Boolean {
-        val site = marker.tag as Site
         infoWindow()
         return false
     }
@@ -142,6 +141,13 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         //si no encuentra ninguno no entra
         if(listaLugares.size > 0){
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 120))
+        }else{
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion,15f))
+            Toast.makeText(
+                context?.applicationContext,
+                getString(R.string.not_found),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -184,13 +190,17 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 txtNamePlaceInfo.text = site.name
                 ratin.text = site.rating.toString()
                 //si no tiene fotos muestra la de por defecto
-                if (site.image.size != 0){
+                if (site.image.size > 0){
                     imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
                 }
                 return row
             }
         })
     }
+
+    /**
+     * Método que al hacer click en el cuadro de dialogo abre el sitio
+     */
     private fun clickOnInfoWIndow(){
         if (this::mMap.isInitialized){
             mMap.setOnInfoWindowClickListener {
@@ -200,12 +210,15 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         }
 
     }
+
+    /**
+     * Método que abre un fragment sitio
+     */
     private fun openSite(site: Site, modo: Int){
         val addSites = SiteFragment(modo, site)
         val transaction = activity!!.supportFragmentManager.beginTransaction()
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
         transaction.add(R.id.nav_host_fragment, addSites)
-        transaction.addToBackStack(null)
         transaction.commit()
     }
 

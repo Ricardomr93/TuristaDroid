@@ -40,10 +40,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -376,7 +373,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 site = cajaLocalizacion?.selectedItem.toString()
                 date = cajaFecha?.text.toString()
                 rating = cajaRating?.rating?.toDouble() ?: 0.0
-//        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
                 if (posicion != null) {
                     latitude = posicion!!.latitude
                     longitude = posicion!!.longitude
@@ -407,29 +403,28 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
             if (anyEmpty()) {
-                // image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
                 if (posicion != null) {
                     latitude = posicion!!.latitude
                     longitude = posicion!!.longitude
-
-                    if (sitio != null) {
-                        sitio.name = name!!
-                        sitio.image = image
-                        sitio.site = site!!
-                        sitio.date = date!!
-                        sitio.rating = rating
-                        sitio.latitude = latitude
-                        sitio.longitude = longitude
-
-                        SiteController.updateSite(sitio)
-                    }
-
-                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-                    // Volvemos a MySites Fragment
-                    volverMySites()
                 } else {
-                    Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
+                    latitude = sitio!!.latitude
+                    longitude = sitio!!.longitude
                 }
+                if (sitio != null) {
+                    sitio.name = name!!
+                    sitio.image = image
+                    sitio.site = site!!
+                    sitio.date = date!!
+                    sitio.rating = rating
+                    sitio.latitude = latitude
+                    sitio.longitude = longitude
+
+                    SiteController.updateSite(sitio)
+                }
+
+                Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+                // Volvemos a MySites Fragment
+                volverMySites()
             }
 //
         }
@@ -740,7 +735,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun configurarIUMapa() {
         mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
         typeMap()
-
     }
 
     /**
@@ -750,20 +744,23 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         val uiSettings = mMap.uiSettings
         when (modo) {
-            1, 2 -> {
+            1 -> {
                 uiSettings.isRotateGesturesEnabled = true
+                uiSettings.isZoomControlsEnabled = true
+            }
+            2 -> {
+                uiSettings.isRotateGesturesEnabled = true
+                uiSettings.isZoomControlsEnabled = true
+                //hace un zoom a la posicion del sitio con un indice 15
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionSite,15f))
             }
             3 -> {
-                uiSettings.isRotateGesturesEnabled = false
-                uiSettings.isCompassEnabled = false
-                uiSettings.isMapToolbarEnabled = false
-                uiSettings.isIndoorLevelPickerEnabled = false
                 uiSettings.isZoomControlsEnabled = false
-                uiSettings.isMyLocationButtonEnabled = false
-                uiSettings.isScrollGesturesEnabledDuringRotateOrZoom = false
                 uiSettings.isScrollGesturesEnabled = false
+                uiSettings.isZoomGesturesEnabled = false
+                uiSettings.isMyLocationButtonEnabled = false
+                mMap.isMyLocationEnabled = false
                 mMap.setMinZoomPreference(15.0f)
-
             }
         }
     }
@@ -808,7 +805,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         mMap.setOnMapClickListener { lat ->
             posicion = LatLng(lat.latitude, lat.longitude)
             markCurrentPostition(posicion!!)
-            Toast.makeText(context!!, posicion.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 

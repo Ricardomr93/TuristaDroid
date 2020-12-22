@@ -67,7 +67,7 @@ class MySitesFragment : Fragment() {
         iniciarSwipeHorizontal()
 
         // Iniciamos el spinner
-        iniciarSpinner()
+       // iniciarSpinner()
 
         // Mostramos las vistas de listas y adaptador asociado
         my_sites_recicler.layoutManager = LinearLayoutManager(context)
@@ -219,8 +219,8 @@ class MySitesFragment : Fragment() {
             context!!,
             android.R.layout.simple_spinner_item, orderBy
         )
-        spinnerOrder?.adapter = adapter
-        spinnerOrder?.onItemSelectedListener = object :
+        spinnerOrder!!.adapter = adapter
+        spinnerOrder!!.onItemSelectedListener = object :
             AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 orderSites(position)
@@ -253,7 +253,9 @@ class MySitesFragment : Fragment() {
 
             }
         }
-        my_sites_recicler.adapter = adapter
+        if(this::adapter.isInitialized){
+            my_sites_recicler.adapter = adapter
+        }
     }
 
     private fun borrarElemento(position: Int) {

@@ -3,8 +3,6 @@ package android.ricardoflor.turistdroid.activities.ui.mySites
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.*
-import android.os.AsyncTask
-import android.os.Bundle
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.bd.site.Site
@@ -20,17 +18,23 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
-import android.os.Vibrator
+import android.os.*
+import android.ricardoflor.turistdroid.bd.BdController
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toast
+import java.text.SimpleDateFormat
+import java.util.concurrent.Executors
 
 
 class MySitesFragment : Fragment() {
 
     private var sitios = mutableListOf<Site>()
+    private var spinnerOrder: Spinner? = null
 
     // Interfaz gráfica
     private lateinit var adapter: SiteListAdapter
-    private lateinit var tarea: TareaCargarSitio // Tarea en segundo plano
     private var paintSweep = Paint()
 
     // Vibrador
@@ -41,8 +45,9 @@ class MySitesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_my_sites, container, false)
-
+        var root = inflater.inflate(R.layout.fragment_my_sites, container, false)
+        spinnerOrder = root.findViewById(R.id.spinnerOrder)
+        return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -61,6 +66,9 @@ class MySitesFragment : Fragment() {
         // Solo si hemos cargado hacemos sl swipeHorizontal
         iniciarSwipeHorizontal()
 
+        // Iniciamos el spinner
+       // iniciarSpinner()
+
         // Mostramos las vistas de listas y adaptador asociado
         my_sites_recicler.layoutManager = LinearLayoutManager(context)
 
@@ -69,6 +77,8 @@ class MySitesFragment : Fragment() {
 
         // Obtiene instancia a Vibrator
         vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+
     }
 
     /**
@@ -78,6 +88,7 @@ class MySitesFragment : Fragment() {
         my_sites_swipe.setColorSchemeResources(R.color.primary)
         my_sites_swipe.setProgressBackgroundColorSchemeResource(R.color.primary_text)
         my_sites_swipe.setOnRefreshListener {
+            spinnerOrder?.setSelection(0)
             cargaSitios()
         }
     }
@@ -87,16 +98,11 @@ class MySitesFragment : Fragment() {
      */
     private fun cargaSitios() {
         sitios = mutableListOf<Site>()
-        tarea = TareaCargarSitio()
-        tarea.execute()
-    }
 
-    /**
-     * Tarea asíncrona para la carga de los sitios
-     */
-    inner class TareaCargarSitio : AsyncTask<String?, Void?, Void?>() {
-
-        override fun doInBackground(vararg p0: String?): Void? {
+        val executor = Executors.newSingleThreadExecutor()
+        val handler = Handler(Looper.getMainLooper())
+        executor.execute {
+            //doInBackground()
             try {
                 val lista: MutableList<Site>? = SiteController.selectAllSite()
 
@@ -107,35 +113,30 @@ class MySitesFragment : Fragment() {
                 }
             } catch (e: Exception) {
             }
-            return null
-        }
 
-        /**
-         * Procedimiento a realizar al terminar
-         * Cargamos la lista
-         *
-         * @param args
-         */
-        override fun onPostExecute(args: Void?) {
-            adapter = SiteListAdapter(sitios) {
-                eventoClicFila(it)
+            handler.post {
+                //onPostExecute
+                adapter = SiteListAdapter(sitios) {
+                    eventoClicFila(it)
+                }
+
+                my_sites_recicler.adapter = adapter
+                // Avismos que ha cambiado
+                adapter.notifyDataSetChanged()
+                my_sites_recicler.setHasFixedSize(true)
+                my_sites_swipe.isRefreshing = false
+
             }
-
-            my_sites_recicler.adapter = adapter
-            // Avismos que ha cambiado
-            adapter.notifyDataSetChanged()
-            my_sites_recicler.setHasFixedSize(true)
-            my_sites_swipe.isRefreshing = false
         }
+    }
 
-        /**
-         * Evento clic asociado a una fila
-         * @param site Site
-         */
-        private fun eventoClicFila(site: Site) {
-            if ((activity as NavigationActivity?)!!.isClicEventoFila) {
-                openSite(site, 3)
-            }
+    /**
+     * Evento clic asociado a una fila
+     * @param site Site
+     */
+    private fun eventoClicFila(site: Site) {
+        if ((activity as NavigationActivity?)!!.isEventoFila) {
+            openSite(site, 3)
         }
     }
 
@@ -163,13 +164,18 @@ class MySitesFragment : Fragment() {
                 when (direction) {
                     ItemTouchHelper.LEFT -> {
                         // Borramos el elemento
-                        borrarElemento(position)
+                        if ((activity as NavigationActivity?)!!.isEventoFila) {
+                            borrarElemento(position)
+                        }
                     }
                     else -> {
                         // Editamos el elemento
-                        editarElemento(position)
+                        if ((activity as NavigationActivity?)!!.isEventoFila) {
+                            editarElemento(position)
+                        }
                     }
                 }
+                cargaSitios()
             }
 
             // Dibujamos los botones
@@ -204,7 +210,54 @@ class MySitesFragment : Fragment() {
         itemTouchHelper.attachToRecyclerView(my_sites_recicler)
     }
 
-    //TODO BORRAR DE BD Y MENSAJE DE CONFIRMACION!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    /**
+     *
+     */
+    private fun iniciarSpinner() {
+        val orderBy = resources.getStringArray(R.array.Filters)
+        val adapter = ArrayAdapter(
+            context!!,
+            android.R.layout.simple_spinner_item, orderBy
+        )
+        spinnerOrder!!.adapter = adapter
+        spinnerOrder!!.onItemSelectedListener = object :
+            AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                orderSites(position)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // write code to perform some action
+            }
+        }
+    }
+
+    private fun orderSites(pos: Int) {
+        when (pos) {
+            1 -> { // Order by NAME
+                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.toLowerCase().compareTo(dos.name.toLowerCase()) }
+            }
+
+            2 -> { // Order by DATE
+                this.sitios.sortWith() { uno: Site, dos: Site ->
+                    SimpleDateFormat("dd/MM/yyyy").parse(dos.date)
+                        .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(uno.date))
+                }
+            }
+
+            3 -> { // Order by RATINGS
+                this.sitios.sortWith() { uno: Site, dos: Site -> dos.rating.compareTo(uno.rating) }
+            }
+
+            else -> {
+
+            }
+        }
+        if(this::adapter.isInitialized){
+            my_sites_recicler.adapter = adapter
+        }
+    }
+
     private fun borrarElemento(position: Int) {
         // Acciones
         val deletedSite = sitios[position]
@@ -236,6 +289,7 @@ class MySitesFragment : Fragment() {
             Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
             vibrate()
+            cargaSitios()
 
         } catch (e: Exception) {
             Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()
@@ -268,13 +322,13 @@ class MySitesFragment : Fragment() {
      */
     private fun botonIzquierdo(canvas: Canvas, dX: Float, itemView: View, width: Float) {
         // Pintamos de gris y ponemos el icono
-        paintSweep.setColor(Color.DKGRAY)
+        paintSweep.setColor(Color.YELLOW)
         val background = RectF(
             itemView.left.toFloat(), itemView.top.toFloat(), dX,
             itemView.bottom.toFloat()
         )
         canvas.drawRect(background, paintSweep)
-        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_sweep_detalles)
+        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.lapiz_white)
         val iconDest = RectF(
             itemView.left.toFloat() + width, itemView.top.toFloat() + width, itemView.left
                 .toFloat() + 2 * width, itemView.bottom.toFloat() - width
@@ -297,7 +351,7 @@ class MySitesFragment : Fragment() {
             itemView.top.toFloat(), itemView.right.toFloat(), itemView.bottom.toFloat()
         )
         canvas.drawRect(background, paintSweep)
-        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_sweep_eliminar)
+        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.basura_white)
         val iconDest = RectF(
             itemView.right.toFloat() - 2 * width, itemView.top.toFloat() + width, itemView.right
                 .toFloat() - width, itemView.bottom.toFloat() - width
@@ -327,6 +381,7 @@ class MySitesFragment : Fragment() {
         transaction.add(R.id.nav_host_fragment, addSites)
         transaction.addToBackStack(null)
         transaction.commit()
+        cargaSitios()
     }
 
     /**
@@ -347,6 +402,11 @@ class MySitesFragment : Fragment() {
         } else { //no tiene
             //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BdController.close()
     }
 
 }

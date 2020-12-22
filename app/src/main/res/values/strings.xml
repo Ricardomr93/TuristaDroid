@@ -47,13 +47,14 @@
     <string name="site_name">Site Name</string>
     <string name="site_site">Site</string>
     <string name="site_date">Date</string>
-    <string-array name="Sites">
+    <string-array name="sites_types">
         <item>Site...</item>
         <item>City</item>
         <item>Park</item>
         <item>Bar</item>
         <item>Monument</item>
         <item>Restaurant</item>
+        <item>Shop</item>
     </string-array>
 
     <string name="name_incorrecto">"The name is not in the correct format"</string>
@@ -102,5 +103,9 @@
     <string name="importok">Import successfully</string>
     <string name="exportok">Export successfully</string>
     <string name="errorImport">Error:file not found</string>
+    <string name="needPosition">Error : error your position is necessary</string>
+
+    <string name="share_mysite">This is my Site</string>
+    <string name="not_found">No nearby sites found</string>
 
 </resources>

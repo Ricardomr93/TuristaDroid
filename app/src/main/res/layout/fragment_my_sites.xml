@@ -2,68 +2,51 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
                                                    xmlns:app="http://schemas.android.com/apk/res-auto"
                                                    xmlns:tools="http://schemas.android.com/tools"
-                                                   android:layout_width="match_parent"
-                                                   android:layout_height="match_parent"
                                                    tools:context=".activities.ui.mySites.MySitesFragment"
-                                                   android:background="@drawable/background_app"
-                                                   android:id="@+id/fragment_my_sites">
+                                                   android:background="@color/primary_light"
+                                                   android:id="@+id/fragment_my_sites"
+                                                   android:layout_height="wrap_content"
+                                                   android:layout_width="wrap_content"
+>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             app:fabSize="normal"
             android:src="@drawable/ic_ricflor_add_pin_white"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true" android:id="@+id/btnAddSiteFloating"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
+            android:backgroundTint="@color/accent"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/accent"/>
-
+            android:layout_marginBottom="16dp"/>
     <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-
-
-    <Spinner
-            android:id="@+id/spinnerOrder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="24dp"
-            android:layout_marginBottom="34dp"
-            app:layout_constraintBottom_toTopOf="@+id/my_sites_swipe"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:entries="@array/Filters"/>
-
+            android:layout_height="match_parent" app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+        <Spinner
+                android:id="@+id/spinnerOrder"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:entries="@array/Filters"
+                android:layout_marginTop="0dp" android:elevation="10dp"
+                android:spinnerMode="dropdown" android:dropDownWidth="wrap_content"
+                android:background="@drawable/background_app" android:popupBackground="@drawable/background_app"/>
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/my_sites_swipe"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" tools:layout_editor_absoluteY="0dp"
-                tools:layout_editor_absoluteX="0dp">
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+        >
 
-            <ScrollView
-                    android:id="@+id/my_sites_scroll"
+            <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/my_sites_recicler"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/my_sites_recicler"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        tools:layout_editor_absoluteX="222dp"
-                        tools:layout_editor_absoluteY="169dp"
-                        tools:listitem="@layout/item_site"/>
-
-            </ScrollView>
-
+                    android:layout_height="match_parent"
+                    tools:layout_editor_absoluteX="222dp"
+                    tools:layout_editor_absoluteY="169dp"
+                    tools:listitem="@layout/item_site"/>
             <ProgressBar
                     android:id="@+id/my_sites_progress_bar"
                     style="?android:attr/progressBarStyle"
@@ -72,10 +55,7 @@
                     tools:layout_editor_absoluteX="147dp"
                     tools:layout_editor_absoluteY="250dp"/>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
     </LinearLayout>
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

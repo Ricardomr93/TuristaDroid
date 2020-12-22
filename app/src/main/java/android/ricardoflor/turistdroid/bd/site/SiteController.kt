@@ -67,31 +67,4 @@ object SiteController {
             Realm.getDefaultInstance().where<Site>().findAll()
         )
     }
-
-    /**
-     * Ordena segun el Rating
-     */
-    fun orderByRating() {
-        Realm.getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("rating").findAll()
-        }
-    }
-
-    /**
-     * Ordena segun la fecha
-     */
-    fun orderByDate() {
-        Realm.getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("Date").findAll()
-        }
-    }
-
-    /**
-     * Ordena segun nombre
-     */
-    fun orderByName() {
-        Realm.getDefaultInstance().executeTransaction {
-            it.where<Site>().sort("name").findAll()
-        }
-    }
 }

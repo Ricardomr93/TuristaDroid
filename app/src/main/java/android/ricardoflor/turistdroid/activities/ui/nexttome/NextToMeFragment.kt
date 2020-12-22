@@ -45,7 +45,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 0.070000
+    private var DISTANCE = 0.035000
 
 
     override fun onCreateView(
@@ -138,6 +138,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         for (item in listaLugares!!) {
             bc.include(LatLng(item.latitude, item.longitude))
         }
+        bc.include(LatLng(posicion!!.latitude,posicion!!.longitude))
         //si no encuentra ninguno no entra
         if(listaLugares.size > 0){
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 120))

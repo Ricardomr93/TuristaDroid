@@ -9,6 +9,7 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -178,11 +179,12 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
                 val ratin : TextView = row.findViewById(R.id.txtmakerdialograting)
-                //val imaPlaceInfo: ImageView = row.findViewById(R.id.imaPlace_infoWindow)
+                val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
                 val site =  marker.tag as Site
                 txtNamePlaceInfo.text = site.name
                 ratin.text = site.rating.toString()
                 //imaPlaceInfo.setImageBitmap(Utilities.base64ToBitmap(place.imagenes[0]!!.foto))
+                imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
                 return row
             }
         })

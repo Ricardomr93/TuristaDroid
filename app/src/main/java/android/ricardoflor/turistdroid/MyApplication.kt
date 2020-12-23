@@ -18,29 +18,31 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 class MyApplication : Application() {
     //Variable estatica
 
-    companion object{
+    companion object {
         var USER = User()
         var SESSION = Session()
-        var PERMISSIONSCAMERA = false
-        var PERMISSIONSGALLERY = false
-        var PERMISSIONSLOCATION = false
     }
+    var PERMISSIONSCAMERA = false
+    var PERMISSIONSGALLERY = false
+    var PERMISSIONSLOCATION = false
 
     override fun onCreate() {
         super.onCreate()
         BdController.initRealm(this)
         sessionExist()
+        initAllPermisses()
     }
-    fun sessionExist(){
+
+    fun sessionExist() {
         try {
             SESSION = SessionController.selectSession()!!
-            if (SESSION.useremail != ""){
+            if (SESSION.useremail != "") {
                 USER = UserController.selectByEmail(SESSION.useremail)!!
                 Log.i("util", "Usuario existe $USER")
-            }else{
+            } else {
                 Log.i("util", "otro")
             }
-        }catch (ex: IllegalArgumentException){
+        } catch (ex: IllegalArgumentException) {
         }
 
     }
@@ -50,7 +52,7 @@ class MyApplication : Application() {
     /**
      * Comprobamos los permisos de la aplicación
      */
-     fun initPermissesGallery() {
+    fun initPermissesGallery():Boolean {
         //ACTIVIDAD DONDE TRABAJA
         Dexter.withContext(this)
             //PERMISOS
@@ -79,17 +81,19 @@ class MyApplication : Application() {
             }).withErrorListener {
                 Toast.makeText(
                     this?.applicationContext,
-                    getString(R.string.error_permissions),
+                    getString(R.string.need_gallery),
                     Toast.LENGTH_SHORT
                 ).show()
             }
             .onSameThread()
             .check()
+        return PERMISSIONSGALLERY
     }
+
     /**
      * Comprobamos los permisos de la aplicación
      */
-    fun initPermissesLocation() {
+    fun initPermissesLocation() :Boolean {
         //ACTIVIDAD DONDE TRABAJA
         Dexter.withContext(this)
             //PERMISOS
@@ -119,17 +123,19 @@ class MyApplication : Application() {
             }).withErrorListener {
                 Toast.makeText(
                     this?.applicationContext,
-                    getString(R.string.error_permissions),
+                    getString(R.string.need_location),
                     Toast.LENGTH_SHORT
                 ).show()
             }
             .onSameThread()
             .check()
+        return PERMISSIONSLOCATION
     }
+
     /**
      * Comprobamos los permisos de la aplicación
      */
-    fun initPermissesCamera() {
+    fun initPermissesCamera(): Boolean {
         //ACTIVIDAD DONDE TRABAJA
         Dexter.withContext(this)
             //PERMISOS
@@ -140,7 +146,7 @@ class MyApplication : Application() {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
                     if (report.areAllPermissionsGranted()) {
                         Log.i("util", "todos permisos camara")
-                        PERMISSIONSCAMERA = true
+                         PERMISSIONSCAMERA = true
                     }
                     // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
                     if (report.isAnyPermissionPermanentlyDenied) {
@@ -157,11 +163,42 @@ class MyApplication : Application() {
             }).withErrorListener {
                 Toast.makeText(
                     this?.applicationContext,
-                    getString(R.string.error_permissions),
+                    getString(R.string.need_camera),
                     Toast.LENGTH_SHORT
                 ).show()
             }
             .onSameThread()
             .check()
+        return PERMISSIONSCAMERA
+    }
+
+    private fun initAllPermisses() {
+        Dexter.withContext(this)
+            //PERMISOS
+            .withPermissions(
+                Manifest.permission.CAMERA,
+                Manifest.permission.ACCESS_NETWORK_STATE,
+                Manifest.permission.INTERNET,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+            )//LISTENER DE MULTIPLES PERMISOS
+            .withListener(object : MultiplePermissionsListener {
+                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
+                    if (report.areAllPermissionsGranted()) {
+                        Log.i("util", "todos permisos")
+                        PERMISSIONSCAMERA = true
+                        PERMISSIONSGALLERY = true
+                        PERMISSIONSLOCATION = true
+                    }
+                }//NOTIFICAR DE LOS PERMISOS
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permissions: List<PermissionRequest?>?,
+                    token: PermissionToken
+                ) {
+                    token.continuePermissionRequest()
+                }
+            })
     }
 }

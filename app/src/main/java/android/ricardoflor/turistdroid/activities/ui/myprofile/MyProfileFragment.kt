@@ -1,6 +1,5 @@
 package android.ricardoflor.turistdroid.activities.ui.myprofile
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
@@ -10,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
+import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
@@ -30,14 +30,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.fragment_my_profile.*
 import java.io.IOException
+import java.lang.NullPointerException
 
 class MyProfileFragment : Fragment() {
     // Constantes
@@ -66,7 +62,6 @@ class MyProfileFragment : Fragment() {
         deleteUser()
         getInformation()
         initButtoms()
-        initPermisses()
     }
 
     /**
@@ -272,48 +267,6 @@ class MyProfileFragment : Fragment() {
 
     }
     //************************************************************
-    //METODO  PARA LOS PERMISOS**********************
-    /**
-     * Comprobamos los permisos de la aplicación
-     */
-    private fun initPermisses() {
-        //ACTIVIDAD DONDE TRABAJA
-        Dexter.withContext(context)
-            //PERMISOS
-            .withPermissions(
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-            )//LISTENER DE MULTIPLES PERMISOS
-            .withListener(object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
-                        Log.i("sing", "Ha aceptado todos los permisos")
-                    }
-                    // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                    }
-                }//NOTIFICAR DE LOS PERMISOS
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: List<PermissionRequest?>?,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            }).withErrorListener {
-                Toast.makeText(
-                    context?.applicationContext,
-                    getString(R.string.error_permissions),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            .onSameThread()
-            .check()
-
-
-    }
-    //************************************************************
     //METODOS PARA LA IMAGEN**************************************
     /**
      * Inicia los eventos de los botones
@@ -337,8 +290,20 @@ class MyProfileFragment : Fragment() {
             .setTitle(getString(R.string.SelectOption))
             .setItems(fotoDialogoItems) { _, modo ->
                 when (modo) {
-                    0 -> takephotoFromGallery()
-                    1 -> takePhotoFromCamera()
+                    0 -> {
+                        if ((activity!!.application as MyApplication).initPermissesGallery()) {
+                            takephotoFromGallery()
+                        } else {
+                            (activity!!.application as MyApplication).initPermissesGallery()
+                        }
+                    }
+                    1 -> {
+                        if ((activity!!.application as MyApplication).initPermissesCamera()) {
+                            takePhotoFromCamera()
+                        } else {
+                            (activity!!.application as MyApplication).initPermissesCamera()
+                        }
+                    }
                 }
             }
             .show()
@@ -406,8 +371,9 @@ class MyProfileFragment : Fragment() {
                 // Mostramos la imagen
                 imgMyprofile.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgMyprofile)
-            } catch (e: Exception) {
+            } catch (e: NullPointerException) {
                 e.printStackTrace()
+            }catch (ex: Exception){
                 Toast.makeText(context!!, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
         }

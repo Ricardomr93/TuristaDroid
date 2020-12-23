@@ -11,8 +11,6 @@ import android.os.StrictMode
 import android.provider.MediaStore
 import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
-import android.ricardoflor.turistdroid.MyApplication.Companion.PERMISSIONSCAMERA
-import android.ricardoflor.turistdroid.MyApplication.Companion.PERMISSIONSGALLERY
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
@@ -26,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
+import java.lang.NullPointerException
 
 class SinginActivity : AppCompatActivity() {
 
@@ -49,6 +48,7 @@ class SinginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_singin)
         initUI()
     }
+
     /**
      * Metodo para registrar un usuario
      * Una vez registrado, vuelve al LoginActivity
@@ -160,19 +160,17 @@ class SinginActivity : AppCompatActivity() {
             .setItems(fotoDialogoItems) { _, modo ->
                 when (modo) {
                     0 -> {
-                        if (PERMISSIONSGALLERY) {
+                        if ((this.application as MyApplication).initPermissesGallery()) {
                             takephotoFromGallery()
                         } else {
                             (this.application as MyApplication).initPermissesGallery()
-                            Toast.makeText(this, getText(R.string.need_camera), Toast.LENGTH_SHORT).show()
                         }
                     }
                     1 -> {
-                        if (PERMISSIONSCAMERA) {
+                        if ((this.application as MyApplication).initPermissesCamera()) {
                             takePhotoFromCamera()
                         } else {
                             (this.application as MyApplication).initPermissesCamera()
-                            Toast.makeText(this, getText(R.string.need_camera), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -242,9 +240,9 @@ class SinginActivity : AppCompatActivity() {
                 // Mostramos la imagen
                 imgBtnPhoto.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgBtnPhoto)
-            } catch (e: Exception) {
+            } catch (e: NullPointerException) {
                 e.printStackTrace()
-                Log.i("sing", e.toString())
+            } catch (ex: Exception) {
                 Toast.makeText(this, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
         }

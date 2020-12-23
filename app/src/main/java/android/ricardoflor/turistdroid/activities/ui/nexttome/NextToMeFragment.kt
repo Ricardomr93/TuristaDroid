@@ -1,11 +1,13 @@
 package android.ricardoflor.turistdroid.activities.ui.nexttome
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Bundle
+import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.activities.NavigationActivity
+import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
@@ -15,12 +17,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -31,11 +31,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 
 class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -66,9 +61,16 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     }
 
     private fun init() {
-        initPermisos()
-        initMap()
-        myActualPosition()
+        if(initPermisos()){
+            initMap()
+            myActualPosition()
+        }else{
+            Toast.makeText(
+                context?.applicationContext,
+                getString(R.string.need_location),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
     //************************************************************
     //METODOS MAP*************************************************
@@ -158,14 +160,14 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      */
     private fun addMarkerSite(loc: LatLng) {
         Log.i("mape", loc.latitude.toString() + "-+" + loc.longitude.toString())
-        var listSites = SiteController.selectByNear(loc.latitude, loc.longitude, DISTANCE)
+        val listSites = SiteController.selectByNear(loc.latitude, loc.longitude, DISTANCE)
         //var listSites = SiteController.selectAllSite()
         Log.i("mape", listSites.toString())
         //si hay lugares los pinta
         if (listSites != null) {
             for (site in listSites) {
                 Log.i("mape", site.toString())
-                var loc = LatLng(site.latitude, site.longitude)
+                val loc = LatLng(site.latitude, site.longitude)
                 markCurrentPostition(loc, site)
             }
             allSeeMarker(listSites)
@@ -235,7 +237,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     /**
      * Metodo que actualiza la posicion
      */
-    fun locationReq() {
+    private fun locationReq() {
         locationRequest = LocationRequest.create()
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
             .setInterval(10 * 1000)        // 10 segundos en milisegundos
@@ -269,15 +271,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 view!!,
                 "No se ha encontrado su posoción actual o el GPS está desactivado",
                 Snackbar.LENGTH_LONG
-            ).show();
+            ).show()
         }
-    }
-
-    /**
-     * Metodo que mueve la camara hasta la posicion actual
-     */
-    private fun cameraMap() {
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(posicion))
     }
 
     //************************************************************
@@ -285,40 +280,21 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     /**
      * Comprobamos los permisos de la aplicación
      */
-    private fun initPermisos() {
-        //ACTIVIDAD DONDE TRABAJA
-        Dexter.withContext(context)
-            //PERMISOS
-            .withPermissions(
-                Manifest.permission.ACCESS_NETWORK_STATE,
-                Manifest.permission.INTERNET,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-            )//LISTENER DE MULTIPLES PERMISOS
-            .withListener(object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
-                        Log.i("mape", "Ha aceptado todos los permisos")
-                    }
-                    // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                    }
-                }//NOTIFICAR DE LOS PERMISOS
+    private fun initPermisos(): Boolean {
+        var permiss = true
+        if (!(activity!!.application as MyApplication).initPermissesLocation()){
+            permiss = false
+        }
+        return permiss
+    }
+    private fun goMySites(){
 
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: List<PermissionRequest?>?,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            }).withErrorListener {
-                Toast.makeText(
-                    context?.applicationContext,
-                    getString(R.string.error_permissions),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            .onSameThread()
-            .check()
+        (activity as NavigationActivity?)!!.isEventoFila = true
+        val fragm = MySitesFragment()
+        val transaction = activity!!.supportFragmentManager.beginTransaction()
+        transaction.add(R.id.nav_host_fragment, fragm)
+        transaction.addToBackStack(null)
+        transaction.commit()
     }
 
 }

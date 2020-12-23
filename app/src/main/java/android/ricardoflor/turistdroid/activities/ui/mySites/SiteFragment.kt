@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.StrictMode
 import android.os.Vibrator
 import android.provider.MediaStore
+import android.ricardoflor.turistdroid.MyApplication
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -126,8 +127,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun init() {
         initButtons()
         initEditCreateMode()
-        initMap()
-        myActualPosition()
+        if(initPermisos()) {
+            initMap()
+            myActualPosition()
+        }
 
         cajaFecha?.setOnClickListener { showDatePickerDialog() }
         btnMail?.setOnClickListener { shareGmail() }
@@ -462,45 +465,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     /**
      * Comprobamos los permisos de la aplicación
      */
-    private fun initPermisos() {
-        //ACTIVIDAD DONDE TRABAJA
-        Dexter.withContext(context)
-            //PERMISOS
-            .withPermissions(
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.ACCESS_NETWORK_STATE,
-                Manifest.permission.INTERNET,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-            )//LISTENER DE MULTIPLES PERMISOS
-            .withListener(object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
-                        Log.i("sing", "Ha aceptado todos los permisos")
-                    }
-                    // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                    }
-                }//NOTIFICAR DE LOS PERMISOS
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: List<PermissionRequest?>?,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            }).withErrorListener {
-                Toast.makeText(
-                    context?.applicationContext,
-                    getString(R.string.error_permissions),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            .onSameThread()
-            .check()
-
-
+    private fun initPermisos(): Boolean {
+        var permiss = true
+        if (!(activity!!.application as MyApplication).initPermissesLocation()){
+            permiss = false
+        }
+        return permiss
     }
 
     //************************************************************
@@ -572,8 +542,20 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             .setTitle(getString(R.string.SelectOption))
             .setItems(fotoDialogoItems) { _, mode ->
                 when (mode) {
-                    0 -> takephotoFromGallery()
-                    1 -> takePhotoFromCamera()
+                    0 -> {
+                        if ((activity!!.application as MyApplication).initPermissesGallery()) {
+                            takephotoFromGallery()
+                        } else {
+                            (activity!!.application as MyApplication).initPermissesGallery()
+                        }
+                    }
+                    1 -> {
+                        if ((activity!!.application as MyApplication).initPermissesCamera()) {
+                            takePhotoFromCamera()
+                        } else {
+                            (activity!!.application as MyApplication).initPermissesCamera()
+                        }
+                    }
                 }
             }
             .show()
@@ -594,20 +576,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Metodo que llama al intent de la camamara para tomar una foto
      */
     private fun takePhotoFromCamera() {
-        // Si queremos hacer uso de fotos en alta calidad
         val builder = StrictMode.VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
-
-        // Eso para alta o baja
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        // Nombre de la imagen
         IMAGEN_NOMBRE = UtilImage.crearNombreFichero()
-        // Salvamos el fichero
-        val fichero = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, context!!)
-        IMAGE = Uri.fromFile(fichero)
-
+        val file = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, context!!)
+        IMAGE = Uri.fromFile(file)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
-        // Esto para alta y baja
         startActivityForResult(intent, CAMERA)
     }
 

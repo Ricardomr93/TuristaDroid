@@ -46,7 +46,11 @@ class NavigationActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        /* TODO -> esta es la unica forma que he encontrado para que no falle la aplicacion al girar en SiteFragment
+           Lo que pasa es que gira la pantalla y vuelve a MySitesFragment, el fragment anterior al que me encuentro */
+
+        super.onCreate(null)
+        //super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)

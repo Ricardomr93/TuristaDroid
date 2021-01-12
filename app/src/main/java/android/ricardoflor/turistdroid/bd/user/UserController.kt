@@ -17,16 +17,28 @@ object UserController {
     }
 
     /**
-     * Delete Usuario
-     * @param user User
+     * Borra todos los usuarios
      */
-    fun deleteUser(email : String) {
-        Realm.getDefaultInstance().executeTransaction() {
-            it.where<User>().equalTo("email",email).findFirst()?.deleteFromRealm()
+    fun deleteAllUsers() {
+        Realm.getDefaultInstance().executeTransaction {
+            it.where<User>().findAll().deleteAllFromRealm()
         }
     }
 
-    fun selectAllUser():MutableList<User>?{
+    /**
+     * Delete Usuario
+     * @param user User
+     */
+    fun deleteUser(email: String) {
+        Realm.getDefaultInstance().executeTransaction() {
+            it.where<User>().equalTo("email", email).findFirst()?.deleteFromRealm()
+        }
+    }
+
+    /**
+     * Selecciona todos los usuarios
+     */
+    fun selectAllUser(): MutableList<User>? {
         return Realm.getDefaultInstance().copyFromRealm(
             Realm.getDefaultInstance().where<User>().findAll()
         )

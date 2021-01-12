@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.utils.UtilImage
+import android.ricardoflor.turistdroid.utils.UtilImpExp
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -31,7 +32,7 @@ import androidx.appcompat.widget.Toolbar
 class NavigationActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    public var isClicEventoFila = true
+    public var isEventoFila = true
 
     //LINTERNA
     private lateinit var cameraManager: CameraManager
@@ -84,11 +85,13 @@ class NavigationActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_import -> {
                 // IMPORTAR
+                UtilImpExp.import(this)
                 true
             }
 
             R.id.action_export -> {
                 // EXPORTAR
+                UtilImpExp.export(this)
                 true
             }
 
@@ -110,6 +113,11 @@ class NavigationActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onBackPressed() {
+        isEventoFila = true
+        super.onBackPressed()
     }
 
     /**

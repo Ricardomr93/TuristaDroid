@@ -6,9 +6,6 @@ import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.util.Log
 
 object UtilSession {
-
-
-
     /**
      * Comrpueba que existe una sesión abierta
      * @param context Context

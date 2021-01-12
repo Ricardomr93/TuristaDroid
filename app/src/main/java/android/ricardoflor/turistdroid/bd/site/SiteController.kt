@@ -26,6 +26,10 @@ object SiteController {
             it.where<Site>().equalTo("id", site.id).findFirst()?.deleteFromRealm()
         }
     }
+
+    /**
+     * Borra todos los sitios
+     */
     fun deleteAllSite(){
         Realm.getDefaultInstance().executeTransaction {
             it.where<Site>().findAll().deleteAllFromRealm()

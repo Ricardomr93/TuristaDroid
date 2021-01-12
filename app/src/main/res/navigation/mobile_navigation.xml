@@ -40,7 +40,7 @@
 
     <fragment
             android:id="@+id/nav_logout"
-            android:name="android.ricardoflor.turistdroid.activities.ui.CerrarSesionFragment"
+            android:name="android.ricardoflor.turistdroid.activities.ui.closesession.CloseSessionFragment"
             tools:layout="@layout/fragment_my_sites"/>
 
 </navigation>

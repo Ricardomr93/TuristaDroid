@@ -11,6 +11,7 @@ import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.utils.IOnBackPressed
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.view.LayoutInflater
@@ -32,7 +33,7 @@ import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 
-class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class NextToMeFragment : Fragment(), IOnBackPressed, OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     // Variables a usar y permisos del mapa
     private lateinit var mMap: GoogleMap
@@ -295,6 +296,10 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         transaction.add(R.id.nav_host_fragment, fragm)
         transaction.addToBackStack(null)
         transaction.commit()
+    }
+
+    override fun onBackPressed(): Boolean {
+        return true
     }
 
 }

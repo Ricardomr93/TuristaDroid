@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
 import android.os.*
 import android.ricardoflor.turistdroid.bd.BdController
+import android.ricardoflor.turistdroid.utils.IOnBackPressed
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
@@ -28,7 +29,7 @@ import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 
 
-class MySitesFragment : Fragment() {
+class MySitesFragment : Fragment(), IOnBackPressed {
 
     private var sitios = mutableListOf<Site>()
     private var spinnerOrder: Spinner? = null
@@ -45,7 +46,7 @@ class MySitesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        var root = inflater.inflate(R.layout.fragment_my_sites, container, false)
+        val root = inflater.inflate(R.layout.fragment_my_sites, container, false)
         spinnerOrder = root.findViewById(R.id.spinnerOrder)
         return root
     }
@@ -66,8 +67,9 @@ class MySitesFragment : Fragment() {
         // Solo si hemos cargado hacemos sl swipeHorizontal
         iniciarSwipeHorizontal()
 
+        // TODO -- No funciona
         // Iniciamos el spinner
-       // iniciarSpinner()
+        iniciarSpinner()
 
         // Mostramos las vistas de listas y adaptador asociado
         my_sites_recicler.layoutManager = LinearLayoutManager(context)
@@ -222,11 +224,11 @@ class MySitesFragment : Fragment() {
         spinnerOrder!!.adapter = adapter
         spinnerOrder!!.onItemSelectedListener = object :
             AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 orderSites(position)
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {
+            override fun onNothingSelected(parent: AdapterView<*>?) {
                 // write code to perform some action
             }
         }
@@ -235,25 +237,27 @@ class MySitesFragment : Fragment() {
     private fun orderSites(pos: Int) {
         when (pos) {
             1 -> { // Order by NAME
-                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.toLowerCase().compareTo(dos.name.toLowerCase()) }
+                this.sitios.sortWith { uno: Site, dos: Site ->
+                    uno.name.toLowerCase().compareTo(dos.name.toLowerCase())
+                }
             }
 
             2 -> { // Order by DATE
-                this.sitios.sortWith() { uno: Site, dos: Site ->
+                this.sitios.sortWith { uno: Site, dos: Site ->
                     SimpleDateFormat("dd/MM/yyyy").parse(dos.date)
                         .compareTo(SimpleDateFormat("dd/MM/yyyy").parse(uno.date))
                 }
             }
 
             3 -> { // Order by RATINGS
-                this.sitios.sortWith() { uno: Site, dos: Site -> dos.rating.compareTo(uno.rating) }
+                this.sitios.sortWith { uno: Site, dos: Site -> dos.rating.compareTo(uno.rating) }
             }
 
             else -> {
 
             }
         }
-        if(this::adapter.isInitialized){
+        if (this::adapter.isInitialized) {
             my_sites_recicler.adapter = adapter
         }
     }
@@ -282,7 +286,7 @@ class MySitesFragment : Fragment() {
         dialogo.show()
     }
 
-    fun acceptDelete(site: Site) {
+    private fun acceptDelete(site: Site) {
         try {
             // Borramos el sitio de Base de Datos
             SiteController.deleteSite(site)
@@ -296,7 +300,7 @@ class MySitesFragment : Fragment() {
         }
     }
 
-    fun cancelDelete(site: Site, position: Int) {
+    private fun cancelDelete(site: Site, position: Int) {
         Toast.makeText(requireContext(), R.string.Cancel, Toast.LENGTH_SHORT)
         adapter.restoreItem(site, position)
     }
@@ -387,7 +391,7 @@ class MySitesFragment : Fragment() {
     /**
      * Vibrador
      */
-    fun vibrate() {
+    private fun vibrate() {
         //Compruebe si dispositivo tiene un vibrador.
         if (vibrator!!.hasVibrator()) { //Si tiene vibrador
 
@@ -399,14 +403,18 @@ class MySitesFragment : Fragment() {
             // con -1 se indica desactivar repeticion del patron
             vibrator!!.vibrate(pattern, -1)
 
-        } else { //no tiene
+        } /* else { //no tiene
             //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
-        }
+        }*/
     }
 
     override fun onDestroy() {
         super.onDestroy()
         BdController.close()
+    }
+
+    override fun onBackPressed(): Boolean {
+        return false
     }
 
 }

@@ -18,6 +18,7 @@ import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
+import android.ricardoflor.turistdroid.utils.IOnBackPressed
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilSession
@@ -35,7 +36,7 @@ import kotlinx.android.synthetic.main.fragment_my_profile.*
 import java.io.IOException
 import java.lang.NullPointerException
 
-class MyProfileFragment : Fragment() {
+class MyProfileFragment : Fragment(), IOnBackPressed {
     // Constantes
     private val GALLERY = 1
     private val CAMERA = 2
@@ -393,6 +394,10 @@ class MyProfileFragment : Fragment() {
             ImageDecoder.decodeBitmap(source)
         }
         return bitmap;
+    }
+
+    override fun onBackPressed(): Boolean {
+        return false
     }
 }
 

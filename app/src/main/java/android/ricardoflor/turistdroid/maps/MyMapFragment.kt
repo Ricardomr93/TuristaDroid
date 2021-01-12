@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 
 import android.os.Bundle
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.utils.IOnBackPressed
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -30,7 +30,7 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 
-class MyMapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
+class MyMapFragment : Fragment(), IOnBackPressed, OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
 
     // Variables a usar y permisos del mapa
     private lateinit var mMap: GoogleMap
@@ -235,5 +235,9 @@ class MyMapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             }
             .onSameThread()
             .check()
+    }
+
+    override fun onBackPressed(): Boolean {
+        return true
     }
 }

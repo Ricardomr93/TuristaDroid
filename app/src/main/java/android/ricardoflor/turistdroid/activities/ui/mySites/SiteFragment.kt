@@ -1,6 +1,5 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -27,6 +26,7 @@ import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.image.ImageController
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.utils.IOnBackPressed
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.widget.*
@@ -49,17 +49,12 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.integration.android.IntentIntegrator
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.fragment_site.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
-class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class SiteFragment(modo: Int, site: Site?) : Fragment(), IOnBackPressed, OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     // Variables a usar y permisos del mapa
     private lateinit var mMap: GoogleMap
@@ -892,6 +887,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     override fun onDestroy() {
         super.onDestroy()
         BdController.close()
+    }
+
+    override fun onBackPressed(): Boolean {
+        return false
     }
 
 

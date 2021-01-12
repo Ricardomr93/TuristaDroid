@@ -8,9 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.LoginActivity
+import android.ricardoflor.turistdroid.utils.IOnBackPressed
 import android.ricardoflor.turistdroid.utils.UtilSession
 
-class CloseSessionFragment : Fragment() {
+class CloseSessionFragment : Fragment(), IOnBackPressed {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -26,5 +27,9 @@ class CloseSessionFragment : Fragment() {
     private fun logout() {
         UtilSession.closeSession()
         startActivity(Intent(context, LoginActivity::class.java))
+    }
+
+    override fun onBackPressed(): Boolean {
+        return false
     }
 }

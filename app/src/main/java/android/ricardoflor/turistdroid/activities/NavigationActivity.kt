@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.utils.IOnBackPressed
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilImpExp
 import android.util.Log
@@ -18,6 +19,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -115,9 +117,22 @@ class NavigationActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Funcion que captura el boton de retroceder del movil
+     */
     override fun onBackPressed() {
-        isEventoFila = true
-        super.onBackPressed()
+//        Toast.makeText(this, "onBackpressed ", Toast.LENGTH_SHORT).show()
+//        val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+//        navHost?.let { navFragment ->
+//            navFragment.childFragmentManager.primaryNavigationFragment?.let { fragment ->
+//                (fragment as? IOnBackPressed)?.onBackPressed()?.not()?.let { isCanceled: Boolean ->
+//                    Toast.makeText(this, "onBackpressed " + isCanceled, Toast.LENGTH_SHORT).show()
+//                    if (!isCanceled) {
+                        super.onBackPressed()
+//                    }
+//                }
+//            }
+//        }
     }
 
     /**

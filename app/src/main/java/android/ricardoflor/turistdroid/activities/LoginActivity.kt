@@ -42,6 +42,7 @@ class LoginActivity : AppCompatActivity() {
                 //Elimina la pila trasera para que el boton no vuelva a esta actividad
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                 startActivity(intent)
+                finish()
             } else {
                 editTextLoginMail.error = getString(R.string.userNotCorrect)
                 Log.i("realm", "usuario erroneo")

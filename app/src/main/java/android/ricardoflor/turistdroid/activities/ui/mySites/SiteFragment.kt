@@ -227,7 +227,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(txtDateSite) && notEmpty(txtDateSite)) {
+        if (empty(txtNameSiteSite) || empty(txtDateSite)) {
             valid = false
         }
         return valid
@@ -237,13 +237,22 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Método que comprueba si el campo esta vacio y lanza un mensaje
      * @param txt TextView
      */
-    private fun notEmpty(txt: TextView): Boolean {
+    private fun empty(txt: TextView): Boolean {
         var empty = false
         if (txt.text.isEmpty()) {
             txt.error = resources.getString(R.string.isEmpty)
             empty = true
         }
         return empty
+    }
+    private fun isSelectSite(spinner: Spinner):Boolean{
+        var select = false
+        if (spinner.selectedItemPosition > 0){
+            select = true
+        }else{
+            Toast.makeText(context!!, R.string.selectSite, Toast.LENGTH_SHORT).show()
+        }
+        return select
     }
 
     /**
@@ -350,6 +359,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         val parts = text.split(";")
         cajaSiteName?.setText(parts[0])
         cajaLocalizacion?.setSelection(parts[1].toInt())
+
         cajaFecha?.setText(parts[2])
         cajaRating?.rating = ((parts[3])?.toFloat() ?: 0.0) as Float
         latitude = ((parts[4])?.toFloat() ?: 0.0) as Double
@@ -369,7 +379,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
-            if (anyEmpty()) {
+
+            if (anyEmpty() && isSelectSite(cajaLocalizacion!!)) {
                 // Recuperamos los datos
                 // image
                 name = cajaSiteName?.text.toString()
@@ -440,8 +451,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         (activity as NavigationActivity?)!!.isEventoFila = true
         val fragm = MySitesFragment()
         val transaction = activity!!.supportFragmentManager.beginTransaction()
-        transaction.add(R.id.nav_host_fragment, fragm)
-        transaction.addToBackStack(null)
+        transaction.replace(R.id.nav_host_fragment, fragm)//remplaza el fragment
         transaction.commit()
     }
 

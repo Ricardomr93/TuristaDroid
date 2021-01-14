@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.StrictMode
 import android.os.Vibrator
 import android.provider.MediaStore
+import android.ricardoflor.turistdroid.MyApplication
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -40,10 +41,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -129,8 +127,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun init() {
         initButtons()
         initEditCreateMode()
-        initMap()
-        myActualPosition()
+        if(initPermisos()) {
+            initMap()
+            myActualPosition()
+        }
 
         cajaFecha?.setOnClickListener { showDatePickerDialog() }
         btnMail?.setOnClickListener { shareGmail() }
@@ -227,7 +227,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(txtDateSite) && notEmpty(txtDateSite)) {
+        if (empty(txtNameSiteSite) || empty(txtDateSite)) {
             valid = false
         }
         return valid
@@ -237,13 +237,22 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Método que comprueba si el campo esta vacio y lanza un mensaje
      * @param txt TextView
      */
-    private fun notEmpty(txt: TextView): Boolean {
+    private fun empty(txt: TextView): Boolean {
         var empty = false
         if (txt.text.isEmpty()) {
             txt.error = resources.getString(R.string.isEmpty)
             empty = true
         }
         return empty
+    }
+    private fun isSelectSite(spinner: Spinner):Boolean{
+        var select = false
+        if (spinner.selectedItemPosition > 0){
+            select = true
+        }else{
+            Toast.makeText(context!!, R.string.selectSite, Toast.LENGTH_SHORT).show()
+        }
+        return select
     }
 
     /**
@@ -350,6 +359,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         val parts = text.split(";")
         cajaSiteName?.setText(parts[0])
         cajaLocalizacion?.setSelection(parts[1].toInt())
+
         cajaFecha?.setText(parts[2])
         cajaRating?.rating = ((parts[3])?.toFloat() ?: 0.0) as Float
         latitude = ((parts[4])?.toFloat() ?: 0.0) as Double
@@ -369,14 +379,14 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             site = cajaLocalizacion?.selectedItem.toString()
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
-            if (anyEmpty()) {
+
+            if (anyEmpty() && isSelectSite(cajaLocalizacion!!)) {
                 // Recuperamos los datos
                 // image
                 name = cajaSiteName?.text.toString()
                 site = cajaLocalizacion?.selectedItem.toString()
                 date = cajaFecha?.text.toString()
                 rating = cajaRating?.rating?.toDouble() ?: 0.0
-//        image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
                 if (posicion != null) {
                     latitude = posicion!!.latitude
                     longitude = posicion!!.longitude
@@ -407,29 +417,28 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             date = cajaFecha?.text.toString()
             rating = cajaRating?.rating?.toDouble() ?: 0.0
             if (anyEmpty()) {
-                // image = UtilImage.toBase64(imgBtnPhoto.drawable.toBitmap()).toString()
                 if (posicion != null) {
                     latitude = posicion!!.latitude
                     longitude = posicion!!.longitude
-
-                    if (sitio != null) {
-                        sitio.name = name!!
-                        sitio.image = image
-                        sitio.site = site!!
-                        sitio.date = date!!
-                        sitio.rating = rating
-                        sitio.latitude = latitude
-                        sitio.longitude = longitude
-
-                        SiteController.updateSite(sitio)
-                    }
-
-                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-                    // Volvemos a MySites Fragment
-                    volverMySites()
                 } else {
-                    Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
+                    latitude = sitio!!.latitude
+                    longitude = sitio!!.longitude
                 }
+                if (sitio != null) {
+                    sitio.name = name!!
+                    sitio.image = image
+                    sitio.site = site!!
+                    sitio.date = date!!
+                    sitio.rating = rating
+                    sitio.latitude = latitude
+                    sitio.longitude = longitude
+
+                    SiteController.updateSite(sitio)
+                }
+
+                Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+                // Volvemos a MySites Fragment
+                volverMySites()
             }
 //
         }
@@ -442,8 +451,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         (activity as NavigationActivity?)!!.isEventoFila = true
         val fragm = MySitesFragment()
         val transaction = activity!!.supportFragmentManager.beginTransaction()
-        transaction.add(R.id.nav_host_fragment, fragm)
-        transaction.addToBackStack(null)
+        transaction.replace(R.id.nav_host_fragment, fragm)//remplaza el fragment
         transaction.commit()
     }
 
@@ -467,45 +475,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     /**
      * Comprobamos los permisos de la aplicación
      */
-    private fun initPermisos() {
-        //ACTIVIDAD DONDE TRABAJA
-        Dexter.withContext(context)
-            //PERMISOS
-            .withPermissions(
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.ACCESS_NETWORK_STATE,
-                Manifest.permission.INTERNET,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-            )//LISTENER DE MULTIPLES PERMISOS
-            .withListener(object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
-                        Log.i("sing", "Ha aceptado todos los permisos")
-                    }
-                    // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                    }
-                }//NOTIFICAR DE LOS PERMISOS
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: List<PermissionRequest?>?,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            }).withErrorListener {
-                Toast.makeText(
-                    context?.applicationContext,
-                    getString(R.string.error_permissions),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            .onSameThread()
-            .check()
-
-
+    private fun initPermisos(): Boolean {
+        var permiss = true
+        if (!(activity!!.application as MyApplication).initPermissesLocation()){
+            permiss = false
+        }
+        return permiss
     }
 
     //************************************************************
@@ -577,8 +552,20 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             .setTitle(getString(R.string.SelectOption))
             .setItems(fotoDialogoItems) { _, mode ->
                 when (mode) {
-                    0 -> takephotoFromGallery()
-                    1 -> takePhotoFromCamera()
+                    0 -> {
+                        if ((activity!!.application as MyApplication).initPermissesGallery()) {
+                            takephotoFromGallery()
+                        } else {
+                            (activity!!.application as MyApplication).initPermissesGallery()
+                        }
+                    }
+                    1 -> {
+                        if ((activity!!.application as MyApplication).initPermissesCamera()) {
+                            takePhotoFromCamera()
+                        } else {
+                            (activity!!.application as MyApplication).initPermissesCamera()
+                        }
+                    }
                 }
             }
             .show()
@@ -599,20 +586,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Metodo que llama al intent de la camamara para tomar una foto
      */
     private fun takePhotoFromCamera() {
-        // Si queremos hacer uso de fotos en alta calidad
         val builder = StrictMode.VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
-
-        // Eso para alta o baja
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        // Nombre de la imagen
         IMAGEN_NOMBRE = UtilImage.crearNombreFichero()
-        // Salvamos el fichero
-        val fichero = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, context!!)
-        IMAGE = Uri.fromFile(fichero)
-
+        val file = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, context!!)
+        IMAGE = Uri.fromFile(file)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
-        // Esto para alta y baja
         startActivityForResult(intent, CAMERA)
     }
 
@@ -740,7 +720,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun configurarIUMapa() {
         mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
         typeMap()
-
     }
 
     /**
@@ -750,20 +729,23 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         val uiSettings = mMap.uiSettings
         when (modo) {
-            1, 2 -> {
+            1 -> {
                 uiSettings.isRotateGesturesEnabled = true
+                uiSettings.isZoomControlsEnabled = true
+            }
+            2 -> {
+                uiSettings.isRotateGesturesEnabled = true
+                uiSettings.isZoomControlsEnabled = true
+                //hace un zoom a la posicion del sitio con un indice 15
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionSite,15f))
             }
             3 -> {
-                uiSettings.isRotateGesturesEnabled = false
-                uiSettings.isCompassEnabled = false
-                uiSettings.isMapToolbarEnabled = false
-                uiSettings.isIndoorLevelPickerEnabled = false
                 uiSettings.isZoomControlsEnabled = false
-                uiSettings.isMyLocationButtonEnabled = false
-                uiSettings.isScrollGesturesEnabledDuringRotateOrZoom = false
                 uiSettings.isScrollGesturesEnabled = false
+                uiSettings.isZoomGesturesEnabled = false
+                uiSettings.isMyLocationButtonEnabled = false
+                mMap.isMyLocationEnabled = false
                 mMap.setMinZoomPreference(15.0f)
-
             }
         }
     }
@@ -808,7 +790,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         mMap.setOnMapClickListener { lat ->
             posicion = LatLng(lat.latitude, lat.longitude)
             markCurrentPostition(posicion!!)
-            Toast.makeText(context!!, posicion.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 

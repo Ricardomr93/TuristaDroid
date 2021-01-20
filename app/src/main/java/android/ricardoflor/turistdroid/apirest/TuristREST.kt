@@ -9,68 +9,129 @@ import retrofit2.http.*
 
 interface TuristREST {
 
-    // SESIONES ------------------------------------------------------------------------------------------
-    // Obtener Sesion por ID de usuario
-    @GET("sesiones/{userId}")
+    // ****SESIONES ------------------------------------------------------------------------------------------
+    /**
+     * Obtiene la sesion por id de usuario
+     */
+    @GET("session/{userId}")
     fun sesionGetById(@Path("userId") userId: String): Call<SessionDTO>
 
-    // Actualiza la sesion del usuario
-    @PUT("sesiones/{userId}")
+    /**
+     * Actualiza la sesion
+     */
+    @PUT("session/{userId}")
     fun sesionUpdate(@Path("userId") userId: String, @Body session: SessionDTO): Call<SessionDTO>
 
-    // Elimina la sesión
-    @DELETE("sesiones/{userId}")
+    /**
+     * Elimina la session
+     */
+    @DELETE("session/{userId}")
     fun sesionDelete(@Path("userId") userId: String): Call<SessionDTO>
 
-    // Inserta una sesión
-    @POST("sesiones/")
+    /**
+     * Crea la session
+     */
+    @POST("session/")
     fun sesionPost(@Body session: SessionDTO): Call<SessionDTO>
 
-    // USUARIOS ------------------------------------------------------------------------------------------
-    // Obtener Sesion por ID de usuario
-    @GET("usuarios/{id}")
-    fun usuarioGetById(@Path("id") id: String): Call<UserDTO>
 
-    // LUGARES ------------------------------------------------------------------------------------------
-    // Obtiene todos los lugares
-    @GET("lugares/")
-    fun lugarGetAll(): Call<List<SiteDTO>>
 
-    // Obtiene todos los lugares que tengan en su campo el userID que le paso
-    @GET("lugares/")
-    fun lugarGetAllByUserID(@Query("userID") userID: String): Call<List<SiteDTO>>
+    // ****USUARIOS ------------------------------------------------------------------------------------------
+    /**
+     * Obtiene al usuario por id
+     */
+    @GET("user/{id}")
+    fun userGetById(@Path("id") id: String): Call<UserDTO>
 
-    // Actualiza un lugar
-    @PUT("lugares/{id}")
-    fun lugarUpdate(@Path("id") id: String, @Body lugarDTO: SiteDTO): Call<SiteDTO>
+    /**
+     * Modifica al usuario
+     */
+    @PUT("user/{id}")
+    fun userUpdate(@Path("userId") id: String, @Body session: UserDTO): Call<UserDTO>
 
-    // Inserta un lugar
-    @POST("lugares/")
-    fun lugarPost(@Body lugar: SiteDTO): Call<SiteDTO>
+    /**
+     * Elimina al usuario
+     */
+    @DELETE("user/{id}")
+    fun userDelete(@Path("id") id: String): Call<UserDTO>
 
-    // Elimina el lugar
-    @DELETE("lugares/{id}")
-    fun lugarDelete(@Path("id") id: String): Call<SiteDTO>
+    /**
+     * Crea un usuario
+     */
+    @POST("user/")
+    fun userPost(@Body user: UserDTO): Call<UserDTO>
 
-    // FOTOGRAFIAS ------------------------------------------------------------------------------------------
-    // Obtener Fotografias por su id
-    @GET("fotografias/{id}")
+
+
+    // ****SITIOS ------------------------------------------------------------------------------------------
+    /**
+     * Obtiene todos los sitios
+     */
+    @GET("sites/")
+    fun siteGetAll(): Call<List<SiteDTO>>
+
+    /**
+     * Obtiene todos los lugares con un IdUser expecifico
+     */
+    @GET("sites/")
+    fun siteGetByUserID(@Query("userID") userID: String): Call<List<SiteDTO>>
+
+    /**
+     * Obtiene los lugares cercanos
+     */
+    @GET("sites/")
+    fun siteGetByNear(@Query("latitude") latitude : Double,
+                      @Query("longitude") longitude : Double,
+                      @Query("distance") distance : Double,): Call<List<SiteDTO>>
+
+    /**
+     * Modifica el sitio
+     */
+    @PUT("sites/{id}")
+    fun siteUpdate(@Path("id") id: String, @Body siteDTO: SiteDTO): Call<SiteDTO>
+
+    /**
+     * Crea un sitio
+     */
+    @POST("sites/")
+    fun sitesPost(@Body site: SiteDTO): Call<SiteDTO>
+
+    /**
+     * Elimina un lugar
+     */
+    @DELETE("sites/{id}")
+    fun siteDelete(@Path("id") id: String): Call<SiteDTO>
+
+
+
+    // ****FOTOGRAFIAS ------------------------------------------------------------------------------------------
+    /**
+     * Obtiene la imagen segun id
+     */
+    @GET("image/{id}")
     fun fotografiaGetById(@Path("id") id: String): Call<ImageDTO>
 
-    // Inserta una fotografia
-    @POST("fotografias/")
-    fun fotografiaPost(@Body fotografia: ImageDTO): Call<ImageDTO>
+    /**
+     * Obtiene las imagenes del sitio expecifico
+     */
+    @GET("image/")
+    fun imageGet(@Query("siteID") siteID: String): Call<List<ImageDTO>>
 
-    // Elimina la fotografía
-    @DELETE("fotografias/{id}")
-    fun fotografiaDelete(@Path("id") id: String): Call<ImageDTO>
+    /**
+     * Crea una imagen
+     */
+    @POST("image/")
+    fun imagePost(@Body image: ImageDTO): Call<ImageDTO>
 
-    // Actualiza una fotografia
-    @PUT("fotografias/{id}")
-    fun fotografiaUpdate(@Path("id") id: String, @Body fotografiaDTO: ImageDTO): Call<ImageDTO>
+    /**
+     * Elimina una imagen
+     */
+    @DELETE("image/{id}")
+    fun imageDelete(@Path("id") id: String): Call<ImageDTO>
 
-    // Obtiene todas las fotografías de un usuario
-    @GET("fotografias/")
-    fun fotografiaGetAllByUserID(@Query("userID") userID: String): Call<List<ImageDTO>>
-
+    /**
+     * Modifica una imagen
+     */
+    @PUT("image/{id}")
+    fun imageUpdate(@Path("id") id: String, @Body fotografiaDTO: ImageDTO): Call<ImageDTO>
 }

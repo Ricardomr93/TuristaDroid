@@ -36,7 +36,10 @@ object SiteMapper {
             dto.date,
             dto.rating,
             dto.latitude,
-            dto.longitude
+            dto.longitude,
+            dto.userID,
+            dto.votos,
+            dto.imageID
         )
     }
 
@@ -53,7 +56,10 @@ object SiteMapper {
             model.date!!,
             model.rating!!,
             model.latitude!!,
-            model.longitude!!
+            model.longitude!!,
+            model.userID!!,
+            model.votos!!,
+            model.imageID!!
         )
     }
 }

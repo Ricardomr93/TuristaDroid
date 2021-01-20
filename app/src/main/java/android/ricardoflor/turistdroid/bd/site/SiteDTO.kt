@@ -20,4 +20,8 @@ class SiteDTO (
     @SerializedName("rating") val rating: Double,
     @SerializedName("latitude") val latitude: Double,
     @SerializedName("longitude") val longitude: Double,
+    @SerializedName("userID") val userID : String,
+    @SerializedName("votos") val votos : Int,
+    @SerializedName("imageID") val imageID : String
+
 )

@@ -5,7 +5,7 @@ object TuristAPI {
 
     // Si estamos con un servidor propio en el ordenador, desde el emulador la ip es o conodemos su ip
     //  private const val server: String = "10.0.2.2" --> IP del Ordenador desde el emulador
-    private const val server = "192.168.1.59"
+    private const val server = "192.168.1.59" //TODO IP del servidor en maquina virtual Linux
 
     // Puerto del microservicio
     private const val port = "6969"

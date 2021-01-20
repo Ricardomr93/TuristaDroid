@@ -3,6 +3,7 @@ package android.ricardoflor.turistdroid.bd.user
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmClass
+import io.realm.annotations.Required
 import java.io.Serializable
 import java.util.*
 
@@ -22,9 +23,13 @@ import java.util.*
 open class User(
     @PrimaryKey
     var id: String = "",
+    @Required
     var name: String = "",
+    @Required
     var nameUser: String = "",
+    @Required
     var password: String = "",
+    @Required
     var email: String = "",
     var image: String = "",
     var twitter: String = "",

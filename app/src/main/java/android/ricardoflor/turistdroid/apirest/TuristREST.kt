@@ -75,7 +75,7 @@ interface TuristREST {
      */
     @GET("sites/")
     fun siteGetByUserID(@Query("userID") userID: String): Call<List<SiteDTO>>
-
+    //TODO -> arreglar la query por una mas eficiente
     /**
      * Obtiene los lugares cercanos
      */

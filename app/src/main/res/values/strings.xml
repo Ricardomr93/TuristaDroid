@@ -111,5 +111,6 @@
     <string name="need_camera">You need camera permissions</string>
     <string name="need_gallery">You need gallery permissions</string>
     <string name="need_location">You need location permissions</string>
+    <string name="service_error">Error accessing the service: </string>
 
 </resources>

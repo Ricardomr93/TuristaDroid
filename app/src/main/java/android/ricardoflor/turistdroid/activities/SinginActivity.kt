@@ -12,8 +12,10 @@ import android.provider.MediaStore
 import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.user.User
-import android.ricardoflor.turistdroid.bd.user.UserController
+import android.ricardoflor.turistdroid.bd.user.UserDTO
+import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
@@ -25,6 +27,9 @@ import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
 import java.lang.NullPointerException
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class SinginActivity : AppCompatActivity() {
 
@@ -32,7 +37,7 @@ class SinginActivity : AppCompatActivity() {
     private var nameuser = ""
     private var email = ""
     private var pass = ""
-    private var user = User()
+    private var user: User? = null
     private lateinit var FOTO: Bitmap
     private var IMAGE: Uri? = null
     private var image: Bitmap? = null
@@ -60,8 +65,6 @@ class SinginActivity : AppCompatActivity() {
                     if (isMailValid(txtEmail.text.toString())) {//campo email correcto
                         //Comprobar el campo password
                         addUser()
-                        val intent = Intent(this, LoginActivity::class.java)
-                        startActivity(intent)
                     } else {
                         txtEmail.error = resources.getString(R.string.email_incorrecto)
                     }
@@ -74,18 +77,48 @@ class SinginActivity : AppCompatActivity() {
     }
 
     /**
+     * Método que haceun intent al login
+     */
+    fun startLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+    }
+
+    /**
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
     private fun addUser() {
-        user.name = txtName.text.toString()
-        user.password = UtilEncryptor.encrypt(txtPass.text.toString())!!
-        user.nameUser = txtUserName.text.toString()
-        user.email = txtEmail.text.toString()
         if (this::FOTO.isInitialized) {
-            user.image = UtilImage.toBase64(FOTO)!!
+            user = User(
+                name = txtName.text.toString(),
+                nameUser = txtUserName.text.toString(),
+                password = UtilEncryptor.encrypt(txtPass.text.toString())!!,
+                email = txtEmail.text.toString(),
+                image = UtilImage.toBase64(FOTO)!!,
+                twitter = "",
+                instagram = "",
+                facebook = "",
+            )
         }
-        UserController.insertUser(user)
-        USER = user
+        val turistREST = TuristAPI.service
+        val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))
+        call.enqueue(object : Callback<UserDTO> {
+            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+                if (response.isSuccessful) {
+                    startLogin()
+                } else {
+                    Toast.makeText(applicationContext, "Error POST", Toast.LENGTH_SHORT).show() //TODO -> cambiar texto
+                }
+            }
+
+            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                Toast.makeText(applicationContext,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG)
+                    .show()
+            }
+
+        })
         Log.i("user", user.toString())
     }
 

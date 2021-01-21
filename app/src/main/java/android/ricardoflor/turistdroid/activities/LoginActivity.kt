@@ -5,13 +5,17 @@ import android.os.Bundle
 import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.session.SessionController
 import android.ricardoflor.turistdroid.bd.user.UserController
+import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_login.*
+import retrofit2.Call
+import retrofit2.Callback
 
 
 class LoginActivity : AppCompatActivity() {
@@ -72,6 +76,11 @@ class LoginActivity : AppCompatActivity() {
          Log.i("realm","usuario"+USER+"no existe en la bd")
         }
         return pass == USER.password
+
+        val turistREST = TuristAPI.service
+        val call : Call<UserDTO> = turistREST.userGetById(USER.id)
+        call.enqueue((object : Callback<UserDTO>))
+
     }
 
 

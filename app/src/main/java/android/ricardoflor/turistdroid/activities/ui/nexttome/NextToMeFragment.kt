@@ -180,25 +180,26 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * Metodo que muestra una burbuja de dialogo con el nombre foto y puntuacion
      */
     private fun infoWindow(){
-        mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter{
-            override fun getInfoWindow(marker: Marker): View? {
-                return null
-            }
-            override fun getInfoContents(marker: Marker): View {
-                val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
-                val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
-                val ratin : TextView = row.findViewById(R.id.txtmakerdialograting)
-                val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
-                val site =  marker.tag as Site
-                txtNamePlaceInfo.text = site.name
-                ratin.text = site.rating.toString()
-                //si no tiene fotos muestra la de por defecto
-                if (site.image.size > 0){
-                    imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
-                }
-                return row
-            }
-        })
+        //TODO
+        /* mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter{
+             override fun getInfoWindow(marker: Marker): View? {
+                 return null
+             }
+             override fun getInfoContents(marker: Marker): View {
+                 val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
+                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
+                 val ratin : TextView = row.findViewById(R.id.txtmakerdialograting)
+                 val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
+                 val site =  marker.tag as Site
+                 txtNamePlaceInfo.text = site.name
+                 ratin.text = site.rating.toString()
+                 //si no tiene fotos muestra la de por defecto
+                 if (site.image.size > 0){
+                     imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
+                 }
+                 return row
+             }
+        })*/
     }
 
     /**

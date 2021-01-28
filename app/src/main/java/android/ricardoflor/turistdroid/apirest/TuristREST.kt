@@ -13,8 +13,8 @@ interface TuristREST {
     /**
      * Obtiene la sesion por id de usuario
      */
-    @GET("session/{userId}")
-    fun sesionGetById(@Path("userId") userId: String): Call<SessionDTO>
+    @GET("session/")
+    fun sesionGetById(@Query("userId") userId: String): Call<List<SessionDTO>>
 
     /**
      * Actualiza la sesion
@@ -25,7 +25,7 @@ interface TuristREST {
     /**
      * Elimina la session
      */
-    @DELETE("session/{userId}")
+    @DELETE("session/{id}")
     fun sesionDelete(@Path("userId") userId: String): Call<SessionDTO>
 
     /**
@@ -42,6 +42,11 @@ interface TuristREST {
      */
     @GET("user/{id}")
     fun userGetById(@Path("id") id: String): Call<UserDTO>
+    /**
+     * Obtiene al usuario por id
+     */
+    @GET("user/")
+    fun userGetByEmail(@Query("email") email: String): Call<List<UserDTO>>
 
     /**
      * Modifica al usuario

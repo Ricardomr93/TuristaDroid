@@ -309,7 +309,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Metodo para cargar los datos del Sitio en el Fragment
      */
     private fun cargarDatosSite() {
-        cajaSiteName?.setText(sitio?.name)
+        //TODO
+    }
+        /*cajaSiteName?.setText(sitio?.name)
 
         // Cargamos el spinner con la opcion correcta
         var lista: Array<String> = resources.getStringArray(R.array.sites_types)
@@ -344,7 +346,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         generateQRCode(textoQr)
         positionSite = LatLng(sitio!!.latitude, sitio!!.longitude)
-    }
+    }*/
 
     /**
      * Metodo para cargar los datos del Sitio en el Fragment
@@ -366,8 +368,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Metodo para aniadir un sitio
      */
     fun add(btn: Button) {
-
-        btn.setOnClickListener {
+        //TODO
+        /*btn.setOnClickListener {
             // Recuperamos los datos
             // image
             name = cajaSiteName?.text.toString()
@@ -397,7 +399,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
                 }
             }
-        }
+        }*/
     }
 
     /**
@@ -421,7 +423,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 }
                 if (sitio != null) {
                     sitio.name = name!!
-                    sitio.image = image
+                    //sitio.image = image
                     sitio.site = site!!
                     sitio.date = date!!
                     sitio.rating = rating
@@ -600,84 +602,84 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        try {
+        //TODO
+        /* try {
+        //Recupera la informacion si ha escaneado un QR
+          val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+          if (result != null) {
+              //Si no tiene informacion se cancela
+              if (result.contents == null) {
+                  Toast.makeText(context, getText(R.string.error), Toast.LENGTH_LONG).show()
+              } else {
+                  //Carga la informacion obtenida del QR
+                  cargarDatosSiteQr(result.contents)
+              }
+          }
 
-            //Recupera la informacion si ha escaneado un QR
-            val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
-            if (result != null) {
-                //Si no tiene informacion se cancela
-                if (result.contents == null) {
-                    Toast.makeText(context, getText(R.string.error), Toast.LENGTH_LONG).show()
-                } else {
-                    //Carga la informacion obtenida del QR
-                    cargarDatosSiteQr(result.contents)
-                }
-            }
+          //Si cancela no hace nada
+          if (resultCode == AppCompatActivity.RESULT_CANCELED) {
+              Log.d("sing", "Se ha cancelado")
+          }
+          //si elige la opcion de galeria entra en la galeria
+          if (requestCode == GALLERY) {
+              Log.d("profile", "Entramos en Galería")
+              if (data != null) {
+                  // Obtenemos su URI
+                  val contentURI = data.data!!
+                  try {
+                      FOTO = differentVersion(contentURI)
 
-            //Si cancela no hace nada
-            if (resultCode == AppCompatActivity.RESULT_CANCELED) {
-                Log.d("sing", "Se ha cancelado")
-            }
-            //si elige la opcion de galeria entra en la galeria
-            if (requestCode == GALLERY) {
-                Log.d("profile", "Entramos en Galería")
-                if (data != null) {
-                    // Obtenemos su URI
-                    val contentURI = data.data!!
-                    try {
-                        FOTO = differentVersion(contentURI)
+                      val imgStr = UtilImage.toBase64(FOTO)!!
+                      idFoto += 1
+                      val img = Image(idFoto, imgStr)
+                      image.add(img)
 
-                        val imgStr = UtilImage.toBase64(FOTO)!!
-                        idFoto += 1
-                        val img = Image(idFoto, imgStr)
-                        image.add(img)
+                      //Para borrar la imagen de muestra
+                      if (modo == 1 && imagenIni) {
+                          imagesSlider = RealmList()
+                          imagenIni = false
+                      }
 
-                        //Para borrar la imagen de muestra
-                        if (modo == 1 && imagenIni) {
-                            imagesSlider = RealmList()
-                            imagenIni = false
-                        }
+                      imagesSlider.add(FOTO)
+                      adapter = SliderAdapter(context!!, imagesSlider)
+                      val slider: ViewPager = root.findViewById(R.id.imageSite)
+                      slider.adapter = adapter
+                  } catch (e: IOException) {
+                      e.printStackTrace()
+                      Toast.makeText(context!!, getText(R.string.error_gallery), Toast.LENGTH_SHORT).show()
+                  }
+              }
+          } else if (requestCode == CAMERA) {
+              Log.d("profile", "Entramos en Camara")
+              //cogemos la imagen
+              try {
+                  FOTO = differentVersion(IMAGE)
+                  // Mostramos la imagen
 
-                        imagesSlider.add(FOTO)
-                        adapter = SliderAdapter(context!!, imagesSlider)
-                        val slider: ViewPager = root.findViewById(R.id.imageSite)
-                        slider.adapter = adapter
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                        Toast.makeText(context!!, getText(R.string.error_gallery), Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else if (requestCode == CAMERA) {
-                Log.d("profile", "Entramos en Camara")
-                //cogemos la imagen
-                try {
-                    FOTO = differentVersion(IMAGE)
-                    // Mostramos la imagen
+                  val imgStr = UtilImage.toBase64(FOTO)!!
+                  idFoto += 1
+                  val img = Image(idFoto, imgStr)
+                  image.add(img)
 
-                    val imgStr = UtilImage.toBase64(FOTO)!!
-                    idFoto += 1
-                    val img = Image(idFoto, imgStr)
-                    image.add(img)
+                  //Para borrar la imagen de muestra
+                  if (modo == 1 && imagenIni) {
+                      imagesSlider = RealmList()
+                      imagenIni = false
+                  }
 
-                    //Para borrar la imagen de muestra
-                    if (modo == 1 && imagenIni) {
-                        imagesSlider = RealmList()
-                        imagenIni = false
-                    }
+                  imagesSlider.add(FOTO)
+                  adapter = SliderAdapter(context!!, imagesSlider)
+                  val slider: ViewPager = root.findViewById(R.id.imageSite)
+                  slider.adapter = adapter
+              } catch (e: Exception) {
+                  e.printStackTrace()
+                  Toast.makeText(context!!, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
+              }
+          }
 
-                    imagesSlider.add(FOTO)
-                    adapter = SliderAdapter(context!!, imagesSlider)
-                    val slider: ViewPager = root.findViewById(R.id.imageSite)
-                    slider.adapter = adapter
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Toast.makeText(context!!, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
-                }
-            }
-
-        } catch (e: Exception) {
-            Toast.makeText(context, "No se ha podido cargar la imagen", 5)
-        }
+      } catch (e: Exception) {
+          Toast.makeText(context, "No se ha podido cargar la imagen", 5)
+      }*/
     }
 
     /**

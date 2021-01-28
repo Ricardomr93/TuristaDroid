@@ -61,10 +61,10 @@ class SiteListAdapter(
 
             holder.siteDate.text = siteDate
             holder.siteRating.text = siteRatings
-
-            if (!listaSitios[position].image.isEmpty()){
-                holder.siteImage.setImageBitmap(UtilImage.toBitmap(listaSitios[position].image[0]!!.image))
-            }
+    //TODO
+           // if (!listaSitios[position].image.isEmpty()){
+            //    holder.siteImage.setImageBitmap(UtilImage.toBitmap(listaSitios[position].image[0]!!.image))
+            //}
 //            for (it in listaSitios[position].image){
 //                holder.siteImage.setImageBitmap(UtilImage.toBitmap(it.image))
 //            }

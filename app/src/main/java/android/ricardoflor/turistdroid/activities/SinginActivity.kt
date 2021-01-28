@@ -88,18 +88,21 @@ class SinginActivity : AppCompatActivity() {
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
     private fun addUser() {
+        var im = ""
         if (this::FOTO.isInitialized) {
+            im = UtilImage.toBase64(FOTO)!!
+        }
             user = User(
                 name = txtName.text.toString(),
                 nameUser = txtUserName.text.toString(),
                 password = UtilEncryptor.encrypt(txtPass.text.toString())!!,
                 email = txtEmail.text.toString(),
-                image = UtilImage.toBase64(FOTO)!!,
+                image = im ,
                 twitter = "",
                 instagram = "",
                 facebook = "",
             )
-        }
+
         val turistREST = TuristAPI.service
         val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))
         call.enqueue(object : Callback<UserDTO> {

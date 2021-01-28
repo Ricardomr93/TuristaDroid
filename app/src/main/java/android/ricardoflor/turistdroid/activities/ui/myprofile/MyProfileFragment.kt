@@ -129,7 +129,7 @@ class MyProfileFragment : Fragment() {
      */
     fun deleteAndInsertUser() {
         UserController.deleteUser(USER.email)
-        UtilSession.closeSession()
+        UtilSession.closeSession(context!!)
         addUser()
         SESSION = SessionController.selectSession()!!
     }
@@ -156,7 +156,7 @@ class MyProfileFragment : Fragment() {
             }
             UserController.insertUser(user)
             USER = user
-            UtilSession.createSession(user.email)
+            UtilSession.createSession(user.id,context!!)
             Log.i("user", user.toString())
         } catch (ex: RealmPrimaryKeyConstraintException) {
             txtEmailMyProfile.error = resources.getString(R.string.isAlreadyExist)
@@ -228,7 +228,7 @@ class MyProfileFragment : Fragment() {
             .setMessage(getText(R.string.sure_delete))
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 UserController.deleteUser(USER.email)
-                UtilSession.closeSession()
+                UtilSession.closeSession(context!!)
                 startActivity(Intent(context, LoginActivity::class.java))
                 Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
             }

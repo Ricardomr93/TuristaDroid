@@ -7,15 +7,21 @@ import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.session.SessionController
+import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.bd.user.UserDTO
+import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.activity_singin.*
 import retrofit2.Call
 import retrofit2.Callback
+import retrofit2.Response
 
 
 class LoginActivity : AppCompatActivity() {
@@ -38,20 +44,39 @@ class LoginActivity : AppCompatActivity() {
         buttonLoginLogin.setOnClickListener {
             email = editTextLoginMail.text.toString()
             pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
-            if (userExists()) {
+            //pass = editTextLoginPassword.text.toString()
+
+            if (anyEmpty()) {
+                userExists()
                 Log.i("realm", "usuario logeado")
-                UtilSession.createSession(email)
-                SESSION = SessionController.selectSession()!!
-                val intent = Intent(this,NavigationActivity::class.java)
-                //Elimina la pila trasera para que el boton no vuelva a esta actividad
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-                startActivity(intent)
-                finish()
             } else {
-                editTextLoginMail.error = getString(R.string.userNotCorrect)
                 Log.i("realm", "usuario erroneo")
             }
         }
+    }
+
+    /**
+     * Método que devuelve false si alguno de los valores está vácio
+     */
+    private fun anyEmpty(): Boolean {
+        var valid = true
+        if (notEmpty(editTextLoginMail) && notEmpty(editTextLoginPassword)) {
+            valid = false
+        }
+        return valid
+    }
+
+    /**
+     * Método que comprueba si el campo esta vacio y lanza un mensaje
+     * @param txt TextView
+     */
+    private fun notEmpty(txt: TextView): Boolean {
+        var empty = false
+        if (txt.text.isEmpty()) {
+            txt.error = resources.getString(R.string.isEmpty)
+            empty = true
+        }
+        return empty
     }
 
     /**
@@ -69,18 +94,51 @@ class LoginActivity : AppCompatActivity() {
      * Método que busca por email y si lo encuentra
      * lo compara con la contraseña
      */
-    private fun userExists(): Boolean {
-        try{
-            USER = UserController.selectByEmail(email)!!
-        }catch (ex : IllegalArgumentException){
-         Log.i("realm","usuario"+USER+"no existe en la bd")
-        }
-        return pass == USER.password
-
+    private fun userExists() {
         val turistREST = TuristAPI.service
-        val call : Call<UserDTO> = turistREST.userGetById(USER.id)
-        call.enqueue((object : Callback<UserDTO>))
+        val call = turistREST.userGetByEmail(email)
+        call.enqueue((object : Callback<List<UserDTO>> {
 
+            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
+                Log.i("REST", "Entra en onResponse")
+                if (response.isSuccessful && response.body()!!.isNotEmpty()) {
+                    Log.i("REST", "Entra en isSuccessful")
+
+                    Log.i("REST", "usuario existe")
+                    val user = UserMapper.fromDTO(response.body()!![0])//saca el primer resultado
+                    Log.i("rest", pass + " pass2: " + user.password)
+                    if (user.password == pass) {
+                        UtilSession.comprobarIDSession(user.id, applicationContext)
+                        Log.i("Session: ", SESSION.toString())
+                        USER = user
+                        toNavigation()
+                    }
+                } else {
+                    editTextLoginMail.error = getString(R.string.userNotCorrect)//manda mensaje de que no son correctos
+                    Log.i("REST", "Error: usuario no existe")
+                }
+
+            }
+
+            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
+                Log.i("REST", "salta error")
+                Toast.makeText(
+                    applicationContext,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
+
+    }
+
+    private fun toNavigation() {
+        val intent = Intent(applicationContext, NavigationActivity::class.java)
+        //Elimina la pila trasera para que el boton no vuelva a esta actividad
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        startActivity(intent)
+        finish()
     }
 
 

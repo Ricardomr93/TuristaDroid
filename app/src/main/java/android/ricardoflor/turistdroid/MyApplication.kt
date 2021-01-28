@@ -34,16 +34,16 @@ class MyApplication : Application() {
     }
 
     fun sessionExist() {
-        try {
+        /*try {
             SESSION = SessionController.selectSession()!!
-            if (SESSION.useremail != "") {
+            if (SESSION.userId != "") {
                 USER = UserController.selectByEmail(SESSION.useremail)!!
                 Log.i("util", "Usuario existe $USER")
             } else {
                 Log.i("util", "otro")
             }
         } catch (ex: IllegalArgumentException) {
-        }
+        }*/
 
     }
 

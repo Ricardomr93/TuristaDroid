@@ -112,5 +112,6 @@
     <string name="need_gallery">You need gallery permissions</string>
     <string name="need_location">You need location permissions</string>
     <string name="service_error">Error accessing the service: </string>
+    <string name="no_net">Error you need an internet connection</string>
 
 </resources>

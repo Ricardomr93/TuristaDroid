@@ -20,7 +20,6 @@ class MyApplication : Application() {
 
     companion object {
         var USER = User()
-        var SESSION = Session()
     }
     var PERMISSIONSCAMERA = false
     var PERMISSIONSGALLERY = false

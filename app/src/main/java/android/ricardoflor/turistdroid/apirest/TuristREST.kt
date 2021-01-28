@@ -19,14 +19,14 @@ interface TuristREST {
     /**
      * Actualiza la sesion
      */
-    @PUT("session/{userId}")
-    fun sesionUpdate(@Path("userId") userId: String, @Body session: SessionDTO): Call<SessionDTO>
+    @PUT("session/{id}")
+    fun sesionUpdate(@Path("id") userId: String, @Body session: SessionDTO): Call<SessionDTO>
 
     /**
      * Elimina la session
      */
     @DELETE("session/{id}")
-    fun sesionDelete(@Path("userId") userId: String): Call<SessionDTO>
+    fun sesionDelete(@Path("id") userId: String): Call<SessionDTO>
 
     /**
      * Crea la session
@@ -52,7 +52,7 @@ interface TuristREST {
      * Modifica al usuario
      */
     @PUT("user/{id}")
-    fun userUpdate(@Path("userId") id: String, @Body session: UserDTO): Call<UserDTO>
+    fun userUpdate(@Path("id") id: String, @Body session: UserDTO): Call<UserDTO>
 
     /**
      * Elimina al usuario

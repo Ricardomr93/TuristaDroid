@@ -2,23 +2,21 @@ package android.ricardoflor.turistdroid.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
+import android.provider.Settings
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
-import android.ricardoflor.turistdroid.bd.session.SessionController
-import android.ricardoflor.turistdroid.bd.user.User
-import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
+import android.ricardoflor.turistdroid.utils.UtilNet
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_login.*
-import kotlinx.android.synthetic.main.activity_singin.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -32,25 +30,48 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        //init()
         login()
         SingIn()
     }
-
+    private fun init() {
+        //UtilSession.deleteSessionPref(this)
+        if (UtilSession.sessionExist(this)) {
+            toNavigation()
+            Log.i("util", "usuario logeado")
+        }else{
+            Log.i("util", "usuario erroneo")
+        }
+    }
     /**
      * Método que cuando pulsa en en el boton si lo campos son correctos
      * logea al usuario
      */
-    fun login() {
+    private fun login() {
         buttonLoginLogin.setOnClickListener {
             email = editTextLoginMail.text.toString()
             pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
-            //pass = editTextLoginPassword.text.toString()
 
             if (anyEmpty()) {
-                userExists()
+                if (UtilNet.hasInternetConnection(this)) {
+                    userExists()
+                } else {//muestra una barra para pedir conexion a internet
+                    val snackbar = Snackbar.make(
+                        findViewById(android.R.id.content),
+                        R.string.no_net,
+                        Snackbar.LENGTH_INDEFINITE
+                    )
+                    snackbar.setActionTextColor(getColor(R.color.accent))
+                    snackbar.setAction("Conectar") {
+                        val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                        startActivity(intent)
+                        finish()
+                    }
+                    snackbar.show()
+                }
                 Log.i("realm", "usuario logeado")
             } else {
-                Log.i("realm", "usuario erroneo")
+
             }
         }
     }
@@ -82,7 +103,7 @@ class LoginActivity : AppCompatActivity() {
     /**
      * Funcion onClick del botón Singin para llevarlo a la actividad
      */
-    fun SingIn() {
+    private fun SingIn() {
         buttonLoginSingin.setOnClickListener {
             val intent = Intent(this, SinginActivity::class.java).apply {
             }
@@ -109,7 +130,6 @@ class LoginActivity : AppCompatActivity() {
                     Log.i("rest", pass + " pass2: " + user.password)
                     if (user.password == pass) {
                         UtilSession.comprobarIDSession(user.id, applicationContext)
-                        Log.i("Session: ", SESSION.toString())
                         USER = user
                         toNavigation()
                     }
@@ -117,7 +137,6 @@ class LoginActivity : AppCompatActivity() {
                     editTextLoginMail.error = getString(R.string.userNotCorrect)//manda mensaje de que no son correctos
                     Log.i("REST", "Error: usuario no existe")
                 }
-
             }
 
             override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
@@ -135,8 +154,6 @@ class LoginActivity : AppCompatActivity() {
 
     private fun toNavigation() {
         val intent = Intent(applicationContext, NavigationActivity::class.java)
-        //Elimina la pila trasera para que el boton no vuelva a esta actividad
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
         startActivity(intent)
         finish()
     }

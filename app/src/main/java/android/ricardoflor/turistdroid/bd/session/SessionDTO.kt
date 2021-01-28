@@ -5,13 +5,13 @@ import io.realm.annotations.Required
 
 /**
  * Clase para parsear el JSON
- * @property userId String
+ * @property id String
  * @property time String
  * @property token String
  * @constructor
  */
 class SessionDTO(
-    @SerializedName("userId") val userId: String,
+    @SerializedName("id") val id: String,
     @SerializedName("time") val time: String,
     @SerializedName("token") val token: String,
     )

@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
 import android.ricardoflor.turistdroid.MyApplication
-import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.LoginActivity
@@ -131,7 +130,7 @@ class MyProfileFragment : Fragment() {
         UserController.deleteUser(USER.email)
         UtilSession.closeSession(context!!)
         addUser()
-        SESSION = SessionController.selectSession()!!
+       // SESSION = SessionController.selectSession()!! TODO
     }
 
 

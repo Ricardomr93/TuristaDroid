@@ -7,14 +7,14 @@ import java.io.Serializable
 
 open class Session(
     @PrimaryKey
-    var userId: String = "",
+    var id: String = "",
     @Required
     var time: String = "",
     @Required
     var token: String = "",
 ) : RealmObject(), Serializable {
     fun changeSession(session: Session) {
-        this.userId = session.userId
+        this.id = session.id
         this.time = session.time
         this.token = session.token
     }

@@ -33,15 +33,16 @@ class SplashActivity : AppCompatActivity() {
         //cargamos el login con un delay
         Handler(Looper.getMainLooper()).postDelayed({
             run {
-                /*if (UtilSession.comprobarSesion(this)){
-                    Log.i("util","El usuario ya está logeado")
+                //UtilSession.deleteSessionPref(this)
+                if (UtilSession.sessionExist(this)) {
                     startActivity(Intent(this,NavigationActivity::class.java))
+                    finish()
+                    Log.i("util", "usuario logeado")
                 }else{
-                    Log.i("util","El usuario no estaba logeado")
                     startActivity(Intent(this,LoginActivity::class.java))
-                }*/
-                startActivity(Intent(this,LoginActivity::class.java))
-                finish()
+                    finish()
+                    Log.i("util", "usuario erroneo")
+                }
             }
         },TIME_SPLASH)
     }

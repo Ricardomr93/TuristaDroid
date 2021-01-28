@@ -29,7 +29,7 @@ object SessionMapper {
      */
     fun fromDTO(dto: SessionDTO): Session {
         return Session(
-            dto.userId,
+            dto.id,
             dto.time,
             dto.token,
         )
@@ -42,7 +42,7 @@ object SessionMapper {
      */
     fun toDTO(model: Session): SessionDTO {
         return SessionDTO(
-            model.userId!!,
+            model.id!!,
             model.time!!,
             model.token!!,
         )

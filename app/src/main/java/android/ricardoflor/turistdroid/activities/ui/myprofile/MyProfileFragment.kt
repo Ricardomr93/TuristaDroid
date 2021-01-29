@@ -14,9 +14,13 @@ import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.LoginActivity
 import android.ricardoflor.turistdroid.activities.NavigationActivity
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.session.SessionController
+import android.ricardoflor.turistdroid.bd.session.SessionDTO
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
+import android.ricardoflor.turistdroid.bd.user.UserDTO
+import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilSession
@@ -30,7 +34,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
+import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_my_profile.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.IOException
 import java.lang.NullPointerException
 
@@ -42,7 +50,6 @@ class MyProfileFragment : Fragment() {
     private val IMAGEN_DIR = "/TuristDroid"
     private lateinit var FOTO: Bitmap
     private lateinit var IMAGEN_NOMBRE: String
-    private var user = User()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -75,20 +82,103 @@ class MyProfileFragment : Fragment() {
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
     private fun update() {
+        if (emailChanges()) {
+            emailExists()
+        } else {
+            updateRest()
+        }
+    }
+
+    private fun changeUser(): User {
         val name = txtNameMyProfile.text.toString()
         val nameUser = txtUserNameMyProfile.text.toString()
         val email = txtEmailMyProfile.text.toString()
+        var im: String
+        var pass: String
         Log.d("profile", name + nameUser + email)
-        user.name = name
-        user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
-        user.nameUser = nameUser
-        user.email = email
         if (this::FOTO.isInitialized) {
-            user.image = UtilImage.toBase64(FOTO)!!
+            im = UtilImage.toBase64(FOTO)!!
         } else {
-            user.image = USER.image
+            im = USER.image
         }
-        UserController.updateUser(user)
+        if (txtPassMyprofile.text.toString().isEmpty()) {
+            pass = USER.password
+        } else {
+            pass = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
+        }
+        val user = User(
+            id = USER.id,
+            name = name,
+            nameUser = nameUser,
+            password = pass,
+            email = email,
+            image = im,
+            twitter = "",
+            instagram = "",
+            facebook = "",
+        )
+        Log.i("Update", user.toString())
+        return user
+    }
+
+    private fun emailExists() {
+        val turistREST = TuristAPI.service
+        val email = txtEmailMyProfile.text.toString()
+        val call = turistREST.userGetByEmail(email)
+        Log.i("REST", "email: $email")
+        call.enqueue((object : Callback<List<UserDTO>> {
+
+            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
+                Log.i("REST", "emailExists en onResponse")
+                if (response.isSuccessful) {
+                    Log.i("REST", "emailExists en isSuccessful")
+                    if (response.body()!!.isEmpty()) {
+                        updateRest()
+                    } else {
+                        txtEmailMyProfile.error = resources.getString(R.string.isAlreadyExist)
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
+                Log.i("REST", "emailExists onFailure")
+                Toast.makeText(
+                    context,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
+
+    }
+
+    private fun updateRest() {
+        val user = changeUser()
+        val turistREST = TuristAPI.service
+        val call: Call<UserDTO> = turistREST.userUpdate(user.id, UserMapper.toDTO(user))
+        call.enqueue(object : Callback<UserDTO> {
+            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+                if (response.isSuccessful) {
+                    USER = UserMapper.fromDTO(response.body()!!)
+                    changeNavigation()
+                    Log.i("updater", UserController.selectAllUser().toString())
+                } else {
+                    Toast.makeText(context, R.string.error_put, Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                Toast.makeText(
+                    context,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+
+        })
+        Log.i("user", user.toString())
     }
 
     /**
@@ -121,53 +211,6 @@ class MyProfileFragment : Fragment() {
             NavigationActivity.navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
             UtilImage.redondearFoto(NavigationActivity.navUserImage)
         }
-    }
-
-    /**
-     * Metodo que borra e inserta
-     */
-    fun deleteAndInsertUser() {
-        UserController.deleteUser(USER.email)
-        UtilSession.closeSession(context!!)
-        addUser()
-       // SESSION = SessionController.selectSession()!! TODO
-    }
-
-
-    /**
-     * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
-     */
-    private fun addUser() {
-        try {
-            user.name = txtNameMyProfile.text.toString()
-            //si la contraseña está vacia mantiene la que ya tiene
-            if (txtPassMyprofile.text.isNullOrEmpty()) {
-                user.password = USER.password
-            } else {
-                user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
-            }
-            user.nameUser = txtUserNameMyProfile.text.toString()
-            user.email = txtEmailMyProfile.text.toString()
-            if (this::FOTO.isInitialized) {
-                user.image = UtilImage.toBase64(FOTO)!!
-            } else {
-                user.image = USER.image
-            }
-            UserController.insertUser(user)
-            USER = user
-            UtilSession.createSession(user.id,context!!)
-            Log.i("user", user.toString())
-        } catch (ex: RealmPrimaryKeyConstraintException) {
-            txtEmailMyProfile.error = resources.getString(R.string.isAlreadyExist)
-            restauredUser()//restaura el usuario para no perder los datos
-        }
-    }
-
-    /**
-     * Restaura los datos del usuario borrado por si ocurre algun error
-     */
-    fun restauredUser() {
-        UserController.insertUser(USER)
     }
 
     /**
@@ -227,12 +270,42 @@ class MyProfileFragment : Fragment() {
             .setMessage(getText(R.string.sure_delete))
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 UserController.deleteUser(USER.email)
-                UtilSession.closeSession(context!!)
-                startActivity(Intent(context, LoginActivity::class.java))
-                Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
+                delUser()
+
             }
             .setNegativeButton(getString(R.string.Cancel), null)
             .show()
+    }
+
+    private fun delUser() {
+        val turistREST = TuristAPI.service
+        val call: Call<UserDTO> = turistREST.userDelete(USER.id)
+        call.enqueue((object : Callback<UserDTO> {
+
+            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+                Log.i("REST", "onResponse delUser")
+                if (response.isSuccessful) {
+                    Log.i("REST", "isSuccessful delUser")
+                    UtilSession.closeSession(context!!)
+                    startActivity(Intent(context, LoginActivity::class.java))
+                    activity!!.finish()
+                    Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
+                    Log.i("REST", "sesionDelete ok")
+                } else {
+                    Log.i("REST", "Error: isSuccessful delUser")
+                }
+            }
+
+            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                Log.i("REST", "delUser failure")
+                Toast.makeText(
+                    context,
+                    context!!.getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
     }
 
     private fun dialogUpdate() {
@@ -241,9 +314,8 @@ class MyProfileFragment : Fragment() {
             .setMessage(getText(R.string.sure_update))
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 Log.i("updater", "usuario cambia")
-                deleteAndInsertUser()
-                Log.i("updater", UserController.selectAllUser().toString())
-                changeNavigation()
+                update()
+
                 Toast.makeText(context!!, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(getString(R.string.Cancel), null)
@@ -371,7 +443,7 @@ class MyProfileFragment : Fragment() {
                 UtilImage.redondearFoto(imgMyprofile)
             } catch (e: NullPointerException) {
                 e.printStackTrace()
-            }catch (ex: Exception){
+            } catch (ex: Exception) {
                 Toast.makeText(context!!, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
         }

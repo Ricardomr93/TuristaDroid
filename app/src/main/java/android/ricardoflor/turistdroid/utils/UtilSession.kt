@@ -7,9 +7,11 @@ import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionDTO
 import android.ricardoflor.turistdroid.bd.session.SessionMapper
+import android.ricardoflor.turistdroid.bd.user.User
+import android.ricardoflor.turistdroid.bd.user.UserDTO
+import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.util.Log
 import android.widget.Toast
-import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -23,7 +25,7 @@ object UtilSession {
      * @param context Context
      * @return si existe o no una sesion
      */
-    fun sessionExist(context: Context): Boolean{
+    fun sessionExist(context: Context): Boolean {
         val prefs = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val session = prefs.getString("sessionUID", "").toString()
         Log.i("util", "Usuario ID: $session")
@@ -33,24 +35,25 @@ object UtilSession {
     /**
      * Metodo que comprueba que el id de
      */
-    fun comprobarIDSession(id: String,context: Context) {
+    fun comprobarIDSession(id: String, context: Context) {
         val turistREST = TuristAPI.service
         val call = turistREST.sesionGetById(id)
         call.enqueue((object : Callback<List<SessionDTO>> {
             override fun onResponse(call: Call<List<SessionDTO>>, response: Response<List<SessionDTO>>) {
-                Log.i("REST", "Entra en onResponse SEssion")
-                if (response.isSuccessful){
-                    Log.i("REST", "Entra en isSuccessful Session")
-                    if(response.body()!!.isEmpty()) {//si devuelve alguna fila)
-                        createSession(id,context)
-                    }else{
-                        val session = SessionMapper.fromDTO(response.body()!![0])//saca el primer resultado
-                        createSessionPref(context,session)
+                Log.i("REST", "onResponse comprobarIDSession")
+                if (response.isSuccessful) {
+                    Log.i("REST", "isSuccessful comprobarIDSession")
+                    if (response.body()!!.isEmpty()) {//si no devuelve ninguna fila crea una session
+                        createSession(id, context)
+                    } else {
+                        val session = SessionMapper.fromDTO(response.body()!![0])//si saca coge la primera fila
+                        createSessionPref(context, session)
                     }
                 }
             }
+
             override fun onFailure(call: Call<List<SessionDTO>>, t: Throwable) {
-                Log.i("REST", "salta error")
+                Log.i("REST", "salta error comprobarIDSession")
                 Toast.makeText(
                     context,
                     context.getText(R.string.service_error).toString() + t.localizedMessage,
@@ -64,26 +67,27 @@ object UtilSession {
     /**
      * Metodo que crea una sesion en las preferencias
      */
-    fun createSessionPref(context: Context, session: Session){
-        val preferences = context.getSharedPreferences("TuristDroid",Context.MODE_PRIVATE)
+    fun createSessionPref(context: Context, session: Session) {
+        val preferences = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val editor = preferences.edit()
-        editor.putString("sessionUID",session.id)
-        editor.putString("sessionTime",session.time)
-        editor.putString("sessionToken",session.token)
+        editor.putString("sessionUID", session.id)
+        editor.putString("sessionTime", session.time)
+        editor.putString("sessionToken", session.token)
         editor.apply()
     }
 
     /**
      * Metodo que borra la sesion en las preferencias
      */
-    fun deleteSessionPref(context: Context){
-        val preferences = context.getSharedPreferences("TuristDroid",Context.MODE_PRIVATE)
+    fun deleteSessionPref(context: Context) {
+        val preferences = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val editor = preferences.edit()
         editor.remove("sessionUID")
         editor.remove("sessionTime")
         editor.remove("sessionToken")
         editor.apply()
     }
+
     /**
      * Crea la session con el email del usuario  que se acaba de logear
      */
@@ -100,9 +104,10 @@ object UtilSession {
         call.enqueue(object : Callback<SessionDTO> {
             override fun onResponse(call: Call<SessionDTO>, response: Response<SessionDTO>) {
                 if (response.isSuccessful) {
-                    createSessionPref(context,sess)
+                    createSessionPref(context, sess)
                 }
             }
+
             override fun onFailure(call: Call<SessionDTO>, t: Throwable) {
                 Toast.makeText(
                     context,
@@ -119,10 +124,9 @@ object UtilSession {
      */
     fun closeSession(context: Context) {
         val turistREST = TuristAPI.service
-        val prefs = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
-        val session = prefs.getString("sessionUID", "").toString()
+        val session = getUserID(context)
         val call: Call<SessionDTO> = turistREST.sesionDelete(session)
-        call.enqueue((object : Callback<SessionDTO>{
+        call.enqueue((object : Callback<SessionDTO> {
 
             override fun onResponse(call: Call<SessionDTO>, response: Response<SessionDTO>) {
                 Log.i("REST", "sesionDelete onResponse")
@@ -147,5 +151,14 @@ object UtilSession {
         }))
 
     }
+
+    /**
+     * Metodo que recoge el id del usuario de la session activa
+     */
+    fun getUserID(context: Context): String {
+        val prefs = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
+        return prefs.getString("sessionUID", "").toString()
+    }
+
 
 }

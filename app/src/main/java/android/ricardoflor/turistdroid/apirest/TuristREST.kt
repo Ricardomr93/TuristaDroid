@@ -52,7 +52,7 @@ interface TuristREST {
      * Modifica al usuario
      */
     @PUT("user/{id}")
-    fun userUpdate(@Path("id") id: String, @Body session: UserDTO): Call<UserDTO>
+    fun userUpdate(@Path("id") id: String, @Body user: UserDTO): Call<UserDTO>
 
     /**
      * Elimina al usuario

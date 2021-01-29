@@ -121,16 +121,17 @@ class LoginActivity : AppCompatActivity() {
         call.enqueue((object : Callback<List<UserDTO>> {
 
             override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
-                Log.i("REST", "Entra en onResponse")
+                Log.i("REST", "Entra en onResponse userExists")
                 if (response.isSuccessful && response.body()!!.isNotEmpty()) {
-                    Log.i("REST", "Entra en isSuccessful")
+                    Log.i("REST", "Entra en isSuccessful userExists")
 
                     Log.i("REST", "usuario existe")
                     val user = UserMapper.fromDTO(response.body()!![0])//saca el primer resultado
                     Log.i("rest", pass + " pass2: " + user.password)
                     if (user.password == pass) {
-                        UtilSession.comprobarIDSession(user.id, applicationContext)
                         USER = user
+                        UtilSession.comprobarIDSession(USER.id, applicationContext)
+                        Log.i("rest","Usuario: $USER")
                         toNavigation()
                     }
                 } else {
@@ -140,7 +141,7 @@ class LoginActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Log.i("REST", "salta error")
+                Log.i("REST", "salta error userExists")
                 Toast.makeText(
                     applicationContext,
                     getText(R.string.service_error).toString() + t.localizedMessage,

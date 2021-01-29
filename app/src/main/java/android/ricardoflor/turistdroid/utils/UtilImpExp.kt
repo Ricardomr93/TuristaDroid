@@ -31,6 +31,7 @@ object UtilImpExp {
 
     private lateinit var SITES: MutableList<Site>
     private lateinit var IMAGES: MutableList<Image>
+    private var clientREST = TuristAPI.service
 
 
     /**
@@ -41,34 +42,37 @@ object UtilImpExp {
             .setIcon(R.drawable.ic_bandeja_de_salida)
             .setTitle(context.getText(R.string.caution))
             .setMessage(context.getText(R.string.messExport))
-            .setPositiveButton(context.getString(R.string.ok)) { dialog, which -> exportFiles(context!!) }
+            .setPositiveButton(context.getString(R.string.ok)) { dialog, which -> /*exportFiles(context!!)*/ }//TODO -> no inserta bien porque no está inicializado
             .setNegativeButton(context.getString(R.string.Cancel), null)
             .show()
     }
+
     /**
      * Exporta los datos de toda la BD menos SESSION
      * @param context Context
      * @return Boolean
      */
-    fun exportFiles(context: Context) {
+    fun exportFiles(context: Context){
         //coge todos los datos de todos los modelos
-        sitesRest(context)
         imagesRest(context)
-        val impExp = ImpExp(
-            sites = SITES,
-            images = IMAGES
-        )
-        val ExpGson = Gson().toJson(impExp)
-        // Archivo el objeto JSON
-        fileExport(context, ExpGson.toString())
+        sitesRest(context)
+        if(this::IMAGES.isInitialized){
+            val impExp = ImpExp(
+                sites = SITES,
+                images = IMAGES
+            )
+            val ExpGson = Gson().toJson(impExp)
+            // Archivo el objeto JSON
+            fileExport(context, ExpGson.toString())
+        }
+        Log.i("REST", SITES.size.toString())
+        Log.i("REST", IMAGES.size.toString())
     }
 
     /**
      * Metodo para recuperar los sitios segun id User
      */
-    private fun imagesRest(context: Context){
-        val clientREST = TuristAPI.service
-        // Ontenemos los lugares filtrados por el usuario, para no mostrar otros.
+    private fun imagesRest(context: Context) {
         val call: Call<List<ImageDTO>> = clientREST.imageGetByIDUser(USER.id)
         call.enqueue((object : Callback<List<ImageDTO>> {
 
@@ -81,19 +85,20 @@ object UtilImpExp {
 
             override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
                 Log.i("REST", "onFailure imagesRest")
-                Toast.makeText(context,
+                Toast.makeText(
+                    context,
                     R.string.service_error,
-                    Toast.LENGTH_LONG)
+                    Toast.LENGTH_LONG
+                )
                     .show()
             }
         }))
     }
+
     /**
      * Metodo para recuperar los sitios segun id User
      */
-    private fun sitesRest(context: Context){
-        val clientREST = TuristAPI.service
-        // Ontenemos los lugares filtrados por el usuario, para no mostrar otros.
+    private fun sitesRest(context: Context) {
         val call: Call<List<SiteDTO>> = clientREST.siteGetByUserID(USER.id)
         call.enqueue((object : Callback<List<SiteDTO>> {
 
@@ -106,20 +111,23 @@ object UtilImpExp {
 
             override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
                 Log.i("REST", "onFailure sitesRest")
-                Toast.makeText(context,
+                Toast.makeText(
+                    context,
                     R.string.service_error,
-                    Toast.LENGTH_LONG)
+                    Toast.LENGTH_LONG
+                )
                     .show()
             }
         }))
     }
+
     /**
      * Archiva los datos
      * @param context Context
      * @param datos String
      * @return Boolean
      */
-    fun fileExport(context: Context, datos: String){
+    fun fileExport(context: Context, datos: String) {
         //guarda en la memoria interna del movil
         val dirImpExp =
             File((context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.absolutePath) + "/TuristDroid")

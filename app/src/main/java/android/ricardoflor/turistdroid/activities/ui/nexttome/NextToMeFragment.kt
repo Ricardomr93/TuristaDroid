@@ -11,12 +11,8 @@ import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
 import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.site.SiteController
 import android.ricardoflor.turistdroid.bd.site.SiteDTO
 import android.ricardoflor.turistdroid.bd.site.SiteMapper
-import android.ricardoflor.turistdroid.bd.user.UserMapper
-import android.ricardoflor.turistdroid.utils.UtilImage
-import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -37,8 +33,8 @@ import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import retrofit2.Call
-import retrofit2.Response
 import retrofit2.Callback
+import retrofit2.Response
 
 class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -48,7 +44,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 0.035000
+    private var DISTANCE = 1.55000 //en Km
 
 
     override fun onCreateView(
@@ -69,6 +65,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     }
 
     private fun init() {
+        //TODO -> Opcional crear una barra para aumentar el radio
         if (initPermisos()) {
             initMap()
             myActualPosition()
@@ -109,8 +106,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         mMap = maps
         mMap.isMyLocationEnabled = true
         configurarIUMapa()
-        //getPosition()
-        addMarkerSite()
+        getPosition()
         locationReq()
         clickOnInfoWIndow()
     }
@@ -151,7 +147,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         for (item in listaLugares!!) {
             bc.include(LatLng(item.latitude, item.longitude))
         }
-        //bc.include(LatLng(posicion!!.latitude, posicion!!.longitude))
+        bc.include(LatLng(posicion!!.latitude, posicion!!.longitude))
         //si no encuentra ninguno no entra
         if (listaLugares.size > 0) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 120))
@@ -166,12 +162,28 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     }
 
     /**
+     * Calcula la distancia entre dos coordenadas y devuelve la longitud en Km
+     */
+    fun distanciaCoord(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val radioTierra = 6371.0 //en kilómetros
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val sindLat = Math.sin(dLat / 2)
+        val sindLng = Math.sin(dLng / 2)
+        val va1 = Math.pow(sindLat, 2.0) + (Math.pow(sindLng, 2.0)
+                * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)))
+        val va2 = 2 * Math.atan2(Math.sqrt(va1), Math.sqrt(1 - va1))
+        return radioTierra * va2
+    }
+
+    /**
      * Metodo que muestra todos los lugares cercanos a la posicion dada por parametro
      * @param loc :LatLng
      */
     private fun addMarkerSite() {
         val turistREST = TuristAPI.service
         val call = turistREST.siteGetAll()
+        val nearme = mutableListOf<Site>()
         call.enqueue((object : Callback<List<SiteDTO>> {
             override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
                 Log.i("REST", "Entra en onResponse addMarkerSite")
@@ -181,15 +193,21 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                         SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>) as MutableList<Site>//saca todos los resultados
                     //Los va recorriendo y rellenando
                     for (site in siteList) {
-                        Log.i("mape", site.toString())
-                        val loc = LatLng(site.latitude, site.longitude)
-                        markCurrentPostition(loc, site)
+                        val distance =
+                            distanciaCoord(posicion!!.latitude, posicion!!.longitude, site.latitude, site.longitude)
+                        Log.i("Mapa", "${site.name}: $distance distancia2: $DISTANCE")
+                        if (distance <= DISTANCE) {
+                            nearme.add(site)
+                            val loc = LatLng(site.latitude, site.longitude)
+                            markCurrentPostition(loc, site)
+                        }
                     }
-                    allSeeMarker(siteList)
+                    allSeeMarker(nearme)
                 }
             }
+
             override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
-                Log.i("Rest","Entra en onFailure addMarkerSite")
+                Log.i("Rest", "Entra en onFailure addMarkerSite")
             }
 
         }))
@@ -205,6 +223,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             override fun getInfoWindow(marker: Marker): View? {
                 return null
             }
+
             override fun getInfoContents(marker: Marker): View {
                 val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
@@ -279,7 +298,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                             location!!.latitude,
                             location!!.longitude
                         )
-                        //addMarkerSite(posicion!!)
+                        Log.i("Mapa", "Posicion acutal: $posicion")
+                        addMarkerSite()
                     }
                 }
             }

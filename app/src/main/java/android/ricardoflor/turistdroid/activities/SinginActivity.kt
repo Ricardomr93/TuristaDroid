@@ -116,6 +116,7 @@ class SinginActivity : AppCompatActivity() {
             instagram = "",
             facebook = "",
         )
+        //TODO crear foto
 
         val turistREST = TuristAPI.service
         val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))

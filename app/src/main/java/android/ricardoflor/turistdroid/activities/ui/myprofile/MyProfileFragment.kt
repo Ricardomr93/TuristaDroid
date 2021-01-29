@@ -199,7 +199,7 @@ class MyProfileFragment : Fragment() {
                 if (response.isSuccessful) {
                     USER = UserMapper.fromDTO(response.body()!!)
                     changeNavigation()
-                    Log.i("updater", UserController.selectAllUser().toString())
+                    Toast.makeText(context!!, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, R.string.error_put, Toast.LENGTH_SHORT).show()
                 }
@@ -341,8 +341,6 @@ class MyProfileFragment : Fragment() {
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 Log.i("updater", "usuario cambia")
                 update()
-
-                Toast.makeText(context!!, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(getString(R.string.Cancel), null)
             .show()

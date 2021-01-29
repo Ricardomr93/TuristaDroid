@@ -79,7 +79,6 @@ class NavigationActivity : AppCompatActivity() {
         //opciones adicionales
         //getUserBySession(this)
         actualizarDatos(this)
-        //TODO que el usuario no pueda hacer nada sin internet y lo eche a tomar por culo
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

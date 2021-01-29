@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
+import android.provider.Settings
 import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
@@ -23,6 +24,7 @@ import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
+import android.ricardoflor.turistdroid.utils.UtilNet
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.util.Patterns
@@ -33,6 +35,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.Snackbar
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_my_profile.*
@@ -64,8 +67,42 @@ class MyProfileFragment : Fragment() {
     }
 
     private fun init() {
-        updateUser()
-        deleteUser()
+        btnUpdateMyprofile.setOnClickListener {
+            if (UtilNet.hasInternetConnection(context)) {
+                updateUser()
+            } else {
+                val snackbar = Snackbar.make(
+                    activity!!.findViewById(android.R.id.content),
+                    R.string.no_net,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                snackbar.setActionTextColor(activity!!.getColor(R.color.accent))
+                snackbar.setAction("Conectar") {
+                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                    startActivity(intent)
+                    activity!!.finish()
+                }
+                snackbar.show()
+            }
+        }
+        btnUnsubMyProfile.setOnClickListener {
+            if (UtilNet.hasInternetConnection(context)) {
+                dialogDelete()
+            } else {
+                val snackbar = Snackbar.make(
+                    activity!!.findViewById(android.R.id.content),
+                    R.string.no_net,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                snackbar.setActionTextColor(activity!!.getColor(R.color.accent))
+                snackbar.setAction("Conectar") {
+                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                    startActivity(intent)
+                    activity!!.finish()
+                }
+                snackbar.show()
+            }
+        }
         getInformation()
         initButtoms()
     }
@@ -185,18 +222,16 @@ class MyProfileFragment : Fragment() {
      * Metodo que modifica al usuario si los campos son correctos
      */
     private fun updateUser() {
-        btnUpdateMyprofile.setOnClickListener {
-            if (isMailValid(txtEmailMyProfile.text.toString())) {
-                if (isPasswordValid(txtPassMyprofile.text.toString())) {
-                    if (!someIsEmpty()) {
-                        dialogUpdate()
-                    }
-                } else {
-                    txtPassMyprofile.error = resources.getString(R.string.pwd_incorrecto)
+        if (isMailValid(txtEmailMyProfile.text.toString())) {
+            if (isPasswordValid(txtPassMyprofile.text.toString())) {
+                if (!someIsEmpty()) {
+                    dialogUpdate()
                 }
             } else {
-                txtEmailMyProfile.error = resources.getString(R.string.email_incorrecto)
+                txtPassMyprofile.error = resources.getString(R.string.pwd_incorrecto)
             }
+        } else {
+            txtEmailMyProfile.error = resources.getString(R.string.email_incorrecto)
         }
     }
 
@@ -249,15 +284,6 @@ class MyProfileFragment : Fragment() {
             valid = true
         }
         return valid
-    }
-
-    /**
-     * Metodo que al pulsar pide un cuadro de dialogo para confirmar
-     */
-    private fun deleteUser() {
-        btnUnsubMyProfile.setOnClickListener {
-            dialogDelete()
-        }
     }
 
     /**

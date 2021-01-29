@@ -141,12 +141,6 @@ object UtilSession {
 
             override fun onFailure(call: Call<SessionDTO>, t: Throwable) {
                 Log.i("REST", "sesionDelete failure")
-                Toast.makeText(
-                    context,
-                    context.getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()
             }
         }))
 

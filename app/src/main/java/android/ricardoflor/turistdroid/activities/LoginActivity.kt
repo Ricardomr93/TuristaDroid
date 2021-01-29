@@ -144,7 +144,7 @@ class LoginActivity : AppCompatActivity() {
                 Log.i("REST", "salta error userExists")
                 Toast.makeText(
                     applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    getText(R.string.service_error),
                     Toast.LENGTH_LONG
                 )
                     .show()

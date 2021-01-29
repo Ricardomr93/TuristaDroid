@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
+import android.provider.Settings
 import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
@@ -18,12 +19,14 @@ import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
+import android.ricardoflor.turistdroid.utils.UtilNet
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.util.Patterns
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_singin.*
@@ -63,7 +66,23 @@ class SinginActivity : AppCompatActivity() {
         btnSing.setOnClickListener {
             if (anyEmpty()) {
                     if (isMailValid(txtEmail.text.toString())) {//campo email correcto
-                        emailExists()
+                        if (UtilNet.hasInternetConnection(this)){
+                            emailExists()
+                        }else{
+                            val snackbar = Snackbar.make(
+                                findViewById(android.R.id.content),
+                                R.string.no_net,
+                                Snackbar.LENGTH_INDEFINITE
+                            )
+                            snackbar.setActionTextColor(getColor(R.color.accent))
+                            snackbar.setAction("Conectar") {
+                                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                                startActivity(intent)
+                                finish()
+                            }
+                            snackbar.show()
+                        }
+
                     } else {
                         txtEmail.error = resources.getString(R.string.email_incorrecto)
                     }

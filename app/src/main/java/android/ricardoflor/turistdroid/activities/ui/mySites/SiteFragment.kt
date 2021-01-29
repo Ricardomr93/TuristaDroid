@@ -407,7 +407,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun update(btn: Button) {
 
-        btn.setOnClickListener {
+        btn.setOnClickListener {//TODO que no pueda modificar sin internet y asi para todos
             // Recuperamos las fotos subidas
             name = cajaSiteName?.text.toString()
             site = cajaLocalizacion?.selectedItem.toString()

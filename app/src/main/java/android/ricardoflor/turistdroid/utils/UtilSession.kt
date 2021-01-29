@@ -37,13 +37,15 @@ object UtilSession {
      */
     fun comprobarIDSession(id: String, context: Context) {
         val turistREST = TuristAPI.service
+        Log.i("Rest","id a comprobar: $id")
         val call = turistREST.sesionGetById(id)
         call.enqueue((object : Callback<List<SessionDTO>> {
             override fun onResponse(call: Call<List<SessionDTO>>, response: Response<List<SessionDTO>>) {
                 Log.i("REST", "onResponse comprobarIDSession")
                 if (response.isSuccessful) {
                     Log.i("REST", "isSuccessful comprobarIDSession")
-                    if (response.body()!!.isEmpty()) {//si no devuelve ninguna fila crea una session
+                    if (response.body()!!.isNotEmpty()) {//si no devuelve ninguna fila crea una session
+                        Log.i("Rest","No existe sesion en bd")
                         createSession(id, context)
                     } else {
                         val session = SessionMapper.fromDTO(response.body()!![0])//si saca coge la primera fila
@@ -89,7 +91,7 @@ object UtilSession {
     }
 
     /**
-     * Crea la session con el email del usuario  que se acaba de logear
+     * Crea la session con el id del usuario
      */
     fun createSession(id: String, context: Context) {
 
@@ -104,6 +106,7 @@ object UtilSession {
         call.enqueue(object : Callback<SessionDTO> {
             override fun onResponse(call: Call<SessionDTO>, response: Response<SessionDTO>) {
                 if (response.isSuccessful) {
+                    Log.i("Rest","Session: $sess.")
                     createSessionPref(context, sess)
                 }
             }
@@ -124,8 +127,7 @@ object UtilSession {
      */
     fun closeSession(context: Context) {
         val turistREST = TuristAPI.service
-        val session = getUserID(context)
-        val call: Call<SessionDTO> = turistREST.sesionDelete(session)
+        val call: Call<SessionDTO> = turistREST.sesionDelete(USER.id)
         call.enqueue((object : Callback<SessionDTO> {
 
             override fun onResponse(call: Call<SessionDTO>, response: Response<SessionDTO>) {

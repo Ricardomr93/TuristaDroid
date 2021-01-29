@@ -18,4 +18,9 @@ open class Session(
         this.time = session.time
         this.token = session.token
     }
+
+    override fun toString(): String {
+        return "Session(id='$id', time='$time', token='$token')"
+    }
+
 }

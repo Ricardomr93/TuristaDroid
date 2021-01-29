@@ -439,10 +439,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                         }
 
                         override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                            Log.i("rest", "fallaaaaa on failure add")
+                            Log.i("rest", "falla on failure add")
                             Toast.makeText(
                                 context!!,
-                                "fallaaaaa on failure add",
+                                "falla on failure add",
                                 Toast.LENGTH_LONG
                             )
                                 .show()

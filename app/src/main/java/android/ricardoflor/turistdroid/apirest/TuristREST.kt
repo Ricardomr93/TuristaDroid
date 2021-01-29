@@ -82,7 +82,7 @@ interface TuristREST {
     fun siteGetById(@Path("id") id: String): Call<SiteDTO>
 
     /**
-     * Obtiene todos los lugares con un IdUser expecifico
+     * Obtiene todos los lugares con un IdUser especifico
      */
     @GET("sites/")
     fun siteGetByUserID(@Query("userID") userID: String): Call<List<SiteDTO>>
@@ -95,6 +95,12 @@ interface TuristREST {
     fun siteGetByNear(@Query("latitude") latitude : Double,
                       @Query("longitude") longitude : Double,
                       @Query("distance") distance : Double,): Call<List<SiteDTO>>
+
+    /**
+     * Obtiene todos los lugares con un tipo especifico
+     */
+    @GET("sites/")
+    fun siteGetBySite(@Query("site") site: String): Call<List<SiteDTO>>
 
     /**
      * Modifica el sitio

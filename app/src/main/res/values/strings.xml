@@ -22,8 +22,21 @@
     <string name="menu_export">Export</string>
     <string name="menu_light">Light</string>
 
-    <string name="order">Order</string>
+    <string name="filter">Filter</string>
     <string-array name="Filters">
+        <item>Filter...</item>
+        <item>All Sites</item>
+        <item>My Sites</item>
+        <item>City</item>
+        <item>Park</item>
+        <item>Bar</item>
+        <item>Monument</item>
+        <item>Restaurant</item>
+        <item>Shop</item>
+    </string-array>
+
+    <string name="order">Order</string>
+    <string-array name="Orders">
         <item>Order...</item>
         <item>Order by name</item>
         <item>Order by date</item>

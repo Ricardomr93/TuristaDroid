@@ -32,12 +32,15 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
+import com.google.android.gms.maps.model.LatLng
 
 
 class MySitesFragment : Fragment() {
 
     private var sitios = mutableListOf<Site>()
     private var spinnerOrder: Spinner? = null
+    private var spinnerFilter: Spinner? = null
 
     // Interfaz gráfica
     private lateinit var adapter: SiteListAdapter
@@ -53,6 +56,7 @@ class MySitesFragment : Fragment() {
     ): View? {
         var root = inflater.inflate(R.layout.fragment_my_sites, container, false)
         spinnerOrder = root.findViewById(R.id.spinnerOrder)
+        spinnerFilter = root.findViewById(R.id.spinnerFilter)
         return root
     }
 
@@ -67,13 +71,14 @@ class MySitesFragment : Fragment() {
         iniciarSwipeRecarga()
 
         // Cargamos los datos por primera vez
-        cargaSitios()
+        cargaSitios(null)
 
         // Solo si hemos cargado hacemos sl swipeHorizontal
         iniciarSwipeHorizontal()
 
-        // Iniciamos el spinner
-        // iniciarSpinner()
+        // Iniciamos los spinner
+        iniciarSpinnerFilter()
+        iniciarSpinnerOrder()
 
         // Mostramos las vistas de listas y adaptador asociado
         my_sites_recicler.layoutManager = LinearLayoutManager(context)
@@ -83,7 +88,6 @@ class MySitesFragment : Fragment() {
 
         // Obtiene instancia a Vibrator
         vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
 
     }
 
@@ -95,14 +99,15 @@ class MySitesFragment : Fragment() {
         my_sites_swipe.setProgressBackgroundColorSchemeResource(R.color.primary_text)
         my_sites_swipe.setOnRefreshListener {
             spinnerOrder?.setSelection(0)
-            cargaSitios()
+            spinnerFilter?.setSelection(0)
+            cargaSitios(null)
         }
     }
 
     /**
      * Carga los Sitios
      */
-    private fun cargaSitios() {
+    private fun cargaSitios(callFilter: Call<List<SiteDTO>>?) {
         sitios = mutableListOf<Site>()
 
         val executor = Executors.newSingleThreadExecutor()
@@ -110,47 +115,52 @@ class MySitesFragment : Fragment() {
         executor.execute {
 
             //doInBackground()
-            try {
-                val turistREST = TuristAPI.service
-                val call: Call<List<SiteDTO>> = turistREST.siteGetAll()
-                call.enqueue(object : Callback<List<SiteDTO>> {
-                    override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
-                        if (response.isSuccessful && response.body()!!.isNotEmpty()) {
-                            for (it in response.body()!!) {
-                                sitios.add(SiteMapper.fromDTO(it))
+            val turistREST = TuristAPI.service
+            var call: Call<List<SiteDTO>>? = null
 
+            // Identificamos si el call trae informacion, sino se la asignamos
+            if (callFilter==null){
+                call = turistREST.siteGetAll()
+            } else{
+                call = callFilter
+            }
+
+            call!!.enqueue(object : Callback<List<SiteDTO>> {
+                override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
+                    if (response.isSuccessful && response.body()!!.isNotEmpty()) {
+                        sitios =
+                            SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>) as MutableList<Site>//saca todos los resultados
+
+                        handler.post {
+                            //onPostExecute
+                            adapter = SiteListAdapter(sitios) {
+                                eventoClicFila(it)
                             }
 
-                        } else {
-                            Toast.makeText(context!!, "Error GET", Toast.LENGTH_SHORT).show()
+                            my_sites_recicler.adapter = adapter
+                            // Avismos que ha cambiado
+                            adapter.notifyDataSetChanged()
+                            my_sites_recicler.setHasFixedSize(true)
+                            my_sites_swipe.isRefreshing = false
                         }
-                    }
 
-                    override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
-                        Log.i("rest", "fallaaaaa on failure cargarSitios MySitesFragment")
-                        Toast.makeText(
-                            context!!,
-                            "fallaaaaa on failure cargarSitios MySitesFragment",
-                            Toast.LENGTH_LONG
-                        )
-                            .show()
-                    }
 
-                })
-            } catch (e: Exception) {
-            }
-            handler.post {
-                //onPostExecute
-                adapter = SiteListAdapter(sitios) {
-                    eventoClicFila(it)
+                    } else {
+                        Toast.makeText(context!!, "Error GET", Toast.LENGTH_SHORT).show()
+                    }
                 }
 
-                my_sites_recicler.adapter = adapter
-                // Avismos que ha cambiado
-                adapter.notifyDataSetChanged()
-                my_sites_recicler.setHasFixedSize(true)
-                my_sites_swipe.isRefreshing = false
-            }
+                override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
+                    Log.i("rest", "fallaaaaa on failure cargarSitios MySitesFragment")
+                    Toast.makeText(
+                        context!!,
+                        "fallaaaaa on failure cargarSitios MySitesFragment",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                }
+
+            })
         }
     }
 
@@ -199,7 +209,7 @@ class MySitesFragment : Fragment() {
                         }
                     }
                 }
-                cargaSitios()
+                cargaSitios(null)
             }
 
             // Dibujamos los botones
@@ -235,10 +245,80 @@ class MySitesFragment : Fragment() {
     }
 
     /**
-     *
+     * Inicia el Spinner Filter
      */
-    private fun iniciarSpinner() {
-        val orderBy = resources.getStringArray(R.array.Filters)
+    private fun iniciarSpinnerFilter() {
+        val filterBy = resources.getStringArray(R.array.Filters)
+        val adapter = ArrayAdapter(
+            context!!,
+            android.R.layout.simple_spinner_item, filterBy
+        )
+        spinnerFilter!!.adapter = adapter
+        spinnerFilter!!.onItemSelectedListener = object :
+            AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                filterSites(position)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+    }
+
+    /**
+    * Metodo que realiza el filtrado de los GETs
+     */
+    private fun filterSites(pos: Int) {
+        val turistREST = TuristAPI.service
+        var call: Call<List<SiteDTO>>? = null
+
+        when (pos) {
+            1 -> { // Filter by ALL SITES
+                cargaSitios(null)
+            }
+
+            2 -> { // Filter by MY SITES
+                call = turistREST.siteGetByUserID(USER.id)
+                cargaSitios(call)
+            }
+
+            3 -> { // Filter by CITY
+                call = turistREST.siteGetBySite("City")
+                cargaSitios(call)
+            }
+
+            4 -> { // Filter by PARK
+                call = turistREST.siteGetBySite("Park")
+                cargaSitios(call)
+            }
+
+            5 -> { // Filter by BAR
+                call = turistREST.siteGetBySite("Bar")
+                cargaSitios(call)
+            }
+
+            6 -> { // Filter by MONUMENT
+                call = turistREST.siteGetBySite("Monument")
+                cargaSitios(call)
+            }
+
+            7 -> { // Filter by RESTAURANT
+                call = turistREST.siteGetBySite("Restaurant")
+                cargaSitios(call)
+            }
+
+            8 -> { // Filter by SHOP
+                call = turistREST.siteGetBySite("Shop")
+                cargaSitios(call)
+            }
+        }
+    }
+
+    /**
+     * Inicia el Spinner Order
+     */
+    private fun iniciarSpinnerOrder() {
+        val orderBy = resources.getStringArray(R.array.Orders)
         val adapter = ArrayAdapter(
             context!!,
             android.R.layout.simple_spinner_item, orderBy
@@ -251,7 +331,6 @@ class MySitesFragment : Fragment() {
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                // write code to perform some action
             }
         }
     }
@@ -284,7 +363,6 @@ class MySitesFragment : Fragment() {
         adapter.removeItem(position)
 
         confirmDialog(deletedSite, position)
-
     }
 
     /**
@@ -309,7 +387,7 @@ class MySitesFragment : Fragment() {
             Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
             vibrate()
-            cargaSitios()
+            cargaSitios(null)
 
         } catch (e: Exception) {
             Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()
@@ -401,7 +479,7 @@ class MySitesFragment : Fragment() {
         transaction.add(R.id.nav_host_fragment, addSites)
         transaction.addToBackStack(null)
         transaction.commit()
-        cargaSitios()
+        cargaSitios(null)
     }
 
     /**

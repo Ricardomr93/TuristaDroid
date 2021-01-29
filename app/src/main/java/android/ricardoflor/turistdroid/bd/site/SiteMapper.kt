@@ -38,8 +38,7 @@ object SiteMapper {
             dto.latitude,
             dto.longitude,
             dto.userID,
-            dto.votos,
-            dto.imageID
+            dto.votos
         )
     }
 
@@ -58,8 +57,7 @@ object SiteMapper {
             model.latitude!!,
             model.longitude!!,
             model.userID!!,
-            model.votos!!,
-            model.imageID!!
+            model.votos!!
         )
     }
 }

@@ -1,6 +1,5 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -22,15 +21,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.BdController
-import android.ricardoflor.turistdroid.bd.image.Image
-import android.ricardoflor.turistdroid.bd.image.ImageController
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.bd.site.SiteDTO
+import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
@@ -51,8 +49,11 @@ import com.google.zxing.WriterException
 import com.google.zxing.integration.android.IntentIntegrator
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.fragment_site.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.ByteArrayOutputStream
-import java.io.IOException
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 
 class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -66,7 +67,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private lateinit var positionSite: LatLng
 
     private val modo = modo
-    private val sitio: Site? = site
+    private val SITIO: Site? = site
     private lateinit var root: View
 
     // Botones y Cajas de Texto
@@ -84,12 +85,14 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     // Variables Site
     private lateinit var lugar: Site
     private var name: String? = null
-    private var image: RealmList<Image> = RealmList()
     private var site: String? = null
     private var date: String? = null
     private var rating: Double = 0.0
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
+    private var userID: String? = null
+    private var votos: Int = 0
+    private var numVotos: Int = 0
 
     // Variables Camara
     private val GALLERY = 1
@@ -122,7 +125,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun init() {
         initButtons()
         initEditCreateMode()
-        if(initPermisos()) {
+        if (initPermisos()) {
             initMap()
             myActualPosition()
         }
@@ -240,11 +243,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         }
         return empty
     }
-    private fun isSelectSite(spinner: Spinner):Boolean{
+
+    private fun isSelectSite(spinner: Spinner): Boolean {
         var select = false
-        if (spinner.selectedItemPosition > 0){
+        if (spinner.selectedItemPosition > 0) {
             select = true
-        }else{
+        } else {
             Toast.makeText(context!!, R.string.selectSite, Toast.LENGTH_SHORT).show()
         }
         return select
@@ -256,8 +260,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun initEditCreateMode() {
         (activity as NavigationActivity?)!!.isEventoFila = false
 
-        //Obtiene el ultimo ID de las imagenes de la BD
-        idFoto = ImageController.getIdImage()
+        //Obtiene el ultimo ID de las imagenes de la BD -- TODO
+        // idFoto = ImageController.getIdImage()
 
         when (modo) {
             1 -> { // Fragment de Creacion
@@ -309,47 +313,78 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Metodo para cargar los datos del Sitio en el Fragment
      */
     private fun cargarDatosSite() {
-        //TODO
-    }
-        /*cajaSiteName?.setText(sitio?.name)
+        // TODO --------------------------------------------------------------------------------------
 
-        // Cargamos el spinner con la opcion correcta
-        var lista: Array<String> = resources.getStringArray(R.array.sites_types)
+        val turistREST = TuristAPI.service
+        val call: Call<SiteDTO> = turistREST.siteGetById(SITIO!!.id)
+        call.enqueue(object : Callback<SiteDTO> {
+            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
+                if (response.isSuccessful) {
+                    //TODO
+                    lugar = SiteMapper.fromDTO(response.body()!!)
 
-        var opc: Int = 0
+                    cajaSiteName?.setText(lugar.name)
 
-        for (it in lista) {
-            if (it.equals(sitio?.site.toString())) {
-                break
+                    // Cargamos el spinner con la opcion correcta
+                    var lista: Array<String> = resources.getStringArray(R.array.sites_types)
+
+                    var opc: Int = 0
+
+                    for (it in lista) {
+                        if (it.equals(lugar?.site.toString())) {
+                            break
+                        }
+                        opc++
+                    }
+                    cajaLocalizacion?.setSelection(opc)
+
+                    cajaFecha?.setText(lugar?.date)
+                    var mediaVotos = lugar?.rating / lugar?.votos
+                    cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
+
+                    //Rellena la lista con las imagenes de la BD -- TODO
+//                    for (img in lugar!!.image) {
+//                        imagesSlider.add(UtilImage.toBitmap(img!!.image))
+//                    }
+//                    image.addAll(sitio?.image)
+
+                    adapter = SliderAdapter(context!!, imagesSlider)
+                    val slider: ViewPager = root.findViewById(R.id.imageSite)
+                    slider.adapter = adapter
+
+
+                    var textoQr: String =
+                        lugar?.name + ";" + opc + ";" + lugar?.date + ";" +
+                                (lugar?.rating)?.toFloat() + ";" + (lugar.latitude) + ";" + (lugar.longitude)
+
+                    generateQRCode(textoQr)
+                    positionSite = LatLng(lugar!!.latitude, lugar!!.longitude)
+
+
+                } else {
+                    Toast.makeText(context!!, "Error POST", Toast.LENGTH_SHORT).show()
+                }
             }
-            opc++
-        }
-        cajaLocalizacion?.setSelection(opc)
 
-        cajaFecha?.setText(sitio?.date)
-        cajaRating?.rating = ((sitio?.rating)?.toFloat() ?: 0.0) as Float
+            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
+                Log.i("rest", "fallaaaaa on failure cargarDatos")
+                Toast.makeText(
+                    context!!,
+                    "fallaaaaa on failure cargarDatos",
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
 
-        //Rellena la lista con las imagenes de la BD
-        for (img in sitio!!.image) {
-            imagesSlider.add(UtilImage.toBitmap(img!!.image))
-        }
-        image.addAll(sitio?.image)
+        })
+        //Log.i("site", sitio.toString())
 
-        adapter = SliderAdapter(context!!, imagesSlider)
-        val slider: ViewPager = root.findViewById(R.id.imageSite)
-        slider.adapter = adapter
+        //---------------------------------------------------------------------------------------------------------
 
-
-        var textoQr: String =
-            sitio?.name + ";" + opc + ";" + sitio?.date + ";" +
-                    (sitio?.rating)?.toFloat() + ";" + (sitio.latitude) + ";" + (sitio.longitude)
-
-        generateQRCode(textoQr)
-        positionSite = LatLng(sitio!!.latitude, sitio!!.longitude)
-    }*/
+    }
 
     /**
-     * Metodo para cargar los datos del Sitio en el Fragment
+     * Metodo para cargar los datos del Sitio
      */
     private fun cargarDatosSiteQr(text: String) {
 
@@ -368,38 +403,62 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Metodo para aniadir un sitio
      */
     fun add(btn: Button) {
-        //TODO
-        /*btn.setOnClickListener {
-            // Recuperamos los datos
-            // image
-            name = cajaSiteName?.text.toString()
-            site = cajaLocalizacion?.selectedItem.toString()
-            date = cajaFecha?.text.toString()
-            rating = cajaRating?.rating?.toDouble() ?: 0.0
 
+        btn.setOnClickListener {
             if (anyEmpty() && isSelectSite(cajaLocalizacion!!)) {
                 // Recuperamos los datos
-                // image
                 name = cajaSiteName?.text.toString()
                 site = cajaLocalizacion?.selectedItem.toString()
                 date = cajaFecha?.text.toString()
                 rating = cajaRating?.rating?.toDouble() ?: 0.0
+                votos = 1
+
                 if (posicion != null) {
                     latitude = posicion!!.latitude
                     longitude = posicion!!.longitude
-                    lugar = Site(name!!, image, site!!, date!!, rating, latitude, longitude)
-                    SiteController.insertSite(lugar)
-                    Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
+
+                    //lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, userID, votos)
+                    lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, USER.id, votos)
+
+
+                    val turistREST = TuristAPI.service
+                    val call: Call<SiteDTO> = turistREST.sitePost(SiteMapper.toDTO(lugar!!))
+                    call.enqueue(object : Callback<SiteDTO> {
+                        override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
+                            if (response.isSuccessful) {
+                                Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
+                                Log.i("site", lugar.toString())
+                                // Vibracion
+                                vibrate()
+                                // Volvemos a MySites Fragment
+                                volverMySites()
+
+                            } else {
+
+                            }
+                        }
+
+                        override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
+                            Log.i("rest", "fallaaaaa on failure add")
+                            Toast.makeText(
+                                context!!,
+                                "fallaaaaa on failure add",
+                                Toast.LENGTH_LONG
+                            )
+                                .show()
+                        }
+
+                    })
                     Log.i("site", lugar.toString())
-                    // Vibracion
-                    vibrate()
-                    // Volvemos a MySites Fragment
-                    volverMySites()
+
                 } else {
                     Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
                 }
             }
-        }*/
+
+            Toast.makeText(context!!, R.string.needFields, Toast.LENGTH_SHORT).show()
+        }
+
     }
 
     /**
@@ -418,19 +477,46 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     latitude = posicion!!.latitude
                     longitude = posicion!!.longitude
                 } else {
-                    latitude = sitio!!.latitude
-                    longitude = sitio!!.longitude
+                    latitude = lugar!!.latitude
+                    longitude = lugar!!.longitude
                 }
-                if (sitio != null) {
-                    sitio.name = name!!
-                    //sitio.image = image
-                    sitio.site = site!!
-                    sitio.date = date!!
-                    sitio.rating = rating
-                    sitio.latitude = latitude
-                    sitio.longitude = longitude
+                if (lugar != null) {
+                    lugar.name = name!!
+                    lugar.site = site!!
+                    lugar.date = date!!
+                    lugar.rating += rating
+                    lugar.latitude = latitude
+                    lugar.longitude = longitude
+                    lugar.votos++
 
-                    SiteController.updateSite(sitio)
+                    val turistREST = TuristAPI.service
+                    val call: Call<SiteDTO> = turistREST.siteUpdate(lugar.id, SiteMapper.toDTO(lugar!!))
+                    call.enqueue(object : Callback<SiteDTO> {
+                        override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
+                            if (response.isSuccessful) {
+                                Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
+                                Log.i("site", lugar.toString())
+                                // Vibracion
+                                vibrate()
+                                // Volvemos a MySites Fragment
+                                volverMySites()
+
+                            } else {
+
+                            }
+                        }
+
+                        override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
+                            Toast.makeText(
+                                context!!,
+                                getText(R.string.service_error).toString() + t.localizedMessage,
+                                Toast.LENGTH_LONG
+                            )
+                                .show()
+                        }
+
+                    })
+                    Log.i("user", lugar.toString())
                 }
 
                 Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
@@ -474,7 +560,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun initPermisos(): Boolean {
         var permiss = true
-        if (!(activity!!.application as MyApplication).initPermissesLocation()){
+        if (!(activity!!.application as MyApplication).initPermissesLocation()) {
             permiss = false
         }
         return permiss
@@ -734,7 +820,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 uiSettings.isRotateGesturesEnabled = true
                 uiSettings.isZoomControlsEnabled = true
                 //hace un zoom a la posicion del sitio con un indice 15
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionSite,15f))
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionSite, 15f))
             }
             3 -> {
                 uiSettings.isZoomControlsEnabled = false

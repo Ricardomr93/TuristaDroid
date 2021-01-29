@@ -19,11 +19,17 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
 import android.os.*
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.BdController
+import android.ricardoflor.turistdroid.bd.site.SiteDTO
+import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 
@@ -50,8 +56,6 @@ class MySitesFragment : Fragment() {
         return root
     }
 
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Inicializamos la pantalla
@@ -69,7 +73,7 @@ class MySitesFragment : Fragment() {
         iniciarSwipeHorizontal()
 
         // Iniciamos el spinner
-       // iniciarSpinner()
+        // iniciarSpinner()
 
         // Mostramos las vistas de listas y adaptador asociado
         my_sites_recicler.layoutManager = LinearLayoutManager(context)
@@ -104,18 +108,37 @@ class MySitesFragment : Fragment() {
         val executor = Executors.newSingleThreadExecutor()
         val handler = Handler(Looper.getMainLooper())
         executor.execute {
+
             //doInBackground()
             try {
-                val lista: MutableList<Site>? = SiteController.selectAllSite()
+                val turistREST = TuristAPI.service
+                val call: Call<List<SiteDTO>> = turistREST.siteGetAll()
+                call.enqueue(object : Callback<List<SiteDTO>> {
+                    override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
+                        if (response.isSuccessful && response.body()!!.isNotEmpty()) {
+                            for (it in response.body()!!) {
+                                sitios.add(SiteMapper.fromDTO(it))
 
-                if (lista != null) {
-                    for (it in lista) {
-                        sitios.add(it)
+                            }
+
+                        } else {
+                            Toast.makeText(context!!, "Error GET", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                }
+
+                    override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
+                        Log.i("rest", "fallaaaaa on failure cargarSitios MySitesFragment")
+                        Toast.makeText(
+                            context!!,
+                            "fallaaaaa on failure cargarSitios MySitesFragment",
+                            Toast.LENGTH_LONG
+                        )
+                            .show()
+                    }
+
+                })
             } catch (e: Exception) {
             }
-
             handler.post {
                 //onPostExecute
                 adapter = SiteListAdapter(sitios) {
@@ -127,7 +150,6 @@ class MySitesFragment : Fragment() {
                 adapter.notifyDataSetChanged()
                 my_sites_recicler.setHasFixedSize(true)
                 my_sites_swipe.isRefreshing = false
-
             }
         }
     }

@@ -104,6 +104,7 @@
     <string name="exportok">Export successfully</string>
     <string name="errorImport">Error:file not found</string>
     <string name="needPosition">Error : error your position is necessary</string>
+    <string name="needFields">Error : all fields must be filled</string>
     <string name="selectSite">Error: Select one site</string>
 
     <string name="share_mysite">This is my Site</string>

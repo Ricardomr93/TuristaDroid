@@ -76,10 +76,17 @@ interface TuristREST {
     fun siteGetAll(): Call<List<SiteDTO>>
 
     /**
+     * Obtiene un sitio por su id
+     */
+    @GET("sites/")
+    fun siteGetById(@Path("id") id: String): Call<SiteDTO>
+
+    /**
      * Obtiene todos los lugares con un IdUser expecifico
      */
     @GET("sites/")
     fun siteGetByUserID(@Query("userID") userID: String): Call<List<SiteDTO>>
+
     //TODO -> arreglar la query por una mas eficiente
     /**
      * Obtiene los lugares cercanos
@@ -99,7 +106,7 @@ interface TuristREST {
      * Crea un sitio
      */
     @POST("sites/")
-    fun sitesPost(@Body site: SiteDTO): Call<SiteDTO>
+    fun sitePost(@Body site: SiteDTO): Call<SiteDTO>
 
     /**
      * Elimina un lugar

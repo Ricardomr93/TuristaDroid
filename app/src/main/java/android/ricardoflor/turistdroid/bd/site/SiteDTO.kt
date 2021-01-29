@@ -11,6 +11,8 @@ import com.google.gson.annotations.SerializedName
  * @property rating Double
  * @property latitude Double
  * @property longitude Double
+ * @property userID String
+ * @property votos Int
  */
 class SiteDTO (
     @SerializedName("id") val id: String,
@@ -22,6 +24,4 @@ class SiteDTO (
     @SerializedName("longitude") val longitude: Double,
     @SerializedName("userID") val userID : String,
     @SerializedName("votos") val votos : Int,
-    @SerializedName("imageID") val imageID : String
-
 )

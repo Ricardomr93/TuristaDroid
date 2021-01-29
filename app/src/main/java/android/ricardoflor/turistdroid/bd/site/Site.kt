@@ -18,7 +18,6 @@ import java.util.*
  * @property longitude Double
  * @property userID String
  * @property votos Int
- * @property imageID String
  */
 open class Site(
     @PrimaryKey
@@ -31,7 +30,6 @@ open class Site(
     var longitude: Double = 0.0,
     var userID: String = "",
     var votos: Int = 0,
-    var imageID: String = "",
 ) : RealmObject(), Serializable {
 
     /**
@@ -44,7 +42,6 @@ open class Site(
      * @property longitude Double
      * @property userID String
      * @property votos Int
-     * @property imageID String
      * @constructor
      */
     constructor(
@@ -56,15 +53,14 @@ open class Site(
         longitude: Double,
         userID: String,
         votos: Int,
-        imageID: String,
     ) :
-            this((UUID.randomUUID().toString()), name, site, date, rating, latitude, longitude, userID, votos, imageID)
+            this((UUID.randomUUID().toString()), name, site, date, rating, latitude, longitude, userID, votos)
 
     /**
      * Metodo sobrescrito para escribir en pantalla un Site
      */
     override fun toString(): String {
-        return "Site(id=$id, name='$name', site='$site', date=$date, rating=$rating, latitude=$latitude, longitude=$longitude, userID=$userID, votos=$votos, imageID=$imageID)"
+        return "Site(id=$id, name='$name', site='$site', date=$date, rating=$rating, latitude=$latitude, longitude=$longitude, userID=$userID, votos=$votos)"
     }
 
 }

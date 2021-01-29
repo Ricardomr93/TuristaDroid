@@ -9,9 +9,14 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.bd.site.SiteDTO
+import android.ricardoflor.turistdroid.bd.site.SiteMapper
+import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilImage
+import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -31,6 +36,9 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
+import retrofit2.Call
+import retrofit2.Response
+import retrofit2.Callback
 
 class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -61,10 +69,10 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     }
 
     private fun init() {
-        if(initPermisos()){
+        if (initPermisos()) {
             initMap()
             myActualPosition()
-        }else{
+        } else {
             Toast.makeText(
                 context?.applicationContext,
                 getString(R.string.need_location),
@@ -101,7 +109,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         mMap = maps
         mMap.isMyLocationEnabled = true
         configurarIUMapa()
-        getPosition()
+        //getPosition()
+        addMarkerSite()
         locationReq()
         clickOnInfoWIndow()
     }
@@ -114,6 +123,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         infoWindow()
         return false
     }
+
     /**
      * Metodo que pinta un marcador en la posicion indicada
      */
@@ -131,6 +141,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         )
         marker.tag = site // para recuperarlo al pulsar
     }
+
     /**
      * Actualiza la camara para que se vean todos los marcadores
      * @param listaLugares MutableList<Site>?
@@ -140,12 +151,12 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         for (item in listaLugares!!) {
             bc.include(LatLng(item.latitude, item.longitude))
         }
-        bc.include(LatLng(posicion!!.latitude,posicion!!.longitude))
+        //bc.include(LatLng(posicion!!.latitude, posicion!!.longitude))
         //si no encuentra ninguno no entra
-        if(listaLugares.size > 0){
+        if (listaLugares.size > 0) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 120))
-        }else{
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion,15f))
+        } else {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion, 15f))
             Toast.makeText(
                 context?.applicationContext,
                 getString(R.string.not_found),
@@ -158,58 +169,69 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * Metodo que muestra todos los lugares cercanos a la posicion dada por parametro
      * @param loc :LatLng
      */
-    private fun addMarkerSite(loc: LatLng) {
-        Log.i("mape", loc.latitude.toString() + "-+" + loc.longitude.toString())
-        val listSites = SiteController.selectByNear(loc.latitude, loc.longitude, DISTANCE)
-        //var listSites = SiteController.selectAllSite()
-        Log.i("mape", listSites.toString())
-        //si hay lugares los pinta
-        if (listSites != null) {
-            for (site in listSites) {
-                Log.i("mape", site.toString())
-                val loc = LatLng(site.latitude, site.longitude)
-                markCurrentPostition(loc, site)
+    private fun addMarkerSite() {
+        val turistREST = TuristAPI.service
+        val call = turistREST.siteGetAll()
+        call.enqueue((object : Callback<List<SiteDTO>> {
+            override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
+                Log.i("REST", "Entra en onResponse addMarkerSite")
+                if (response.isSuccessful && response.body()!!.isNotEmpty()) {
+                    Log.i("REST", "Entra en isSuccessful addMarkerSite")
+                    val siteList =
+                        SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>) as MutableList<Site>//saca todos los resultados
+                    //Los va recorriendo y rellenando
+                    for (site in siteList) {
+                        Log.i("mape", site.toString())
+                        val loc = LatLng(site.latitude, site.longitude)
+                        markCurrentPostition(loc, site)
+                    }
+                    allSeeMarker(siteList)
+                }
             }
-            allSeeMarker(listSites)
-        }else{
-            Log.i("mape", "ningun lugar cercano)")
-        }
+            override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
+                Log.i("Rest","Entra en onFailure addMarkerSite")
+            }
+
+        }))
     }
+
 
     /**
      * Metodo que muestra una burbuja de dialogo con el nombre foto y puntuacion
      */
-    private fun infoWindow(){
+    private fun infoWindow() {
         //TODO
-        /* mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter{
-             override fun getInfoWindow(marker: Marker): View? {
-                 return null
-             }
-             override fun getInfoContents(marker: Marker): View {
-                 val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
-                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
-                 val ratin : TextView = row.findViewById(R.id.txtmakerdialograting)
-                 val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
-                 val site =  marker.tag as Site
-                 txtNamePlaceInfo.text = site.name
-                 ratin.text = site.rating.toString()
-                 //si no tiene fotos muestra la de por defecto
-                 if (site.image.size > 0){
-                     imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
-                 }
-                 return row
-             }
-        })*/
+        mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(marker: Marker): View? {
+                return null
+            }
+            override fun getInfoContents(marker: Marker): View {
+                val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
+                val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
+                val ratin: TextView = row.findViewById(R.id.txtmakerdialograting)
+                val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
+                val site = marker.tag as Site
+                txtNamePlaceInfo.text = site.name
+                ratin.text = site.rating.toString()
+                //si no tiene fotos muestra la de por defecto
+                if (site.imageID == ""){
+                    //imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(""))TODO imagen
+                }
+                //imagen que tenga site.id
+
+                return row
+            }
+        })
     }
 
     /**
      * Método que al hacer click en el cuadro de dialogo abre el sitio
      */
-    private fun clickOnInfoWIndow(){
-        if (this::mMap.isInitialized){
+    private fun clickOnInfoWIndow() {
+        if (this::mMap.isInitialized) {
             mMap.setOnInfoWindowClickListener {
                 val site = it.tag as Site
-                openSite(site,3)
+                openSite(site, 3)
             }
         }
 
@@ -218,7 +240,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     /**
      * Método que abre un fragment sitio
      */
-    private fun openSite(site: Site, modo: Int){
+    private fun openSite(site: Site, modo: Int) {
         val addSites = SiteFragment(modo, site)
         val transaction = activity!!.supportFragmentManager.beginTransaction()
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
@@ -263,7 +285,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                             location!!.latitude,
                             location!!.longitude
                         )
-                        addMarkerSite(posicion!!)
+                        //addMarkerSite(posicion!!)
                     }
                 }
             }
@@ -283,12 +305,13 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      */
     private fun initPermisos(): Boolean {
         var permiss = true
-        if (!(activity!!.application as MyApplication).initPermissesLocation()){
+        if (!(activity!!.application as MyApplication).initPermissesLocation()) {
             permiss = false
         }
         return permiss
     }
-    private fun goMySites(){
+
+    private fun goMySites() {
 
         (activity as NavigationActivity?)!!.isEventoFila = true
         val fragm = MySitesFragment()

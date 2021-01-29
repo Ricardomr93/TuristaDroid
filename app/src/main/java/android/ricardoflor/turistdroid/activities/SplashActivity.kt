@@ -8,6 +8,7 @@ import android.os.Looper
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.utils.UtilNet
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.animation.AnimationUtils
@@ -33,17 +34,26 @@ class SplashActivity : AppCompatActivity() {
         //cargamos el login con un delay
         Handler(Looper.getMainLooper()).postDelayed({
             run {
-                //UtilSession.deleteSessionPref(this)
-                if (UtilSession.sessionExist(this)) {
-                    startActivity(Intent(this,NavigationActivity::class.java))
-                    finish()
-                    Log.i("util", "usuario logeado")
-                }else{
+                if (!UtilNet.hasInternetConnection(this)){
+                    UtilSession.deleteSessionPref(this)
                     startActivity(Intent(this,LoginActivity::class.java))
                     finish()
-                    Log.i("util", "usuario erroneo")
+                }else{
+                    chooseActivity()
                 }
+
             }
         },TIME_SPLASH)
+    }
+    private fun chooseActivity(){
+        if (UtilSession.sessionExist(this)) {
+            startActivity(Intent(this,NavigationActivity::class.java))
+            finish()
+            Log.i("util", "usuario logeado")
+        }else{
+            startActivity(Intent(this,LoginActivity::class.java))
+            finish()
+            Log.i("util", "usuario erroneo")
+        }
     }
 }

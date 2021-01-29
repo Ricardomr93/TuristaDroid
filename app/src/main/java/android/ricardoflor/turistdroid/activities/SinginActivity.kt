@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
+import android.provider.Settings
 import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
@@ -18,12 +19,16 @@ import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
+import android.ricardoflor.turistdroid.utils.UtilNet
+import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.util.Patterns
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
+import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
 import java.lang.NullPointerException
@@ -37,7 +42,6 @@ class SinginActivity : AppCompatActivity() {
     private var nameuser = ""
     private var email = ""
     private var pass = ""
-    private var user: User? = null
     private lateinit var FOTO: Bitmap
     private var IMAGE: Uri? = null
     private var image: Bitmap? = null
@@ -61,17 +65,27 @@ class SinginActivity : AppCompatActivity() {
     fun singin() {
         btnSing.setOnClickListener {
             if (anyEmpty()) {
-                try {
                     if (isMailValid(txtEmail.text.toString())) {//campo email correcto
-                        //Comprobar el campo password
-                        addUser()
+                        if (UtilNet.hasInternetConnection(this)){
+                            emailExists()
+                        }else{
+                            val snackbar = Snackbar.make(
+                                findViewById(android.R.id.content),
+                                R.string.no_net,
+                                Snackbar.LENGTH_INDEFINITE
+                            )
+                            snackbar.setActionTextColor(getColor(R.color.accent))
+                            snackbar.setAction("Conectar") {
+                                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                                startActivity(intent)
+                                finish()
+                            }
+                            snackbar.show()
+                        }
+
                     } else {
                         txtEmail.error = resources.getString(R.string.email_incorrecto)
                     }
-                } catch (ex: RealmPrimaryKeyConstraintException) {
-                    txtEmail.error = resources.getString(R.string.isAlreadyExist)
-                }
-
             }
         }
     }
@@ -92,16 +106,17 @@ class SinginActivity : AppCompatActivity() {
         if (this::FOTO.isInitialized) {
             im = UtilImage.toBase64(FOTO)!!
         }
-            user = User(
-                name = txtName.text.toString(),
-                nameUser = txtUserName.text.toString(),
-                password = UtilEncryptor.encrypt(txtPass.text.toString())!!,
-                email = txtEmail.text.toString(),
-                image = im ,
-                twitter = "",
-                instagram = "",
-                facebook = "",
-            )
+        val user = User(
+            name = txtName.text.toString(),
+            nameUser = txtUserName.text.toString(),
+            password = UtilEncryptor.encrypt(txtPass.text.toString())!!,
+            email = txtEmail.text.toString(),
+            image = im,
+            twitter = "",
+            instagram = "",
+            facebook = "",
+        )
+        //TODO crear foto
 
         val turistREST = TuristAPI.service
         val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))
@@ -110,19 +125,53 @@ class SinginActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     startLogin()
                 } else {
-                    Toast.makeText(applicationContext, "Error POST", Toast.LENGTH_SHORT).show() //TODO -> cambiar texto
+                    Toast.makeText(applicationContext, R.string.error_post, Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                Toast.makeText(applicationContext,
+                Toast.makeText(
+                    applicationContext,
                     getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG)
+                    Toast.LENGTH_LONG
+                )
                     .show()
             }
 
         })
         Log.i("user", user.toString())
+    }
+
+    private fun emailExists() {
+        val turistREST = TuristAPI.service
+        email = txtEmail.text.toString()
+        val call = turistREST.userGetByEmail(email)
+        Log.i("REST", "email: $email")
+        call.enqueue((object : Callback<List<UserDTO>> {
+
+            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
+                Log.i("REST", "emailExists en onResponse")
+                if (response.isSuccessful) {
+                    Log.i("REST", "emailExists en isSuccessful")
+                    if (response.body()!!.isEmpty()) {
+                        addUser()
+                    }else{
+                        txtEmail.error = resources.getString(R.string.isAlreadyExist)
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
+                Log.i("REST", "emailExists onFailure")
+                Toast.makeText(
+                    applicationContext,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
+
     }
 
     /**

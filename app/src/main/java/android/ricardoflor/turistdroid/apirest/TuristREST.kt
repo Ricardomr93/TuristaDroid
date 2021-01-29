@@ -52,7 +52,7 @@ interface TuristREST {
      * Modifica al usuario
      */
     @PUT("user/{id}")
-    fun userUpdate(@Path("id") id: String, @Body session: UserDTO): Call<UserDTO>
+    fun userUpdate(@Path("id") id: String, @Body user: UserDTO): Call<UserDTO>
 
     /**
      * Elimina al usuario
@@ -72,7 +72,7 @@ interface TuristREST {
     /**
      * Obtiene todos los sitios
      */
-    @GET("sites/")
+    @GET("sites")
     fun siteGetAll(): Call<List<SiteDTO>>
 
     /**
@@ -121,13 +121,19 @@ interface TuristREST {
      * Obtiene la imagen segun id
      */
     @GET("image/{id}")
-    fun fotografiaGetById(@Path("id") id: String): Call<ImageDTO>
+    fun imageGetById(@Path("id") id: String): Call<ImageDTO>
 
     /**
      * Obtiene las imagenes del sitio expecifico
      */
     @GET("image/")
-    fun imageGet(@Query("siteID") siteID: String): Call<List<ImageDTO>>
+    fun imageGetbyIDSite(@Query("siteID") siteID: String): Call<List<ImageDTO>>
+
+    /**
+     * Obtiene las imagenes del usuario expecifico
+     */
+    @GET("image/")
+    fun imageGetByIDUser(@Query("userID") siteID: String): Call<List<ImageDTO>>
 
     /**
      * Crea una imagen

@@ -139,7 +139,7 @@ interface TuristREST {
      * Obtiene las imagenes del usuario expecifico
      */
     @GET("image/")
-    fun imageGetByIDUser(@Query("userID") siteID: String): Call<List<ImageDTO>>
+    fun imageGetByIDUser(@Query("userID") userID: String): Call<List<ImageDTO>>
 
     /**
      * Crea una imagen

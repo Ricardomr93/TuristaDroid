@@ -2,13 +2,22 @@ package android.ricardoflor.turistdroid.activities.ui.mySites
 
 import android.graphics.Bitmap
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.apirest.TuristAPI
+import android.ricardoflor.turistdroid.bd.image.Image
+import android.ricardoflor.turistdroid.bd.image.ImageDTO
+import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.ricardoflor.turistdroid.bd.site.Site
+import android.ricardoflor.turistdroid.bd.site.SiteDTO
+import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_site.view.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 /**
  * Adapter de la Lista de Sitios
@@ -63,13 +72,36 @@ class SiteListAdapter(
 
             holder.siteDate.text = siteDate
             holder.siteRating.text = siteMedia
-    //TODO
-           // if (!listaSitios[position].image.isEmpty()){
-            //    holder.siteImage.setImageBitmap(UtilImage.toBitmap(listaSitios[position].image[0]!!.image))
-            //}
-//            for (it in listaSitios[position].image){
-//                holder.siteImage.setImageBitmap(UtilImage.toBitmap(it.image))
-//            }
+
+            //Cargamos una imagen para mostrar en el listado de sitios
+            var listaImg: MutableList<Image>? = null
+            val turistREST = TuristAPI.service
+            val call: Call<List<ImageDTO>> = turistREST.imageGetbyIDSite(listaSitios[position].id)
+            call.enqueue(object : Callback<List<ImageDTO>> {
+                override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
+                    if (response.isSuccessful) {
+                        listaImg =
+                            ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
+
+                        if (null != listaImg && !listaImg!!.isEmpty()){
+
+                            for (it in listaImg!!){
+                                holder.siteImage.setImageBitmap(UtilImage.toBitmap(it.uri))
+                            }
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
+                    /*Toast.makeText(
+                        applicationContext,
+                        getText(R.string.service_error).toString() + t.localizedMessage,
+                        Toast.LENGTH_LONG
+                    )
+                        .show()*/
+                }
+
+            })
 
             // Programamos el clic de cada fila (itemView)
             holder.btnViewSiteFloating
@@ -120,7 +152,7 @@ class SiteListAdapter(
             var siteLocation = itemView.txtSite2
             var siteDate = itemView.txtDate2
             var siteRating = itemView.txtRatings2
-            //var siteImage = itemView.imgSite
+            var siteImage = itemView.imgSite
 
             // Indicamos el Layout para el click
             //var relativeLayout = itemView.item_site

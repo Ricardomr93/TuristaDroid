@@ -148,7 +148,6 @@ class MySitesFragment : Fragment() {
                             my_sites_swipe.isRefreshing = false
                         }
 
-
                     } else {
                         Toast.makeText(context!!, "Error GET", Toast.LENGTH_SHORT).show()
                     }

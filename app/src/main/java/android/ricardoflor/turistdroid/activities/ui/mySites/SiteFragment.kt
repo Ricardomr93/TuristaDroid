@@ -55,10 +55,15 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.ByteArrayOutputStream
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
+import android.ricardoflor.turistdroid.bd.image.Image
+import android.ricardoflor.turistdroid.bd.image.ImageDTO
+import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.widget.RatingBar
 
 import android.widget.RatingBar.OnRatingBarChangeListener
-import java.lang.Exception
+import androidx.appcompat.app.AppCompatActivity
+import java.io.IOException
+import kotlin.Exception
 
 
 class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -108,11 +113,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     lateinit var IMAGE: Uri
     private lateinit var FOTO: Bitmap
     private var imagenIni: Boolean = true
-    private var idFoto: Long = 1
     private lateinit var qrShare: Bitmap
 
     // Variables Slider Images
-    private var imagesSlider: RealmList<Bitmap> = RealmList()
+    private var imagesSlider: MutableList<Bitmap> = mutableListOf()
     private lateinit var adapter: PagerAdapter
 
     // Vibrador
@@ -378,16 +382,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                         cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
                     }
 
-                    //Rellena la lista con las imagenes de la BD -- TODO
-//                    for (img in lugar!!.image) {
-//                        imagesSlider.add(UtilImage.toBitmap(img!!.image))
-//                    }
-//                    image.addAll(sitio?.image)
-
-                    adapter = SliderAdapter(context!!, imagesSlider)
-                    val slider: ViewPager = root.findViewById(R.id.imageSite)
-                    slider.adapter = adapter
-
+                    //Cargamos las imagenes de la BD
+                    cargarImagenes()
 
                     var textoQr: String =
                         lugar?.name + ";" + opc + ";" + lugar?.date + ";" +
@@ -414,6 +410,44 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         })
         //Log.i("site", sitio.toString())
+    }
+
+    /**
+     * Metodo encargado de buscar y rellenar las imagenes en el slaider
+     */
+    private fun cargarImagenes() {
+
+        var listaImg: MutableList<Image>? = null
+        val turistREST = TuristAPI.service
+        val call: Call<List<ImageDTO>> = turistREST.imageGetbyIDSite(SITIO!!.id)
+        call.enqueue(object : Callback<List<ImageDTO>> {
+            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
+                if (response.isSuccessful) {
+                    listaImg =
+                        ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
+
+                    if (null != listaImg && !listaImg!!.isEmpty()) {
+
+                        for (img in listaImg!!) {
+                            imagesSlider.add(UtilImage.toBitmap(img.uri)!!)
+                        }
+
+                        adapter = SliderAdapter(context!!, imagesSlider)
+                        val slider: ViewPager = root.findViewById(R.id.imageSite)
+                        slider.adapter = adapter
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
+                /*Toast.makeText(
+                    applicationContext,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()*/
+            }
+        })
     }
 
     /**
@@ -462,11 +496,37 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                                 if (response.isSuccessful) {
                                     Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
                                     Log.i("site", lugar.toString())
+
+                                    for (img in imagesSlider){
+                                        if (!imagenIni) {
+                                            var imgStr = UtilImage.toBase64(img)!!
+                                            val imag = Image(imgStr, USER.id, lugar.id)
+
+                                            //Se almacena la imagen en la BD
+                                            val call: Call<ImageDTO> = turistREST.imagePost(ImageMapper.toDTO(imag))
+                                            call.enqueue(object : Callback<ImageDTO> {
+                                                override fun onResponse(call: Call<ImageDTO>, response: Response<ImageDTO>) {
+
+                                                }
+
+                                                override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
+                                                    //TODO KO!!!
+                                                    /*Toast.makeText(
+                                                        applicationContext,
+                                                        getText(R.string.service_error).toString() + t.localizedMessage,
+                                                        Toast.LENGTH_LONG
+                                                    )
+                                                        .show()*/
+                                                }
+                                            })
+
+                                        }
+                                    }
+
                                     // Vibracion
                                     vibrate()
                                     // Volvemos a MySites Fragment
                                     volverMySites()
-
                                 }
                             }
 
@@ -518,23 +578,20 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                         lugar.name = name!!
                         lugar.site = site!!
                         lugar.date = date!!
-                        lugar.rating += rating
+
                         lugar.latitude = latitude
                         lugar.longitude = longitude
-                        lugar.votos++
 
                         val turistREST = TuristAPI.service
                         val call: Call<SiteDTO> = turistREST.siteUpdate(lugar.id, SiteMapper.toDTO(lugar!!))
                         call.enqueue(object : Callback<SiteDTO> {
                             override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
                                 if (response.isSuccessful) {
-                                    Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
-                                    Log.i("site", lugar.toString())
                                     // Vibracion
                                     vibrate()
                                     // Volvemos a MySites Fragment
                                     volverMySites()
-
+                                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
                                 }
                             }
 
@@ -550,10 +607,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                         })
                         Log.i("site", lugar.toString())
                     }
-
-                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-                    // Volvemos a MySites Fragment
-                    volverMySites()
                 }
             }
         } catch (e: Exception) {
@@ -592,7 +645,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 call.enqueue(object : Callback<SiteDTO> {
                     override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
                         if (response.isSuccessful) {
-                            Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
                             Log.i("site", lugar.toString())
                         }
                     }
@@ -629,14 +682,17 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Vibrador
      */
     fun vibrate() {
-        //Compruebe si dispositivo tiene un vibrador.
-        if (vibrator!!.hasVibrator()) { //Si tiene vibrador
+        try {
+            //Compruebe si dispositivo tiene un vibrador.
+            if (vibrator!!.hasVibrator()) { //Si tiene vibrador
 
-            val tiempo: Long = 500 //en milisegundos
-            vibrator!!.vibrate(tiempo)
+                val tiempo: Long = 500 //en milisegundos
+                vibrator!!.vibrate(tiempo)
 
-        } else { //no tiene
-            //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
+            } else { //no tiene
+                //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
+            }
+        } catch (e: Exception) {
         }
     }
 
@@ -776,83 +832,140 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         super.onActivityResult(requestCode, resultCode, data)
 
         //TODO
-        /* try {
-        //Recupera la informacion si ha escaneado un QR
-          val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
-          if (result != null) {
-              //Si no tiene informacion se cancela
-              if (result.contents == null) {
-                  Toast.makeText(context, getText(R.string.error), Toast.LENGTH_LONG).show()
-              } else {
-                  //Carga la informacion obtenida del QR
-                  cargarDatosSiteQr(result.contents)
-              }
-          }
+        try {
+            //Recupera la informacion si ha escaneado un QR
+            val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+            if (result != null) {
+                //Si no tiene informacion se cancela
+                if (result.contents == null) {
+                    Toast.makeText(context, getText(R.string.error), Toast.LENGTH_LONG).show()
+                } else {
+                    //Carga la informacion obtenida del QR
+                    cargarDatosSiteQr(result.contents)
+                }
+            }
 
-          //Si cancela no hace nada
-          if (resultCode == AppCompatActivity.RESULT_CANCELED) {
-              Log.d("sing", "Se ha cancelado")
-          }
-          //si elige la opcion de galeria entra en la galeria
-          if (requestCode == GALLERY) {
-              Log.d("profile", "Entramos en Galería")
-              if (data != null) {
-                  // Obtenemos su URI
-                  val contentURI = data.data!!
-                  try {
-                      FOTO = differentVersion(contentURI)
+            //Si cancela no hace nada
+            if (resultCode == AppCompatActivity.RESULT_CANCELED) {
+                Log.d("sing", "Se ha cancelado")
+            }
+            //si elige la opcion de galeria entra en la galeria
+            if (requestCode == GALLERY) {
+                Log.d("profile", "Entramos en Galería")
+                if (data != null) {
+                    // Obtenemos su URI
+                    val contentURI = data.data!!
+                    try {
+                        FOTO = differentVersion(contentURI)
 
-                      val imgStr = UtilImage.toBase64(FOTO)!!
-                      idFoto += 1
-                      val img = Image(idFoto, imgStr)
-                      image.add(img)
+                        var imgStr = UtilImage.toBase64(FOTO)!!
+                        //imgStr = imgStr.replace("\n","")
 
-                      //Para borrar la imagen de muestra
-                      if (modo == 1 && imagenIni) {
-                          imagesSlider = RealmList()
-                          imagenIni = false
-                      }
+                        if (modo == 1) {
+                            if (imagenIni) {
+                                imagesSlider.removeAt(0)
+                                imagenIni = false
+                            }
 
-                      imagesSlider.add(FOTO)
-                      adapter = SliderAdapter(context!!, imagesSlider)
-                      val slider: ViewPager = root.findViewById(R.id.imageSite)
-                      slider.adapter = adapter
-                  } catch (e: IOException) {
-                      e.printStackTrace()
-                      Toast.makeText(context!!, getText(R.string.error_gallery), Toast.LENGTH_SHORT).show()
-                  }
-              }
-          } else if (requestCode == CAMERA) {
-              Log.d("profile", "Entramos en Camara")
-              //cogemos la imagen
-              try {
-                  FOTO = differentVersion(IMAGE)
-                  // Mostramos la imagen
+                            imagesSlider.add(FOTO)
+                            adapter = SliderAdapter(context!!, imagesSlider)
+                            val slider: ViewPager = root.findViewById(R.id.imageSite)
+                            slider.adapter = adapter
 
-                  val imgStr = UtilImage.toBase64(FOTO)!!
-                  idFoto += 1
-                  val img = Image(idFoto, imgStr)
-                  image.add(img)
+                        } else {
 
-                  //Para borrar la imagen de muestra
-                  if (modo == 1 && imagenIni) {
-                      imagesSlider = RealmList()
-                      imagenIni = false
-                  }
+                            val img = Image(imgStr, USER.id, SITIO!!.id)
 
-                  imagesSlider.add(FOTO)
-                  adapter = SliderAdapter(context!!, imagesSlider)
-                  val slider: ViewPager = root.findViewById(R.id.imageSite)
-                  slider.adapter = adapter
-              } catch (e: Exception) {
-                  e.printStackTrace()
-                  Toast.makeText(context!!, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
-              }
-          }
+                            //Se almacena la imagen en la BD
+                            val turistREST = TuristAPI.service
+                            val call: Call<ImageDTO> = turistREST.imagePost(ImageMapper.toDTO(img))
+                            call.enqueue(object : Callback<ImageDTO> {
+                                override fun onResponse(call: Call<ImageDTO>, response: Response<ImageDTO>) {
+                                    if (response.isSuccessful) {
+                                        imagesSlider.add(FOTO)
+                                        adapter = SliderAdapter(context!!, imagesSlider)
+                                        val slider: ViewPager = root.findViewById(R.id.imageSite)
+                                        slider.adapter = adapter
+                                    }
+                                }
 
-      } catch (e: Exception) {
-          Toast.makeText(context, "No se ha podido cargar la imagen", 5)
-      }*/
+                                override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
+                                    //TODO KO!!!
+                                    /*Toast.makeText(
+                                        applicationContext,
+                                        getText(R.string.service_error).toString() + t.localizedMessage,
+                                        Toast.LENGTH_LONG
+                                    )
+                                        .show()*/
+                                }
+                            })
+                        }
+
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        Toast.makeText(context!!, getText(R.string.error_gallery), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else if (requestCode == CAMERA) {
+                Log.d("profile", "Entramos en Camara")
+                //cogemos la imagen
+                try {
+                    FOTO = differentVersion(IMAGE)
+                    // Mostramos la imagen
+
+                    var imgStr = UtilImage.toBase64(FOTO)!!
+                    //imgStr = imgStr.replace("\n","")
+
+                    if (modo == 1)  {
+                        //Para borrar la imagen de muestra
+                        if (imagenIni) {
+                            imagesSlider.removeAt(0)
+                            imagenIni = false
+                        }
+
+                        imagesSlider.add(FOTO)
+                        adapter = SliderAdapter(context!!, imagesSlider)
+                        val slider: ViewPager = root.findViewById(R.id.imageSite)
+                        slider.adapter = adapter
+
+                    } else {
+
+                        val img = Image(imgStr, USER.id, SITIO!!.id)
+
+                        //Se almacena la imagen en la BD
+                        val turistREST = TuristAPI.service
+                        val call: Call<ImageDTO> = turistREST.imagePost(ImageMapper.toDTO(img))
+                        call.enqueue(object : Callback<ImageDTO> {
+                            override fun onResponse(call: Call<ImageDTO>, response: Response<ImageDTO>) {
+                                if (response.isSuccessful) {
+                                    imagesSlider.add(FOTO)
+                                    adapter = SliderAdapter(context!!, imagesSlider)
+                                    val slider: ViewPager = root.findViewById(R.id.imageSite)
+                                    slider.adapter = adapter
+                                }
+                            }
+
+                            override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
+                                //TODO KO!!!
+                                /*Toast.makeText(
+                                    applicationContext,
+                                    getText(R.string.service_error).toString() + t.localizedMessage,
+                                    Toast.LENGTH_LONG
+                                )
+                                    .show()*/
+                            }
+                        })
+                    }
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(context!!, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "No se ha podido cargar la imagen", 5)
+        }
     }
 
     /**
@@ -1073,5 +1186,5 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         super.onDestroy()
         BdController.close()
     }
-    
+
 }

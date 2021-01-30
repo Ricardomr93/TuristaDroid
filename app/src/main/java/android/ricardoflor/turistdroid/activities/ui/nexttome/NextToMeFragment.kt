@@ -10,9 +10,13 @@ import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
 import android.ricardoflor.turistdroid.apirest.TuristAPI
+import android.ricardoflor.turistdroid.bd.image.Image
+import android.ricardoflor.turistdroid.bd.image.ImageDTO
+import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteDTO
 import android.ricardoflor.turistdroid.bd.site.SiteMapper
+import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -48,7 +52,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
     private var DISTANCE = 0.0//en Km
-
+    private var img: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -163,8 +167,9 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             ).show()
         }
     }
-    fun changeDistance(){
-        seekBarNextToMe.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+
+    fun changeDistance() {
+        seekBarNextToMe.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 DISTANCE = progress.toDouble()
                 txtKmNextToMe.text = "$progress Km"
@@ -212,13 +217,15 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                         SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>) as MutableList<Site>//saca todos los resultados
                     //Los va recorriendo y rellenando
                     for (site in siteList) {
-                        val distance =
-                            distanciaCoord(posicion!!.latitude, posicion!!.longitude, site.latitude, site.longitude)
-                        Log.i("Mapa", "${site.name}: $distance distancia2: $DISTANCE")
-                        if (distance <= DISTANCE) {
-                            nearme.add(site)
-                            val loc = LatLng(site.latitude, site.longitude)
-                            markCurrentPostition(loc, site)
+                        if (posicion != null) {
+                            val distance =
+                                distanciaCoord(posicion!!.latitude, posicion!!.longitude, site.latitude, site.longitude)
+                            Log.i("Mapa", "${site.name}: $distance distancia2: $DISTANCE")
+                            if (distance <= DISTANCE) {
+                                nearme.add(site)
+                                val loc = LatLng(site.latitude, site.longitude)
+                                markCurrentPostition(loc, site)
+                            }
                         }
                     }
                     allSeeMarker(nearme)
@@ -240,6 +247,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         //TODO
         mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(marker: Marker): View? {
+                val site = marker.tag as Site
+                cargaImagen(site.id)
                 return null
             }
 
@@ -249,15 +258,36 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 val ratin: TextView = row.findViewById(R.id.txtmakerdialograting)
                 val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
                 val site = marker.tag as Site
+
                 txtNamePlaceInfo.text = site.name
-                ratin.text = site.rating.toString()
-                //si no tiene fotos muestra la de por defecto
-                if (site.imageID == ""){
-                    //imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(""))TODO imagen
-                }
-                //imagen que tenga site.id
+                ratin.text = String.format("%.1f", (site.rating/site.votos))
+                imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img))
 
                 return row
+            }
+        })
+    }
+
+    private fun cargaImagen(id: String){
+
+        //Cargamos una imagen para mostrar en el pincho y si no tiene fotos muestra la de por defecto
+        var listaImg: MutableList<Image>? = null
+        val turistREST = TuristAPI.service
+        val call: Call<List<ImageDTO>> = turistREST.imageGetbyIDSite(id)
+        call.enqueue(object : Callback<List<ImageDTO>> {
+            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
+                if (response.isSuccessful) {
+                    listaImg =
+                        ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
+
+                    if (null != listaImg && !listaImg!!.isEmpty()){
+                        img = listaImg!![0].uri
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
+                /*Toast.makeText(applicationContext,getText(R.string.service_error).toString() + t.localizedMessage,Toast.LENGTH_LONG).show()*/
             }
         })
     }

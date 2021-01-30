@@ -19,10 +19,10 @@ import io.realm.RealmList
 class SliderAdapter: PagerAdapter{
 
     var context: Context
-    var images: RealmList<Bitmap>
+    var images: MutableList<Bitmap>
     lateinit var inflater: LayoutInflater
 
-    constructor(context: Context, images:  RealmList<Bitmap>): super(){
+    constructor(context: Context, images:  MutableList<Bitmap>): super(){
         this.context = context
         this.images = images
     }

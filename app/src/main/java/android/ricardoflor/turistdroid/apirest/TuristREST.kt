@@ -78,7 +78,7 @@ interface TuristREST {
     /**
      * Obtiene un sitio por su id
      */
-    @GET("sites/")
+    @GET("sites/{id}")
     fun siteGetById(@Path("id") id: String): Call<SiteDTO>
 
     /**

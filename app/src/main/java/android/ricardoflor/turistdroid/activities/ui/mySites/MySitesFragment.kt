@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.*
 import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.BdController
@@ -33,6 +34,9 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
+import android.ricardoflor.turistdroid.activities.LoginActivity
+import android.ricardoflor.turistdroid.bd.user.UserDTO
+import android.ricardoflor.turistdroid.utils.UtilSession
 import com.google.android.gms.maps.model.LatLng
 
 
@@ -119,9 +123,9 @@ class MySitesFragment : Fragment() {
             var call: Call<List<SiteDTO>>? = null
 
             // Identificamos si el call trae informacion, sino se la asignamos
-            if (callFilter==null){
+            if (callFilter == null) {
                 call = turistREST.siteGetAll()
-            } else{
+            } else {
                 call = callFilter
             }
 
@@ -266,7 +270,7 @@ class MySitesFragment : Fragment() {
     }
 
     /**
-    * Metodo que realiza el filtrado de los GETs
+     * Metodo que realiza el filtrado de los GETs
      */
     private fun filterSites(pos: Int) {
         val turistREST = TuristAPI.service
@@ -358,11 +362,13 @@ class MySitesFragment : Fragment() {
     }
 
     private fun borrarElemento(position: Int) {
-        // Acciones
         val deletedSite = sitios[position]
-        adapter.removeItem(position)
-
-        confirmDialog(deletedSite, position)
+        if (USER.id == deletedSite.userID) {
+            adapter.removeItem(position)
+            confirmDialog(deletedSite, position)
+        } else {
+            Toast.makeText(requireContext(), R.string.no_permiss, Toast.LENGTH_SHORT).show()
+        }
     }
 
     /**
@@ -381,17 +387,37 @@ class MySitesFragment : Fragment() {
     }
 
     fun acceptDelete(site: Site) {
-        try {
-            // Borramos el sitio de Base de Datos
-            SiteController.deleteSite(site)
-            Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
-            vibrate()
-            cargaSitios(null)
+        // Borramos el sitio de Base de Datos
+        val turistREST = TuristAPI.service
+        val call: Call<SiteDTO> = turistREST.siteDelete(site.id)
+        call.enqueue((object : Callback<SiteDTO> {
 
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()
-        }
+            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
+                Log.i("REST", "onResponse delsite")
+                if (response.isSuccessful) {
+                    Log.i("REST", "isSuccessful delsite")
+                    Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
+
+                    vibrate()
+                    cargaSitios(null)
+
+                } else {
+                    Log.i("REST", "Error: isSuccessful delsite")
+                }
+            }
+
+            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
+                Log.i("REST", "delsite failure")
+                Toast.makeText(
+                    context,
+                    context!!.getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
+
     }
 
     fun cancelDelete(site: Site, position: Int) {
@@ -405,7 +431,12 @@ class MySitesFragment : Fragment() {
      */
     private fun editarElemento(position: Int) {
         val site = sitios[position]
-        openSite(site, 2)
+        if (USER.id == site.userID) {
+            openSite(site, 2)
+        } else {
+            Toast.makeText(requireContext(), R.string.no_permiss, Toast.LENGTH_SHORT).show()
+        }
+
         // Esto es para que no se quede el color
         adapter.removeItem(position)
         adapter.restoreItem(site, position)

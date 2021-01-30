@@ -43,7 +43,9 @@ class SiteListAdapter(
             var siteName: String = listaSitios[position].name
             var siteLocation: String = listaSitios[position].site
             var siteDate: String = listaSitios[position].date
-            var siteRatings: String = listaSitios[position].rating.toString()
+            var siteRatings: Double = listaSitios[position].rating
+            var siteNumVotos: Int = listaSitios[position].votos
+            var siteMedia: String = String.format("%.1f", (siteRatings/siteNumVotos))
 
             //Controlamos la longitud para que si llega a una cantidad de caracteres, recortarlo
             if (siteName.length >= 30) {
@@ -60,7 +62,7 @@ class SiteListAdapter(
             }
 
             holder.siteDate.text = siteDate
-            holder.siteRating.text = siteRatings
+            holder.siteRating.text = siteMedia
     //TODO
            // if (!listaSitios[position].image.isEmpty()){
             //    holder.siteImage.setImageBitmap(UtilImage.toBitmap(listaSitios[position].image[0]!!.image))
@@ -118,7 +120,7 @@ class SiteListAdapter(
             var siteLocation = itemView.txtSite2
             var siteDate = itemView.txtDate2
             var siteRating = itemView.txtRatings2
-            var siteImage = itemView.imgSite
+            //var siteImage = itemView.imgSite
 
             // Indicamos el Layout para el click
             //var relativeLayout = itemView.item_site

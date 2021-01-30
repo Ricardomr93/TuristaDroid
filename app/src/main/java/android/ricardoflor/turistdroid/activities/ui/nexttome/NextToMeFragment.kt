@@ -18,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -32,9 +33,11 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.fragment_next_to_me.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 
 class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -44,7 +47,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 1.55000 //en Km
+    private var DISTANCE = 0.0//en Km
 
 
     override fun onCreateView(
@@ -65,7 +68,6 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     }
 
     private fun init() {
-        //TODO -> Opcional crear una barra para aumentar el radio
         if (initPermisos()) {
             initMap()
             myActualPosition()
@@ -109,6 +111,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         getPosition()
         locationReq()
         clickOnInfoWIndow()
+        changeDistance()
     }
 
     /**
@@ -159,6 +162,22 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 Toast.LENGTH_SHORT
             ).show()
         }
+    }
+    fun changeDistance(){
+        seekBarNextToMe.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                DISTANCE = progress.toDouble()
+                txtKmNextToMe.text = "$progress Km"
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                addMarkerSite()
+            }
+        })
     }
 
     /**

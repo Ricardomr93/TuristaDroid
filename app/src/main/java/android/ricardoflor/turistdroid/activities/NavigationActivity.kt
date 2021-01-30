@@ -96,11 +96,6 @@ class NavigationActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         return when (item.itemId) {
-            R.id.action_import -> {
-                // IMPORTAR
-                UtilImpExp.import(this)
-                true
-            }
 
             R.id.action_export -> {
                 // EXPORTAR

@@ -11,7 +11,6 @@ import android.os.StrictMode
 import android.provider.MediaStore
 import android.provider.Settings
 import android.ricardoflor.turistdroid.MyApplication
-import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.user.User
@@ -20,15 +19,12 @@ import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilNet
-import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.util.Patterns
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
-import io.realm.exceptions.RealmPrimaryKeyConstraintException
-import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
 import java.lang.NullPointerException
@@ -116,7 +112,6 @@ class SinginActivity : AppCompatActivity() {
             instagram = "",
             facebook = "",
         )
-        //TODO crear foto
 
         val turistREST = TuristAPI.service
         val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))

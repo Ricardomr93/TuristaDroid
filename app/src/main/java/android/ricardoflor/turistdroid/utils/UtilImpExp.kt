@@ -3,19 +3,37 @@ package android.ricardoflor.turistdroid.utils
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Environment
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.apirest.TuristAPI
+import android.ricardoflor.turistdroid.apirest.TuristREST
+import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.image.ImageController
+import android.ricardoflor.turistdroid.bd.image.ImageDTO
+import android.ricardoflor.turistdroid.bd.image.ImageMapper
+import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.bd.site.SiteDTO
+import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.impExp.ImpExp
 import android.util.Log
 import android.widget.Toast
 import com.google.gson.Gson
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
 object UtilImpExp {
+
+    private lateinit var SITES: MutableList<Site>
+    private lateinit var IMAGES: MutableList<Image>
+    private var clientREST = TuristAPI.service
+
+
     /**
      * Cuadro de dialogo para la confirmacion de la exportacion de archivos
      */
@@ -24,20 +42,7 @@ object UtilImpExp {
             .setIcon(R.drawable.ic_bandeja_de_salida)
             .setTitle(context.getText(R.string.caution))
             .setMessage(context.getText(R.string.messExport))
-            .setPositiveButton(context.getString(R.string.ok)) { dialog, which -> exportFiles(context!!) }
-            .setNegativeButton(context.getString(R.string.Cancel), null)
-            .show()
-    }
-
-    /**
-     * Cuadro de dialogo para la confirmacion de la importacion de archivos
-     */
-    fun import(context: Context) {
-        AlertDialog.Builder(context)
-            .setIcon(R.drawable.ic_bandeja_de_entrada)
-            .setTitle(context.getText(R.string.caution))
-            .setMessage(context.getText(R.string.messImport))
-            .setPositiveButton(context.getString(R.string.ok)) { dialog, which -> importFiles(context) }
+            .setPositiveButton(context.getString(R.string.ok)) { dialog, which -> /*exportFiles(context!!)*/ }//TODO -> no inserta bien porque no está inicializado
             .setNegativeButton(context.getString(R.string.Cancel), null)
             .show()
     }
@@ -47,36 +52,73 @@ object UtilImpExp {
      * @param context Context
      * @return Boolean
      */
-    fun exportFiles(context: Context) {
+    fun exportFiles(context: Context){
         //coge todos los datos de todos los modelos
-        val users = UserController.selectAllUser()!!
-        val sites = SiteController.selectAllSite()!!
-        val images = ImageController.selectAllImage()!!
-        val impExp = ImpExp(
-            users = users,
-            sites = sites,
-            images = images
-        )
-        val impExpGson = Gson().toJson(impExp)
-        // Archivo el objeto JSON
-        fileExport(context, impExpGson.toString())
+        imagesRest(context)
+        sitesRest(context)
+        if(this::IMAGES.isInitialized){
+            val impExp = ImpExp(
+                sites = SITES,
+                images = IMAGES
+            )
+            val ExpGson = Gson().toJson(impExp)
+            // Archivo el objeto JSON
+            fileExport(context, ExpGson.toString())
+        }
+        Log.i("REST", SITES.size.toString())
+        Log.i("REST", IMAGES.size.toString())
     }
 
     /**
-     * Importa os datos
-     * @param context Context
-     * @return Boolean
+     * Metodo para recuperar los sitios segun id User
      */
-    fun importFiles(context: Context) {
-        //mete el json en una variable y la exporta
-        val input = fileImport(context)
-        val impExp = Gson().fromJson(input, ImpExp::class.java)
-        if (impExp != null) {
-            proccesImport(impExp,context)
-            Log.i("import", impExp.toString())
-        } else {
-            Toast.makeText(context!!, context.getText(R.string.importok), Toast.LENGTH_SHORT).show()
-        }
+    private fun imagesRest(context: Context) {
+        val call: Call<List<ImageDTO>> = clientREST.imageGetByIDUser(USER.id)
+        call.enqueue((object : Callback<List<ImageDTO>> {
+
+            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
+                if (response.isSuccessful) {
+                    Log.i("REST", "onResponse imagesRest")
+                    IMAGES = (ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>)) as MutableList<Image>
+                }
+            }
+
+            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
+                Log.i("REST", "onFailure imagesRest")
+                Toast.makeText(
+                    context,
+                    R.string.service_error,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
+    }
+
+    /**
+     * Metodo para recuperar los sitios segun id User
+     */
+    private fun sitesRest(context: Context) {
+        val call: Call<List<SiteDTO>> = clientREST.siteGetByUserID(USER.id)
+        call.enqueue((object : Callback<List<SiteDTO>> {
+
+            override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
+                if (response.isSuccessful) {
+                    Log.i("REST", "onResponse sitesRest")
+                    SITES = (SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>)) as MutableList<Site>
+                }
+            }
+
+            override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
+                Log.i("REST", "onFailure sitesRest")
+                Toast.makeText(
+                    context,
+                    R.string.service_error,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
     }
 
     /**
@@ -85,7 +127,7 @@ object UtilImpExp {
      * @param datos String
      * @return Boolean
      */
-    fun fileExport(context: Context, datos: String){
+    fun fileExport(context: Context, datos: String) {
         //guarda en la memoria interna del movil
         val dirImpExp =
             File((context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.absolutePath) + "/TuristDroid")
@@ -103,51 +145,4 @@ object UtilImpExp {
             Log.i("impor", "Error: " + ex.localizedMessage)
         }
     }
-
-    /**
-     * Procesa el exportar los datos
-     * @param impExp ImpExp
-     * @param context Context
-     * @return Boolean
-     */
-    private fun proccesImport(impExp: ImpExp, context: Context){
-        // Vamos a insertar el usuario
-        try {
-            deleteAll()
-            impExp.users.forEach { UserController.insertUser(it) }
-            impExp.sites.forEach { SiteController.insertSite(it) }
-            impExp.images.forEach { ImageController.insertImage(it) }
-            Toast.makeText(context!!,context.getText(R.string.importok), Toast.LENGTH_SHORT).show()
-        } catch (ex: Exception) {
-            Log.i("impor", "Error: " + ex.localizedMessage)
-        }
-    }
-
-    /**
-     * Borra todos los datos menos los de session
-     */
-    private fun deleteAll() {
-        SiteController.deleteAllSite()
-        UserController.deleteAllUsers()
-        ImageController.deleteAllImages()
-    }
-    /**
-     * Importa los datos
-     * @param context Context
-     * @return String
-     */
-    fun fileImport(context: Context): String {
-        //tiene que ser la misma ruta que el import
-        val dirBackup =
-            File((context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.absolutePath) + "/TuristDroid")
-        val file = File(dirBackup, "turistDroid.json")
-        var datos: String = ""
-        if (file.exists()) {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                datos = Files.readAllLines(Paths.get(file.toURI()))[0]
-            }
-        }
-        return datos
-    }
-
 }

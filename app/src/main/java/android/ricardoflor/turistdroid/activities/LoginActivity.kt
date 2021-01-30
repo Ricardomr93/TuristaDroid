@@ -1,11 +1,15 @@
 package android.ricardoflor.turistdroid.activities
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
+import android.ricardoflor.turistdroid.bd.session.Session
+import android.ricardoflor.turistdroid.bd.session.SessionDTO
+import android.ricardoflor.turistdroid.bd.session.SessionMapper
 import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
@@ -20,6 +24,8 @@ import kotlinx.android.synthetic.main.activity_login.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.Instant
+import java.util.*
 
 
 class LoginActivity : AppCompatActivity() {
@@ -30,18 +36,8 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-        //init()
         login()
         SingIn()
-    }
-    private fun init() {
-        //UtilSession.deleteSessionPref(this)
-        if (UtilSession.sessionExist(this)) {
-            toNavigation()
-            Log.i("util", "usuario logeado")
-        }else{
-            Log.i("util", "usuario erroneo")
-        }
     }
     /**
      * Método que cuando pulsa en en el boton si lo campos son correctos
@@ -70,8 +66,6 @@ class LoginActivity : AppCompatActivity() {
                     snackbar.show()
                 }
                 Log.i("realm", "usuario logeado")
-            } else {
-
             }
         }
     }
@@ -131,7 +125,7 @@ class LoginActivity : AppCompatActivity() {
                     if (user.password == pass) {
                         USER = user
                         UtilSession.comprobarIDSession(USER.id, applicationContext)
-                        Log.i("rest","Usuario: $USER")
+                        Log.i("rest", "Usuario: $USER")
                         toNavigation()
                     }
                 } else {
@@ -152,7 +146,7 @@ class LoginActivity : AppCompatActivity() {
         }))
 
     }
-
+    
     private fun toNavigation() {
         val intent = Intent(applicationContext, NavigationActivity::class.java)
         startActivity(intent)

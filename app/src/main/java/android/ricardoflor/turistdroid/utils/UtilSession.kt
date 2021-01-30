@@ -1,8 +1,10 @@
 package android.ricardoflor.turistdroid.utils
 
 import android.content.Context
+import android.content.Intent
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.activities.LoginActivity
 import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionDTO
@@ -16,9 +18,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 object UtilSession {
+
+    private var MAX_LIMITE_DAY = 1
 
     /**
      * Comprueba si hay una sesion abierta
@@ -31,7 +36,6 @@ object UtilSession {
         Log.i("util", "Usuario ID: $session")
         return session.isNotEmpty()
     }
-
     /**
      * Metodo que comprueba que el id de
      */
@@ -44,7 +48,7 @@ object UtilSession {
                 Log.i("REST", "onResponse comprobarIDSession")
                 if (response.isSuccessful) {
                     Log.i("REST", "isSuccessful comprobarIDSession")
-                    if (response.body()!!.isNotEmpty()) {//si no devuelve ninguna fila crea una session
+                    if (response.body()!!.isEmpty()) {//si no devuelve ninguna fila crea una session
                         Log.i("Rest","No existe sesion en bd")
                         createSession(id, context)
                     } else {
@@ -82,6 +86,7 @@ object UtilSession {
      * Metodo que borra la sesion en las preferencias
      */
     fun deleteSessionPref(context: Context) {
+        Log.i("Rest","session preferencias borrada")
         val preferences = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val editor = preferences.edit()
         editor.remove("sessionUID")
@@ -91,10 +96,28 @@ object UtilSession {
     }
 
     /**
+     * metodo que comprueba si ha expirado o no el tiempo
+     */
+    fun timeExpired(context: Context) :Boolean{
+        var expired = true
+        val preferences = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
+        val time = preferences.getString("sessionTime","").toString()
+        Log.i("rest","Tiempo sesion: $time")
+        Log.i("rest","Tiempo ahora: ${Instant.now()}")
+        val timeSession = Instant.parse(time)
+        val days = ChronoUnit.DAYS.between(timeSession,Instant.now())
+        if (days <= MAX_LIMITE_DAY){
+            expired = false
+        }
+        return expired
+    }
+
+
+    /**
      * Crea la session con el id del usuario
      */
     fun createSession(id: String, context: Context) {
-
+        val i = Instant.now()
         val sess = Session(
             id = id,
             time = Instant.now().toString(),

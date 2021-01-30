@@ -102,7 +102,7 @@
     <string name="userDelete">User deleted successfully</string>
     <string name="importok">Import successfully</string>
     <string name="exportok">Export successfully</string>
-    <string name="errorImport">Error:file not found</string>
+    <string name="errorImport">Error: file not found</string>
     <string name="needPosition">Error : error your position is necessary</string>
     <string name="needFields">Error : all fields must be filled</string>
     <string name="selectSite">Error: Select one site</string>
@@ -116,4 +116,6 @@
     <string name="no_net">Error you need an internet connection</string>
     <string name="error_post">Error with user insertion</string>
     <string name="error_put">Error with user update</string>
+    <string name="limite_expired">Your time limit has expired</string>
+    <string name="no_net_back_login">There is not internet connection, returning to login</string>
 </resources>

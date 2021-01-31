@@ -6,17 +6,13 @@ import android.os.Environment
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
-import android.ricardoflor.turistdroid.apirest.TuristREST
 import android.ricardoflor.turistdroid.bd.image.Image
-import android.ricardoflor.turistdroid.bd.image.ImageController
 import android.ricardoflor.turistdroid.bd.image.ImageDTO
 import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.site.SiteController
 import android.ricardoflor.turistdroid.bd.site.SiteDTO
 import android.ricardoflor.turistdroid.bd.site.SiteMapper
-import android.ricardoflor.turistdroid.bd.user.UserController
-import android.ricardoflor.turistdroid.impExp.ImpExp
+import android.ricardoflor.turistdroid.export.Export
 import android.util.Log
 import android.widget.Toast
 import com.google.gson.Gson
@@ -27,7 +23,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
-object UtilImpExp {
+object UtilExp {
 
     private lateinit var SITES: MutableList<Site>
     private lateinit var IMAGES: MutableList<Image>
@@ -42,7 +38,7 @@ object UtilImpExp {
             .setIcon(R.drawable.ic_bandeja_de_salida)
             .setTitle(context.getText(R.string.caution))
             .setMessage(context.getText(R.string.messExport))
-            .setPositiveButton(context.getString(R.string.ok)) { dialog, which -> /*exportFiles(context!!)*/ }//TODO -> no inserta bien porque no está inicializado
+            .setPositiveButton(context.getString(R.string.ok)) { dialog, which -> exportFiles(context!!) }//TODO -> no inserta bien porque no está inicializado
             .setNegativeButton(context.getString(R.string.Cancel), null)
             .show()
     }
@@ -55,18 +51,6 @@ object UtilImpExp {
     fun exportFiles(context: Context){
         //coge todos los datos de todos los modelos
         imagesRest(context)
-        sitesRest(context)
-        if(this::IMAGES.isInitialized){
-            val impExp = ImpExp(
-                sites = SITES,
-                images = IMAGES
-            )
-            val ExpGson = Gson().toJson(impExp)
-            // Archivo el objeto JSON
-            fileExport(context, ExpGson.toString())
-        }
-        Log.i("REST", SITES.size.toString())
-        Log.i("REST", IMAGES.size.toString())
     }
 
     /**
@@ -80,6 +64,7 @@ object UtilImpExp {
                 if (response.isSuccessful) {
                     Log.i("REST", "onResponse imagesRest")
                     IMAGES = (ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>)) as MutableList<Image>
+                    sitesRest(context)
                 }
             }
 
@@ -106,6 +91,16 @@ object UtilImpExp {
                 if (response.isSuccessful) {
                     Log.i("REST", "onResponse sitesRest")
                     SITES = (SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>)) as MutableList<Site>
+                    val impExp = Export(
+                        sites = SITES,
+                        images = IMAGES
+                    )
+                    val ExpGson = Gson().toJson(impExp)
+                    // Archivo el objeto JSON
+                    fileExport(context, ExpGson.toString())
+
+                    Log.i("REST", SITES.size.toString())
+                    Log.i("REST", IMAGES.size.toString())
                 }
             }
 

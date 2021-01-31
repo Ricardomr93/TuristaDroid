@@ -14,7 +14,7 @@ import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilImage
-import android.ricardoflor.turistdroid.utils.UtilImpExp
+import android.ricardoflor.turistdroid.utils.UtilExp
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.Menu
@@ -22,7 +22,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -99,7 +98,7 @@ class NavigationActivity : AppCompatActivity() {
 
             R.id.action_export -> {
                 // EXPORTAR
-                UtilImpExp.export(this)
+                UtilExp.export(this)
                 true
             }
 

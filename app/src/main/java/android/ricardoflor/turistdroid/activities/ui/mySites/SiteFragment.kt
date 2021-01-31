@@ -133,10 +133,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun init() {
         initButtons()
         initEditCreateMode()
-       /* if (initPermisos()) {
-            initMap()
-            myActualPosition()
-        }*/
+        /* if (initPermisos()) {
+             initMap()
+             myActualPosition()
+         }*/
 
         cajaFecha?.setOnClickListener { showDatePickerDialog() }
         btnMail?.setOnClickListener { shareGmail() }
@@ -391,7 +391,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
                     generateQRCode(textoQr)
                     positionSite = LatLng(lugar!!.latitude, lugar!!.longitude)
-                    Log.i("mapa","cargarDatosSite-positionSite: $positionSite")
+                    Log.i("mapa", "cargarDatosSite-positionSite: $positionSite")
                     if (initPermisos()) {
                         initMap()
                         myActualPosition()
@@ -404,7 +404,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             }
 
             override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context!!,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                ).show()
             }
 
         })
@@ -438,7 +442,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             }
 
             override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
-                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -488,7 +492,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                                     Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
                                     Log.i("site", lugar.toString())
 
-                                    for (img in imagesSlider){
+                                    for (img in imagesSlider) {
                                         if (!imagenIni) {
                                             var imgStr = UtilImage.toBase64(img)!!
                                             val imag = Image(imgStr, USER.id, lugar.id)
@@ -496,12 +500,15 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                                             //Se almacena la imagen en la BD
                                             val call: Call<ImageDTO> = turistREST.imagePost(ImageMapper.toDTO(imag))
                                             call.enqueue(object : Callback<ImageDTO> {
-                                                override fun onResponse(call: Call<ImageDTO>, response: Response<ImageDTO>) {
+                                                override fun onResponse(
+                                                    call: Call<ImageDTO>,
+                                                    response: Response<ImageDTO>
+                                                ) {
 
                                                 }
 
                                                 override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                                    Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                                                    //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                                                 }
                                             })
                                         }
@@ -515,7 +522,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             }
 
                             override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context!!,
+                                    getText(R.string.service_error).toString() + t.localizedMessage,
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
 
                         })
@@ -574,7 +585,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             }
 
                             override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context!!,
+                                    getText(R.string.service_error).toString() + t.localizedMessage,
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
 
                         })
@@ -618,13 +633,17 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 call.enqueue(object : Callback<SiteDTO> {
                     override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
                         if (response.isSuccessful) {
-                            Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), R.string.site_modified, Toast.LENGTH_SHORT).show()
                             Log.i("site", lugar.toString())
                         }
                     }
 
                     override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                        Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            requireContext(),
+                            getText(R.string.service_error).toString() + t.localizedMessage,
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
 
                 })
@@ -825,9 +844,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     val contentURI = data.data!!
                     try {
                         FOTO = differentVersion(contentURI)
+                        FOTO = Bitmap.createScaledBitmap(FOTO, 200 /*Ancho*/, 200 /*Alto*/, false /* filter*/)
 
+                        // Mostramos la imagen
                         var imgStr = UtilImage.toBase64(FOTO)!!
-                        //imgStr = imgStr.replace("\n","")
 
                         if (modo == 1) {
                             if (imagenIni) {
@@ -858,7 +878,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                                 }
 
                                 override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                    Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                                    //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                                 }
                             })
                         }
@@ -873,12 +893,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 //cogemos la imagen
                 try {
                     FOTO = differentVersion(IMAGE)
+                    FOTO = Bitmap.createScaledBitmap(FOTO, 200 /*Ancho*/, 200 /*Alto*/, false /* filter*/)
+
                     // Mostramos la imagen
-
                     var imgStr = UtilImage.toBase64(FOTO)!!
-                    //imgStr = imgStr.replace("\n","")
-
-                    if (modo == 1)  {
+                    if (modo == 1) {
                         //Para borrar la imagen de muestra
                         if (imagenIni) {
                             imagesSlider.removeAt(0)
@@ -908,7 +927,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             }
 
                             override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                                //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                             }
                         })
                     }
@@ -968,25 +987,26 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         val uiSettings = mMap.uiSettings
         when (modo) {
             1 -> {
-                Log.i("Mapa","Insertar mapa")
+                Log.i("Mapa", "Insertar mapa")
                 uiSettings.isRotateGesturesEnabled = true
                 uiSettings.isZoomControlsEnabled = true
             }
-            2-> {
-                Log.i("Mapa","Modificar mapa")
+            2 -> {
+                Log.i("Mapa", "Modificar mapa")
                 uiSettings.isRotateGesturesEnabled = true
                 uiSettings.isZoomControlsEnabled = true
                 //hace un zoom a la posicion del sitio con un indice 15
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionSite, 15f))
-            }3 -> {
-            Log.i("Mapa","Mirar mapa")
+            }
+            3 -> {
+                Log.i("Mapa", "Mirar mapa")
                 uiSettings.isZoomControlsEnabled = false
                 uiSettings.isScrollGesturesEnabled = false
                 uiSettings.isZoomGesturesEnabled = false
                 uiSettings.isMyLocationButtonEnabled = false
                 mMap.isMyLocationEnabled = false
                 mMap.setMinZoomPreference(15.0f)
-                Log.i("Mapa","nMap: $mMap")
+                Log.i("Mapa", "nMap: $mMap")
             }
         }
     }
@@ -1068,7 +1088,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Posicion del sitio
      */
     private fun sitePosition() {
-        Log.i("mapa","sitePosition-positionSite: posicion sin inicializar")
+        Log.i("mapa", "sitePosition-positionSite: posicion sin inicializar")
         if (this::positionSite.isInitialized) {
             val icon = BitmapDescriptorFactory.fromBitmap(
                 BitmapFactory

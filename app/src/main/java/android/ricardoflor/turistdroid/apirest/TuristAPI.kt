@@ -1,7 +1,6 @@
 package android.ricardoflor.turistdroid.apirest
 
 object TuristAPI {
-    // private const val API_URL = "https://my-json-server.typicode.com/joseluisgs/APIRESTFake/"
 
     private const val server = "florius8.ddns.net" //
 

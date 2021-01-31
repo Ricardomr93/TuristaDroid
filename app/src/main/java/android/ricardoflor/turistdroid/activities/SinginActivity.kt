@@ -308,6 +308,8 @@ class SinginActivity : AppCompatActivity() {
                 val contentURI = data.data!!
                 try {
                     FOTO = differentVersion(contentURI)
+                    FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
+
                     imgBtnPhoto.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgBtnPhoto)
                 } catch (e: IOException) {
@@ -320,6 +322,8 @@ class SinginActivity : AppCompatActivity() {
             //cogemos la imagen
             try {
                 FOTO = differentVersion(IMAGE!!)
+                FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
+
                 // Mostramos la imagen
                 imgBtnPhoto.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgBtnPhoto)

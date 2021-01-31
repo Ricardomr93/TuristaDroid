@@ -1,6 +1,7 @@
 package android.ricardoflor.turistdroid.activities.ui.nexttome
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Bundle
@@ -52,7 +53,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
     private var DISTANCE = 1.0//en Km
-    private var img: String = ""
+    //private var img: String = ""
+    private var imagesSlider: MutableList<Image> = mutableListOf()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,6 +75,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
 
     private fun init() {
         if (initPermisos()) {
+            cargarImagenes()
             initMap()
             myActualPosition()
         } else {
@@ -207,6 +210,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * @param loc :LatLng
      */
     private fun addMarkerSite() {
+        try {
         val turistREST = TuristAPI.service
         val call = turistREST.siteGetAll()
         val nearme = mutableListOf<Site>()
@@ -239,6 +243,10 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             }
 
         }))
+
+        } catch (e: Exception) {
+
+        }
     }
 
 
@@ -249,8 +257,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         //TODO
         mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(marker: Marker): View? {
-                val site = marker.tag as Site
-                cargaImagen(site.id)
+                /*val site = marker.tag as Site
+                cargaImagen(site.id)*/
                 return null
             }
 
@@ -263,14 +271,25 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
 
                 txtNamePlaceInfo.text = site.name
                 ratin.text = String.format("%.1f", (site.rating/site.votos))
-                imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img))
+
+                //imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img))
+
+                if (null != imagesSlider && !imagesSlider!!.isEmpty()) {
+
+                    for (img in imagesSlider!!) {
+                        if (site.id.equals(img.siteID)) {
+                            imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img.uri))
+                            break
+                        }
+                    }
+                }
 
                 return row
             }
         })
     }
 
-    private fun cargaImagen(id: String){
+    /*private fun cargaImagen(id: String){
 
         //Cargamos una imagen para mostrar en el pincho y si no tiene fotos muestra la de por defecto
         var listaImg: MutableList<Image>? = null
@@ -290,6 +309,32 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
 
             override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
                 /*Toast.makeText(applicationContext,getText(R.string.service_error).toString() + t.localizedMessage,Toast.LENGTH_LONG).show()*/
+            }
+        })
+    }*/
+    /**
+     * Metodo encargado de buscar y rellenar las imagenes en el slaider
+     */
+    private fun cargarImagenes() {
+
+        var listaImg: MutableList<Image>? = null
+        val turistREST = TuristAPI.service
+        val call: Call<List<ImageDTO>> = turistREST.imageGetAll()
+        call.enqueue(object : Callback<List<ImageDTO>> {
+            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
+                if (response.isSuccessful) {
+                    imagesSlider =
+                        ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
+                }
+            }
+
+            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
+                /*Toast.makeText(
+                    applicationContext,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()*/
             }
         })
     }

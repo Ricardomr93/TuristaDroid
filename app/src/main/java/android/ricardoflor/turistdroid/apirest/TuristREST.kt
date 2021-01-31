@@ -124,6 +124,12 @@ interface TuristREST {
 
     // ****FOTOGRAFIAS ------------------------------------------------------------------------------------------
     /**
+     * Obtiene todas las imagenes
+     */
+    @GET("image")
+    fun imageGetAll(): Call<List<ImageDTO>>
+
+    /**
      * Obtiene la imagen segun id
      */
     @GET("image/{id}")

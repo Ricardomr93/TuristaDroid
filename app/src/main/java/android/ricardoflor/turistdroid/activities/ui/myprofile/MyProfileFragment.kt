@@ -67,10 +67,11 @@ class MyProfileFragment : Fragment() {
     }
 
     private fun init() {
-        btnUpdateMyprofile.setOnClickListener {buttomUpdate()}
-        btnUnsubMyProfile.setOnClickListener {buttomDelete()}
+        btnUpdateMyprofile.setOnClickListener { buttomUpdate() }
+        btnUnsubMyProfile.setOnClickListener { buttomDelete() }
         getInformation()
         initButtoms()
+
     }
 
     /**
@@ -78,7 +79,7 @@ class MyProfileFragment : Fragment() {
      * en caso de no haberla salta un mensaje para activarlo
      * si la hay modifica el usuario
      */
-    private fun buttomUpdate(){
+    private fun buttomUpdate() {
         if (UtilNet.hasInternetConnection(context)) {
             updateUser()
         } else {
@@ -96,12 +97,13 @@ class MyProfileFragment : Fragment() {
             snackbar.show()
         }
     }
+
     /**
      * Metodo que al pulsar el boton de delete comprueba que hay conexion
      * en caso de no haberla salta un mensaje para activarlo
      * si la hay borra el usuario
      */
-    private fun buttomDelete(){
+    private fun buttomDelete() {
         if (UtilNet.hasInternetConnection(context)) {
             dialogDelete()
         } else {
@@ -118,6 +120,41 @@ class MyProfileFragment : Fragment() {
             }
             snackbar.show()
         }
+    }
+
+    /**
+     * Funcion para compartir con Gmail
+     */
+    private fun shareGmail() {
+        //val uri = getImageUri(requireContext(), qrShare)
+        val intent = Intent().apply {
+            Intent(Intent.ACTION_SENDTO)
+            data = Uri.parse("mailto:")
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_mysite))
+            putExtra(Intent.EXTRA_TEXT, getString(R.string.share_mysite))
+            //putExtra(Intent.EXTRA_STREAM, uri)
+            type = "image/jpeg"
+        }
+        val shareIntent = Intent.createChooser(intent, null)
+        startActivity(shareIntent)
+    }
+
+    /**
+     * Funcion para compartir con Twitter, Facebook e Instagram
+     */
+    fun shareSite(str: String) {
+        val msg: String = getString(R.string.share_mysite)
+        //val uri = getImageUri(requireContext(), qrShare)
+        val intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, msg)
+            type = "text/plain"
+            //putExtra(Intent.EXTRA_STREAM, uri)
+            //type = "image/jpeg"
+            setPackage(str)
+        }
+        val shareIntent = Intent.createChooser(intent, null)
+        startActivity(shareIntent)
     }
 
     /**
@@ -226,6 +263,7 @@ class MyProfileFragment : Fragment() {
                     Toast.makeText(context, R.string.error_put, Toast.LENGTH_SHORT).show()
                 }
             }
+
             override fun onFailure(call: Call<UserDTO>, t: Throwable) {
                 Toast.makeText(
                     context,
@@ -387,9 +425,11 @@ class MyProfileFragment : Fragment() {
      * Inicia los eventos de los botones
      */
     private fun initButtoms() {
-        imgMyprofile.setOnClickListener {
-            initDialogPhoto()
-        }
+        imgMyprofile.setOnClickListener {initDialogPhoto()}
+        imgEmailMyProfile?.setOnClickListener { shareGmail() }
+        imgFaceMyProfile?.setOnClickListener { shareSite("com.facebook.katana") }
+        imgTwitterMyProfile?.setOnClickListener { shareSite("com.twitter.android") }
+        imgInstaMyProfile?.setOnClickListener { shareSite("com.instagram.android") }
     }
 
     /**

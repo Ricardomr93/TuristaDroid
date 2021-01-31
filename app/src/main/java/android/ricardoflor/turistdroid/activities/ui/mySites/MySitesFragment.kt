@@ -143,12 +143,26 @@ class MySitesFragment : Fragment() {
                         }
 
                     } else {
+
+                        handler.post {
+                            //onPostExecute
+                            adapter = SiteListAdapter(sitios) {
+                                eventoClicFila(it)
+                            }
+
+                            my_sites_recicler.adapter = adapter
+                            // Avismos que ha cambiado
+                            adapter.notifyDataSetChanged()
+                            my_sites_recicler.setHasFixedSize(true)
+                            my_sites_swipe.isRefreshing = false
+                        }
+
                         Toast.makeText(context!!, R.string.no_site_filter, Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
-                    Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+
                 }
 
             })
@@ -329,7 +343,9 @@ class MySitesFragment : Fragment() {
     private fun orderSites(pos: Int) {
         when (pos) {
             1 -> { // Order by NAME
-                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.compareTo(dos.name) }
+                this.sitios.sortWith() { uno: Site, dos: Site ->
+                    uno.name.toUpperCase().compareTo(dos.name.toUpperCase())
+                }
                 my_sites_recicler.adapter = adapter
             }
 
@@ -342,7 +358,7 @@ class MySitesFragment : Fragment() {
             }
 
             3 -> { // Order by RATINGS
-                this.sitios.sortWith() { uno: Site, dos: Site -> dos.rating.compareTo(uno.rating) }
+                this.sitios.sortWith() { uno: Site, dos: Site -> (dos.rating / dos.votos).compareTo((uno.rating / uno.votos)) }
                 my_sites_recicler.adapter = adapter
             }
         }
@@ -395,7 +411,11 @@ class MySitesFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context!!,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }))
 

@@ -1,7 +1,6 @@
 package android.ricardoflor.turistdroid.bd.session
 
 import com.google.gson.annotations.SerializedName
-import io.realm.annotations.Required
 
 /**
  * Clase para parsear el JSON

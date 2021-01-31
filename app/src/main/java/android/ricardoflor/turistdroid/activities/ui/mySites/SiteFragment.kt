@@ -48,7 +48,6 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.integration.android.IntentIntegrator
-import io.realm.RealmList
 import kotlinx.android.synthetic.main.fragment_site.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -59,7 +58,6 @@ import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.image.ImageDTO
 import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.widget.RatingBar
-
 import android.widget.RatingBar.OnRatingBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
 import java.io.IOException
@@ -281,9 +279,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun initEditCreateMode() {
         (activity as NavigationActivity?)!!.isEventoFila = false
 
-        //Obtiene el ultimo ID de las imagenes de la BD -- TODO
-        // idFoto = ImageController.getIdImage()
-
         when (modo) {
             1 -> { // Fragment de Creacion
                 // Obtiene instancia a Vibrator
@@ -399,17 +394,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             }
 
             override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                Log.i("rest", "falla on failure cargarDatos")
-                Toast.makeText(
-                    context!!,
-                    "fallaaaaa on failure cargarDatos",
-                    Toast.LENGTH_LONG
-                )
-                    .show()
+                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
             }
 
         })
-        //Log.i("site", sitio.toString())
     }
 
     /**
@@ -440,12 +428,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             }
 
             override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
-                /*Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()*/
+                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -485,9 +468,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                         latitude = posicion!!.latitude
                         longitude = posicion!!.longitude
 
-                        //lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, userID, votos)
                         lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, USER.id, votos)
-
 
                         val turistREST = TuristAPI.service
                         val call: Call<SiteDTO> = turistREST.sitePost(SiteMapper.toDTO(lugar!!))
@@ -510,16 +491,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                                                 }
 
                                                 override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                                    //TODO KO!!!
-                                                    /*Toast.makeText(
-                                                        applicationContext,
-                                                        getText(R.string.service_error).toString() + t.localizedMessage,
-                                                        Toast.LENGTH_LONG
-                                                    )
-                                                        .show()*/
+                                                    Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                                                 }
                                             })
-
                                         }
                                     }
 
@@ -531,13 +505,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             }
 
                             override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                                Log.i("rest", "falla on failure add")
-                                Toast.makeText(
-                                    context!!,
-                                    "falla on failure add",
-                                    Toast.LENGTH_LONG
-                                )
-                                    .show()
+                                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                             }
 
                         })
@@ -596,12 +564,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             }
 
                             override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                                Toast.makeText(
-                                    context!!,
-                                    getText(R.string.service_error).toString() + t.localizedMessage,
-                                    Toast.LENGTH_LONG
-                                )
-                                    .show()
+                                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                             }
 
                         })
@@ -651,12 +614,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     }
 
                     override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                        Toast.makeText(
-                            context!!,
-                            getText(R.string.service_error).toString() + t.localizedMessage,
-                            Toast.LENGTH_LONG
-                        )
-                            .show()
+                        Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                     }
 
                 })
@@ -890,13 +848,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                                 }
 
                                 override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                    //TODO KO!!!
-                                    /*Toast.makeText(
-                                        applicationContext,
-                                        getText(R.string.service_error).toString() + t.localizedMessage,
-                                        Toast.LENGTH_LONG
-                                    )
-                                        .show()*/
+                                    Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                                 }
                             })
                         }
@@ -946,13 +898,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             }
 
                             override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                //TODO KO!!!
-                                /*Toast.makeText(
-                                    applicationContext,
-                                    getText(R.string.service_error).toString() + t.localizedMessage,
-                                    Toast.LENGTH_LONG
-                                )
-                                    .show()*/
+                                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                             }
                         })
                     }

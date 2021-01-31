@@ -6,7 +6,6 @@ import android.graphics.*
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.site.SiteController
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +17,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
-import android.content.Intent
 import android.os.*
 import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.BdController
@@ -34,10 +32,6 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
-import android.ricardoflor.turistdroid.activities.LoginActivity
-import android.ricardoflor.turistdroid.bd.user.UserDTO
-import android.ricardoflor.turistdroid.utils.UtilSession
-import com.google.android.gms.maps.model.LatLng
 
 
 class MySitesFragment : Fragment() {
@@ -149,18 +143,12 @@ class MySitesFragment : Fragment() {
                         }
 
                     } else {
-                        Toast.makeText(context!!, "Error GET", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context!!, R.string.no_site_filter, Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
-                    Log.i("rest", "fallaaaaa on failure cargarSitios MySitesFragment")
-                    Toast.makeText(
-                        context!!,
-                        "fallaaaaa on failure cargarSitios MySitesFragment",
-                        Toast.LENGTH_LONG
-                    )
-                        .show()
+                    Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
                 }
 
             })
@@ -407,13 +395,7 @@ class MySitesFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                Log.i("REST", "delsite failure")
-                Toast.makeText(
-                    context,
-                    context!!.getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()
+                Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
             }
         }))
 

@@ -87,7 +87,7 @@ class SinginActivity : AppCompatActivity() {
     }
 
     /**
-     * Método que haceun intent al login
+     * Método que hace un intent al login
      */
     fun startLogin() {
         val intent = Intent(this, LoginActivity::class.java)
@@ -137,6 +137,9 @@ class SinginActivity : AppCompatActivity() {
         Log.i("user", user.toString())
     }
 
+    /**
+     * Metodo que hace una llamada y devuelve si el email existe para no crear duplicados
+     */
     private fun emailExists() {
         val turistREST = TuristAPI.service
         email = txtEmail.text.toString()

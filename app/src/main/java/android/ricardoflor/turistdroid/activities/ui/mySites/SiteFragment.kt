@@ -133,10 +133,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun init() {
         initButtons()
         initEditCreateMode()
-        if (initPermisos()) {
+       /* if (initPermisos()) {
             initMap()
             myActualPosition()
-        }
+        }*/
 
         cajaFecha?.setOnClickListener { showDatePickerDialog() }
         btnMail?.setOnClickListener { shareGmail() }
@@ -295,6 +295,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 btnAddUpdate?.text = getString(R.string.add)
                 mostrarBotonesSocial(false)
                 add(btnAddUpdate!!)
+                if (initPermisos()) {
+                    initMap()
+                    myActualPosition()
+                }
+
             }
 
             2 -> { // Fragment de Edicion
@@ -386,6 +391,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
                     generateQRCode(textoQr)
                     positionSite = LatLng(lugar!!.latitude, lugar!!.longitude)
+                    Log.i("mapa","cargarDatosSite-positionSite: $positionSite")
+                    if (initPermisos()) {
+                        initMap()
+                        myActualPosition()
+                    }
 
 
                 } else {
@@ -955,26 +965,28 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Depende el modo deshabilita el el mapa no no
      */
     private fun typeMap() {
-
         val uiSettings = mMap.uiSettings
         when (modo) {
             1 -> {
+                Log.i("Mapa","Insertar mapa")
                 uiSettings.isRotateGesturesEnabled = true
                 uiSettings.isZoomControlsEnabled = true
             }
-            2 -> {
+            2-> {
+                Log.i("Mapa","Modificar mapa")
                 uiSettings.isRotateGesturesEnabled = true
                 uiSettings.isZoomControlsEnabled = true
                 //hace un zoom a la posicion del sitio con un indice 15
-                //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionSite, 15f)) TODO
-            }
-            3 -> {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionSite, 15f))
+            }3 -> {
+            Log.i("Mapa","Mirar mapa")
                 uiSettings.isZoomControlsEnabled = false
                 uiSettings.isScrollGesturesEnabled = false
                 uiSettings.isZoomGesturesEnabled = false
                 uiSettings.isMyLocationButtonEnabled = false
                 mMap.isMyLocationEnabled = false
                 mMap.setMinZoomPreference(15.0f)
+                Log.i("Mapa","nMap: $mMap")
             }
         }
     }
@@ -995,7 +1007,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 sitePositionShow()
                 getLatitudeOnClick()
             }
-            else -> {
+            3 -> {
                 sitePositionShow()
             }
         }
@@ -1056,6 +1068,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      * Posicion del sitio
      */
     private fun sitePosition() {
+        Log.i("mapa","sitePosition-positionSite: posicion sin inicializar")
         if (this::positionSite.isInitialized) {
             val icon = BitmapDescriptorFactory.fromBitmap(
                 BitmapFactory

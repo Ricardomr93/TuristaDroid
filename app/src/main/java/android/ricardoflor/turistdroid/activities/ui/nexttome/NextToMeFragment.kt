@@ -51,7 +51,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 0.0//en Km
+    private var DISTANCE = 1.0//en Km
     private var img: String = ""
 
     override fun onCreateView(
@@ -169,10 +169,12 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     }
 
     fun changeDistance() {
+        seekBarNextToMe.progress = 1
         seekBarNextToMe.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                DISTANCE = progress.toDouble()
-                txtKmNextToMe.text = "$progress Km"
+                DISTANCE = (progress+1).toDouble()
+                val prog = progress+1
+                txtKmNextToMe.text = "$prog Km"
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {

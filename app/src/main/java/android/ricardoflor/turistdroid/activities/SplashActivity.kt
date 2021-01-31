@@ -49,23 +49,32 @@ class SplashActivity : AppCompatActivity() {
     }
     private fun init() {
         Log.i("Rest","antesde")
-        if (UtilSession.sessionExist(this)) {
+        if (UtilSession.sessionExist(this)) {//si existe sesion comprueba
             Log.i("Rest","hay sesion")
             checkLogin()
-        }else{
+        }else{//si no hay sesion va directo al login
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
+
+    /**
+     * metodo que comprueba que tod está correcto
+     */
     private fun checkLogin() {
-        if (!UtilNet.hasInternetConnection(this)) {
+        if (!UtilNet.hasInternetConnection(this)) {//si no tiene internet borra pref y va al login
             UtilSession.deleteSessionPref(this)
             toLogin(R.string.no_net_back_login.toString())
-        } else {
+        } else {// comprueba si el tiempo a expirado
             timeExpired()
         }
     }
 
+    /**
+     * Metodo que comprueba si el tiempo de sesion es menor que el limite
+     * si es asi modifica la fecha de la sesion a la de hoy
+     * en caso contrario vuelve al login y borra sesion
+     */
     private fun timeExpired() {
         if (UtilSession.timeExpired(this)) {
             UtilSession.deleteSessionPref(this)
@@ -75,6 +84,9 @@ class SplashActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Modifica la sesion actual por el tiempo de hoy
+     */
     private fun updatetimeSession() {
         val preferences = getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val id = preferences.getString("sessionUID", "")!!.toString()
@@ -97,11 +109,19 @@ class SplashActivity : AppCompatActivity() {
             }
         }))
     }
+
+    /**
+     * metodo que viaja al navigation
+     */
     private fun toNavigation() {
         val intent = Intent(applicationContext, NavigationActivity::class.java)
         startActivity(intent)
         finish()
     }
+
+    /**
+     * metodo que viaja al login y da un mensaje en Toast de lo que ha ocurrido
+     */
     private fun toLogin(string: String){
         startActivity(Intent(this, LoginActivity::class.java))
         finish()

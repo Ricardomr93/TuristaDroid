@@ -146,7 +146,10 @@ class LoginActivity : AppCompatActivity() {
         }))
 
     }
-    
+
+    /**
+     * Metodo que para ir al navigation
+     */
     private fun toNavigation() {
         val intent = Intent(applicationContext, NavigationActivity::class.java)
         startActivity(intent)

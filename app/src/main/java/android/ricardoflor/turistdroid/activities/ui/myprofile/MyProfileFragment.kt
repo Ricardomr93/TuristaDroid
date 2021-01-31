@@ -67,44 +67,57 @@ class MyProfileFragment : Fragment() {
     }
 
     private fun init() {
-        btnUpdateMyprofile.setOnClickListener {
-            if (UtilNet.hasInternetConnection(context)) {
-                updateUser()
-            } else {
-                val snackbar = Snackbar.make(
-                    activity!!.findViewById(android.R.id.content),
-                    R.string.no_net,
-                    Snackbar.LENGTH_INDEFINITE
-                )
-                snackbar.setActionTextColor(activity!!.getColor(R.color.accent))
-                snackbar.setAction("Conectar") {
-                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
-                    startActivity(intent)
-                    activity!!.finish()
-                }
-                snackbar.show()
-            }
-        }
-        btnUnsubMyProfile.setOnClickListener {
-            if (UtilNet.hasInternetConnection(context)) {
-                dialogDelete()
-            } else {
-                val snackbar = Snackbar.make(
-                    activity!!.findViewById(android.R.id.content),
-                    R.string.no_net,
-                    Snackbar.LENGTH_INDEFINITE
-                )
-                snackbar.setActionTextColor(activity!!.getColor(R.color.accent))
-                snackbar.setAction("Conectar") {
-                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
-                    startActivity(intent)
-                    activity!!.finish()
-                }
-                snackbar.show()
-            }
-        }
+        btnUpdateMyprofile.setOnClickListener {buttomUpdate()}
+        btnUnsubMyProfile.setOnClickListener {buttomDelete()}
         getInformation()
         initButtoms()
+    }
+
+    /**
+     * Metodo que al pulsar el boton de update  comprueba que hay conexion
+     * en caso de no haberla salta un mensaje para activarlo
+     * si la hay modifica el usuario
+     */
+    private fun buttomUpdate(){
+        if (UtilNet.hasInternetConnection(context)) {
+            updateUser()
+        } else {
+            val snackbar = Snackbar.make(
+                activity!!.findViewById(android.R.id.content),
+                R.string.no_net,
+                Snackbar.LENGTH_INDEFINITE
+            )
+            snackbar.setActionTextColor(activity!!.getColor(R.color.accent))
+            snackbar.setAction("Conectar") {
+                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                startActivity(intent)
+                activity!!.finish()
+            }
+            snackbar.show()
+        }
+    }
+    /**
+     * Metodo que al pulsar el boton de delete comprueba que hay conexion
+     * en caso de no haberla salta un mensaje para activarlo
+     * si la hay borra el usuario
+     */
+    private fun buttomDelete(){
+        if (UtilNet.hasInternetConnection(context)) {
+            dialogDelete()
+        } else {
+            val snackbar = Snackbar.make(
+                activity!!.findViewById(android.R.id.content),
+                R.string.no_net,
+                Snackbar.LENGTH_INDEFINITE
+            )
+            snackbar.setActionTextColor(activity!!.getColor(R.color.accent))
+            snackbar.setAction("Conectar") {
+                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                startActivity(intent)
+                activity!!.finish()
+            }
+            snackbar.show()
+        }
     }
 
     /**
@@ -119,13 +132,16 @@ class MyProfileFragment : Fragment() {
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
     private fun update() {
-        if (emailChanges()) {
+        if (emailChanges()) {//si el email es distinto al del usuario comprueba si existe en la bd
             emailExists()
         } else {
             updateRest()
         }
     }
 
+    /**
+     * Metodo que cambia los valores del usuario por los de las cajas de texto y devuelve el usuario
+     */
     private fun changeUser(): User {
         val name = txtNameMyProfile.text.toString()
         val nameUser = txtUserNameMyProfile.text.toString()
@@ -158,6 +174,9 @@ class MyProfileFragment : Fragment() {
         return user
     }
 
+    /**
+     * Metodo que comprueba que el email no existe para evitar duplicados
+     */
     private fun emailExists() {
         val turistREST = TuristAPI.service
         val email = txtEmailMyProfile.text.toString()
@@ -181,7 +200,7 @@ class MyProfileFragment : Fragment() {
                 Log.i("REST", "emailExists onFailure")
                 Toast.makeText(
                     context,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    getText(R.string.service_error),
                     Toast.LENGTH_LONG
                 )
                     .show()
@@ -190,6 +209,9 @@ class MyProfileFragment : Fragment() {
 
     }
 
+    /**
+     * Metodo que hace una llamada y modifica el usuario
+     */
     private fun updateRest() {
         val user = changeUser()
         val turistREST = TuristAPI.service
@@ -204,11 +226,10 @@ class MyProfileFragment : Fragment() {
                     Toast.makeText(context, R.string.error_put, Toast.LENGTH_SHORT).show()
                 }
             }
-
             override fun onFailure(call: Call<UserDTO>, t: Throwable) {
                 Toast.makeText(
                     context,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    getText(R.string.service_error),
                     Toast.LENGTH_LONG
                 )
                     .show()
@@ -326,7 +347,7 @@ class MyProfileFragment : Fragment() {
                 Log.i("REST", "delUser failure")
                 Toast.makeText(
                     context,
-                    context!!.getText(R.string.service_error).toString() + t.localizedMessage,
+                    getText(R.string.service_error),
                     Toast.LENGTH_LONG
                 )
                     .show()

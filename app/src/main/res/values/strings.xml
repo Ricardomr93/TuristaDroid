@@ -126,7 +126,7 @@
     <string name="need_camera">You need camera permissions</string>
     <string name="need_gallery">You need gallery permissions</string>
     <string name="need_location">You need location permissions</string>
-    <string name="service_error">Error accessing the service: </string>
+    <string name="service_error">Error with the service</string>
     <string name="no_net">Error you need an internet connection</string>
     <string name="error_post">Error with user insertion</string>
     <string name="error_put">Error with user update</string>

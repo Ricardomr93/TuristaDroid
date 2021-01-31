@@ -76,7 +76,6 @@ class NavigationActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         //opciones adicionales
-        //getUserBySession(this)
         actualizarDatos(this)
     }
 
@@ -151,6 +150,9 @@ class NavigationActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Metodo que enciende la linterna
+     */
     private fun turnOnLight() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -173,7 +175,7 @@ class NavigationActivity : AppCompatActivity() {
     /**
      * Metodo que busca al usario con el id de la session
      */
-    fun getUserBySession(context: Context, idUser: String) {
+    fun getUserBySession(idUser: String) {
         val turistREST = TuristAPI.service
 
         Log.i("rest","idUser: $idUser")
@@ -194,8 +196,6 @@ class NavigationActivity : AppCompatActivity() {
                     Log.i("REST", "Entra en onFailure getUserBySession navigation")
 
                 }
-
-
             }))
         }
     }
@@ -224,10 +224,9 @@ class NavigationActivity : AppCompatActivity() {
     private fun actualizarDatos(context: Context) {
         val idUser = UtilSession.getUserID(context)
         Log.i("Rest","iDUSER actualizarDatos: $idUser")
-        //va a uno u otro dependiendo de si viene del login o no
-        if (idUser !=""){
-            getUserBySession(context,idUser)
-        }else{
+        if (idUser !=""){//viene directo al navigation coge el id de las preferencias y asigna a USER
+            getUserBySession(idUser)
+        }else{//viene del login
             cambiarDatos()
         }
     }

@@ -511,6 +511,8 @@ class MyProfileFragment : Fragment() {
                 val contentURI = data.data!!
                 try {
                     FOTO = differentVersion(contentURI)
+                    FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
+
                     imgMyprofile.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgMyprofile)
                 } catch (e: IOException) {
@@ -523,6 +525,8 @@ class MyProfileFragment : Fragment() {
             //cogemos la imagen
             try {
                 FOTO = differentVersion(IMAGE)
+                FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
+                
                 // Mostramos la imagen
                 imgMyprofile.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgMyprofile)

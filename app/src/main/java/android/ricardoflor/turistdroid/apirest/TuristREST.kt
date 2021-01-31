@@ -13,8 +13,8 @@ interface TuristREST {
     /**
      * Obtiene la sesion por id de usuario
      */
-    @GET("session/")
-    fun sesionGetById(@Query("userId") userId: String): Call<List<SessionDTO>>
+    @GET("session/{id}")
+    fun sesionGetById(@Path("id") userId: String): Call<SessionDTO>
 
     /**
      * Actualiza la sesion

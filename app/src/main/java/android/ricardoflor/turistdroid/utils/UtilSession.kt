@@ -33,32 +33,31 @@ object UtilSession {
     fun sessionExist(context: Context): Boolean {
         val prefs = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val session = prefs.getString("sessionUID", "").toString()
-        Log.i("util", "Usuario ID: $session")
+        Log.i("rest", "Usuario ID: $session")
         return session.isNotEmpty()
     }
+
     /**
      * Metodo que comprueba que el id de
      */
     fun comprobarIDSession(id: String, context: Context) {
         val turistREST = TuristAPI.service
-        Log.i("Rest","id a comprobar: $id")
+        Log.i("Rest", "id a comprobar: $id")
         val call = turistREST.sesionGetById(id)
-        call.enqueue((object : Callback<List<SessionDTO>> {
-            override fun onResponse(call: Call<List<SessionDTO>>, response: Response<List<SessionDTO>>) {
+        call.enqueue((object : Callback<SessionDTO> {
+            override fun onResponse(call: Call<SessionDTO>, response: Response<SessionDTO>) {
                 Log.i("REST", "onResponse comprobarIDSession")
+                Log.i("REST", "isSuccessful comprobarIDSession")
                 if (response.isSuccessful) {
-                    Log.i("REST", "isSuccessful comprobarIDSession")
-                    if (response.body()!!.isEmpty()) {//si no devuelve ninguna fila crea una session
-                        Log.i("Rest","No existe sesion en bd")
-                        createSession(id, context)
-                    } else {
-                        val session = SessionMapper.fromDTO(response.body()!![0])//si saca coge la primera fila
-                        createSessionPref(context, session)
-                    }
+                    Log.i("Rest", "existe sesion en bd")
+                    val session = SessionMapper.fromDTO(response.body()!!)//si saca crea session preferencias
+                    createSessionPref(context, session)
+                } else {//si no devuelve ninguna fila crea una session
+                    Log.i("Rest", "No existe sesion en bd")
+                    createSession(id, context)
                 }
             }
-
-            override fun onFailure(call: Call<List<SessionDTO>>, t: Throwable) {
+            override fun onFailure(call: Call<SessionDTO>, t: Throwable) {
                 Log.i("REST", "salta error comprobarIDSession")
                 Toast.makeText(
                     context,
@@ -80,13 +79,14 @@ object UtilSession {
         editor.putString("sessionTime", session.time)
         editor.putString("sessionToken", session.token)
         editor.apply()
+        Log.i("rest", "creado sesion: ${session.id}")
     }
 
     /**
      * Metodo que borra la sesion en las preferencias
      */
     fun deleteSessionPref(context: Context) {
-        Log.i("Rest","session preferencias borrada")
+        Log.i("Rest", "session preferencias borrada")
         val preferences = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val editor = preferences.edit()
         editor.remove("sessionUID")
@@ -98,15 +98,15 @@ object UtilSession {
     /**
      * metodo que comprueba si ha expirado o no el tiempo
      */
-    fun timeExpired(context: Context) :Boolean{
+    fun timeExpired(context: Context): Boolean {
         var expired = true
         val preferences = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
-        val time = preferences.getString("sessionTime","").toString()
-        Log.i("rest","Tiempo sesion: $time")
-        Log.i("rest","Tiempo ahora: ${Instant.now()}")
+        val time = preferences.getString("sessionTime", "").toString()
+        Log.i("rest", "Tiempo sesion: $time")
+        Log.i("rest", "Tiempo ahora: ${Instant.now()}")
         val timeSession = Instant.parse(time)
-        val days = ChronoUnit.DAYS.between(timeSession,Instant.now())
-        if (days <= MAX_LIMITE_DAY){
+        val days = ChronoUnit.DAYS.between(timeSession, Instant.now())
+        if (days <= MAX_LIMITE_DAY) {
             expired = false
         }
         return expired
@@ -129,7 +129,7 @@ object UtilSession {
         call.enqueue(object : Callback<SessionDTO> {
             override fun onResponse(call: Call<SessionDTO>, response: Response<SessionDTO>) {
                 if (response.isSuccessful) {
-                    Log.i("Rest","Session: $sess.")
+                    Log.i("Rest", "Session: $sess.")
                     createSessionPref(context, sess)
                 }
             }
@@ -157,7 +157,6 @@ object UtilSession {
                 Log.i("REST", "sesionDelete onResponse")
                 if (response.isSuccessful) {
                     Log.i("REST", "sesionDelete isSuccessful")
-                    deleteSessionPref(context)
                     Log.i("REST", "sesionDelete ok")
                 } else {
                     Log.i("REST", "Error: SesionDelete isSuccessful")

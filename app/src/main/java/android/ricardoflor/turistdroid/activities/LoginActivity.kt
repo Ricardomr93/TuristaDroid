@@ -118,15 +118,17 @@ class LoginActivity : AppCompatActivity() {
                 Log.i("REST", "Entra en onResponse userExists")
                 if (response.isSuccessful && response.body()!!.isNotEmpty()) {
                     Log.i("REST", "Entra en isSuccessful userExists")
-
                     Log.i("REST", "usuario existe")
                     val user = UserMapper.fromDTO(response.body()!![0])//saca el primer resultado
                     Log.i("rest", pass + " pass2: " + user.password)
                     if (user.password == pass) {
                         USER = user
-                        UtilSession.comprobarIDSession(USER.id, applicationContext)
                         Log.i("rest", "Usuario: $USER")
+                        UtilSession.comprobarIDSession(USER.id, applicationContext)
                         toNavigation()
+                    }else {
+                        editTextLoginMail.error = getString(R.string.userNotCorrect)//manda mensaje de que no son correctos
+                        Log.i("REST", "Error: usuario no existe")
                     }
                 } else {
                     editTextLoginMail.error = getString(R.string.userNotCorrect)//manda mensaje de que no son correctos

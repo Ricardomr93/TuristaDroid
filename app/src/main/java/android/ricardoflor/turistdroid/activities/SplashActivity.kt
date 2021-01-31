@@ -48,11 +48,11 @@ class SplashActivity : AppCompatActivity() {
         }, TIME_SPLASH)
     }
     private fun init() {
-        Log.i("Rest","antesde")
         if (UtilSession.sessionExist(this)) {//si existe sesion comprueba
             Log.i("Rest","hay sesion")
             checkLogin()
         }else{//si no hay sesion va directo al login
+            Log.i("Rest","no hay sesion")
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
@@ -105,7 +105,7 @@ class SplashActivity : AppCompatActivity() {
                 }
             }
             override fun onFailure(call: Call<SessionDTO>, t: Throwable) {
-
+                toLogin(R.string.service_error.toString())
             }
         }))
     }

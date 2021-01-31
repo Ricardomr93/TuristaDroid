@@ -1,11 +1,9 @@
-package android.ricardoflor.turistdroid.impExp
+package android.ricardoflor.turistdroid.export
 
 import android.ricardoflor.turistdroid.bd.image.Image
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.user.User
 
-class ImpExp(
-    val users: MutableList<User>,
+class Export(
     val sites: MutableList<Site>,
     val images: MutableList<Image>
 )

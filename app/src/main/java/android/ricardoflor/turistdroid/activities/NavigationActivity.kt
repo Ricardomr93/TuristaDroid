@@ -10,8 +10,12 @@ import android.os.Build
 import android.os.Bundle
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.apirest.TuristAPI
+import android.ricardoflor.turistdroid.bd.user.UserDTO
+import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilImage
-import android.ricardoflor.turistdroid.utils.UtilImpExp
+import android.ricardoflor.turistdroid.utils.UtilExp
+import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -27,6 +31,9 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class NavigationActivity : AppCompatActivity() {
@@ -69,7 +76,7 @@ class NavigationActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         //opciones adicionales
-        getInformation()
+        actualizarDatos(this)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -87,15 +94,10 @@ class NavigationActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         return when (item.itemId) {
-            R.id.action_import -> {
-                // IMPORTAR
-                UtilImpExp.import(this)
-                true
-            }
 
             R.id.action_export -> {
                 // EXPORTAR
-                UtilImpExp.export(this)
+                UtilExp.export(this)
                 true
             }
 
@@ -148,6 +150,9 @@ class NavigationActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Metodo que enciende la linterna
+     */
     private fun turnOnLight() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -166,14 +171,44 @@ class NavigationActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    private fun getInformation() {
-        // actualizamos el perfil con los datos de la sesion
+
+    /**
+     * Metodo que busca al usario con el id de la session
+     */
+    fun getUserBySession(idUser: String) {
+        val turistREST = TuristAPI.service
+
+        Log.i("rest","idUser: $idUser")
+        if (idUser != ""){
+            val call = turistREST.userGetById(idUser)
+            call.enqueue((object : Callback<UserDTO> {
+                override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+                    Log.i("REST", "Entra en onResponse getUserBySession navigation")
+                    if (response.isSuccessful) {
+                        Log.i("REST", "Entra en isSuccessful getUserBySession navigation")
+                        val user = UserMapper.fromDTO(response.body()!!)
+                        USER = user
+                        cambiarDatos()
+                    }
+                }
+
+                override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                    Log.i("REST", "Entra en onFailure getUserBySession navigation")
+
+                }
+            }))
+        }
+    }
+
+    /**
+     * Metodo que recoge los datos del user y los almacena en los datos del nav
+     */
+    private fun cambiarDatos(){
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         val headerView: View = navigationView.getHeaderView(0)
         navUsername = headerView.findViewById(R.id.txtNavUser)
         navUserEmail = headerView.findViewById(R.id.txtNavEmail)
         navUserImage = headerView.findViewById(R.id.imgNavUser)
-
         //obtenemos el email de la sesion y obtenemos el usuario
         Log.i("util", USER.toString())
         //cambiamos los valores por los del usuario
@@ -183,6 +218,16 @@ class NavigationActivity : AppCompatActivity() {
             Log.i("util", "Carga imagen")
             navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
             UtilImage.redondearFoto(navUserImage)
+        }
+    }
+
+    private fun actualizarDatos(context: Context) {
+        val idUser = UtilSession.getUserID(context)
+        Log.i("Rest","iDUSER actualizarDatos: $idUser")
+        if (idUser !=""){//viene directo al navigation coge el id de las preferencias y asigna a USER
+            getUserBySession(idUser)
+        }else{//viene del login
+            cambiarDatos()
         }
     }
 }

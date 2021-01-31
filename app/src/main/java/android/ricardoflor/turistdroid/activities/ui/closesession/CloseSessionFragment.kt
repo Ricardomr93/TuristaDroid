@@ -24,7 +24,8 @@ class CloseSessionFragment : Fragment() {
      * Funcion para Cerrar Sesion
      */
     private fun logout() {
-        UtilSession.closeSession()
+        UtilSession.deleteSessionPref(context!!)
+        UtilSession.closeSession(context!!)
         startActivity(Intent(context, LoginActivity::class.java))
         activity!!.finish()
     }

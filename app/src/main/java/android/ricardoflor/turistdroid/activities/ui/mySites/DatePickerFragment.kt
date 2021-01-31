@@ -12,7 +12,7 @@ import java.util.*
  * Clase DatePickerFragment.
  * Nos muestra un Dialog de un DatePicker
  */
-class DatePickerFragment(val listener: (day: Int, month: Int, year: Int) -> Unit): DialogFragment(),
+class DatePickerFragment(val listener: (day: Int, month: Int, year: Int) -> Unit) : DialogFragment(),
     DatePickerDialog.OnDateSetListener {
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
@@ -28,7 +28,7 @@ class DatePickerFragment(val listener: (day: Int, month: Int, year: Int) -> Unit
 
         //val picker = DatePickerDialog(activity as Context, R.style.AppTheme_datePickerTheme, this, anio, mes, dia)
         val picker = DatePickerDialog(activity as Context, this, anio, mes, dia)
-        // Coche como fecha maxima la de hoy
+        // Coge como fecha maxima la de hoy
         picker.datePicker.maxDate = cal.timeInMillis
 
         return picker

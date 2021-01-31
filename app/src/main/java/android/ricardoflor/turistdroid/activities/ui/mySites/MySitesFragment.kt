@@ -6,7 +6,6 @@ import android.graphics.*
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.site.SiteController
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -19,19 +18,27 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
 import android.os.*
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.BdController
+import android.ricardoflor.turistdroid.bd.site.SiteDTO
+import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
+import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 
 
 class MySitesFragment : Fragment() {
 
     private var sitios = mutableListOf<Site>()
     private var spinnerOrder: Spinner? = null
+    private var spinnerFilter: Spinner? = null
 
     // Interfaz gráfica
     private lateinit var adapter: SiteListAdapter
@@ -47,10 +54,9 @@ class MySitesFragment : Fragment() {
     ): View? {
         var root = inflater.inflate(R.layout.fragment_my_sites, container, false)
         spinnerOrder = root.findViewById(R.id.spinnerOrder)
+        spinnerFilter = root.findViewById(R.id.spinnerFilter)
         return root
     }
-
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -63,13 +69,14 @@ class MySitesFragment : Fragment() {
         iniciarSwipeRecarga()
 
         // Cargamos los datos por primera vez
-        cargaSitios()
+        cargaSitios(null)
 
         // Solo si hemos cargado hacemos sl swipeHorizontal
         iniciarSwipeHorizontal()
 
-        // Iniciamos el spinner
-       // iniciarSpinner()
+        // Iniciamos los spinner
+        iniciarSpinnerFilter()
+        iniciarSpinnerOrder()
 
         // Mostramos las vistas de listas y adaptador asociado
         my_sites_recicler.layoutManager = LinearLayoutManager(context)
@@ -79,7 +86,6 @@ class MySitesFragment : Fragment() {
 
         // Obtiene instancia a Vibrator
         vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
 
     }
 
@@ -91,44 +97,75 @@ class MySitesFragment : Fragment() {
         my_sites_swipe.setProgressBackgroundColorSchemeResource(R.color.primary_text)
         my_sites_swipe.setOnRefreshListener {
             spinnerOrder?.setSelection(0)
-            cargaSitios()
+            spinnerFilter?.setSelection(0)
+            cargaSitios(null)
         }
     }
 
     /**
      * Carga los Sitios
      */
-    private fun cargaSitios() {
+    private fun cargaSitios(callFilter: Call<List<SiteDTO>>?) {
         sitios = mutableListOf<Site>()
 
         val executor = Executors.newSingleThreadExecutor()
         val handler = Handler(Looper.getMainLooper())
         executor.execute {
-            //doInBackground()
-            try {
-                val lista: MutableList<Site>? = SiteController.selectAllSite()
 
-                if (lista != null) {
-                    for (it in lista) {
-                        sitios.add(it)
+            //doInBackground()
+            val turistREST = TuristAPI.service
+            var call: Call<List<SiteDTO>>? = null
+
+            // Identificamos si el call trae informacion, sino se la asignamos
+            if (callFilter == null) {
+                call = turistREST.siteGetAll()
+            } else {
+                call = callFilter
+            }
+
+            call!!.enqueue(object : Callback<List<SiteDTO>> {
+                override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
+                    if (response.isSuccessful && response.body()!!.isNotEmpty()) {
+                        sitios =
+                            SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>) as MutableList<Site>//saca todos los resultados
+
+                        handler.post {
+                            //onPostExecute
+                            adapter = SiteListAdapter(sitios) {
+                                eventoClicFila(it)
+                            }
+
+                            my_sites_recicler.adapter = adapter
+                            // Avismos que ha cambiado
+                            adapter.notifyDataSetChanged()
+                            my_sites_recicler.setHasFixedSize(true)
+                            my_sites_swipe.isRefreshing = false
+                        }
+
+                    } else {
+
+                        handler.post {
+                            //onPostExecute
+                            adapter = SiteListAdapter(sitios) {
+                                eventoClicFila(it)
+                            }
+
+                            my_sites_recicler.adapter = adapter
+                            // Avismos que ha cambiado
+                            adapter.notifyDataSetChanged()
+                            my_sites_recicler.setHasFixedSize(true)
+                            my_sites_swipe.isRefreshing = false
+                        }
+
+                        Toast.makeText(context!!, R.string.no_site_filter, Toast.LENGTH_SHORT).show()
                     }
                 }
-            } catch (e: Exception) {
-            }
 
-            handler.post {
-                //onPostExecute
-                adapter = SiteListAdapter(sitios) {
-                    eventoClicFila(it)
+                override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
+
                 }
 
-                my_sites_recicler.adapter = adapter
-                // Avismos que ha cambiado
-                adapter.notifyDataSetChanged()
-                my_sites_recicler.setHasFixedSize(true)
-                my_sites_swipe.isRefreshing = false
-
-            }
+            })
         }
     }
 
@@ -177,7 +214,7 @@ class MySitesFragment : Fragment() {
                         }
                     }
                 }
-                cargaSitios()
+                cargaSitios(null)
             }
 
             // Dibujamos los botones
@@ -213,10 +250,80 @@ class MySitesFragment : Fragment() {
     }
 
     /**
-     *
+     * Inicia el Spinner Filter
      */
-    private fun iniciarSpinner() {
-        val orderBy = resources.getStringArray(R.array.Filters)
+    private fun iniciarSpinnerFilter() {
+        val filterBy = resources.getStringArray(R.array.Filters)
+        val adapter = ArrayAdapter(
+            context!!,
+            android.R.layout.simple_spinner_item, filterBy
+        )
+        spinnerFilter!!.adapter = adapter
+        spinnerFilter!!.onItemSelectedListener = object :
+            AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                filterSites(position)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+    }
+
+    /**
+     * Metodo que realiza el filtrado de los GETs
+     */
+    private fun filterSites(pos: Int) {
+        val turistREST = TuristAPI.service
+        var call: Call<List<SiteDTO>>? = null
+
+        when (pos) {
+            1 -> { // Filter by ALL SITES
+                cargaSitios(null)
+            }
+
+            2 -> { // Filter by MY SITES
+                call = turistREST.siteGetByUserID(USER.id)
+                cargaSitios(call)
+            }
+
+            3 -> { // Filter by CITY
+                call = turistREST.siteGetBySite("City")
+                cargaSitios(call)
+            }
+
+            4 -> { // Filter by PARK
+                call = turistREST.siteGetBySite("Park")
+                cargaSitios(call)
+            }
+
+            5 -> { // Filter by BAR
+                call = turistREST.siteGetBySite("Bar")
+                cargaSitios(call)
+            }
+
+            6 -> { // Filter by MONUMENT
+                call = turistREST.siteGetBySite("Monument")
+                cargaSitios(call)
+            }
+
+            7 -> { // Filter by RESTAURANT
+                call = turistREST.siteGetBySite("Restaurant")
+                cargaSitios(call)
+            }
+
+            8 -> { // Filter by SHOP
+                call = turistREST.siteGetBySite("Shop")
+                cargaSitios(call)
+            }
+        }
+    }
+
+    /**
+     * Inicia el Spinner Order
+     */
+    private fun iniciarSpinnerOrder() {
+        val orderBy = resources.getStringArray(R.array.Orders)
         val adapter = ArrayAdapter(
             context!!,
             android.R.layout.simple_spinner_item, orderBy
@@ -229,7 +336,6 @@ class MySitesFragment : Fragment() {
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                // write code to perform some action
             }
         }
     }
@@ -237,7 +343,9 @@ class MySitesFragment : Fragment() {
     private fun orderSites(pos: Int) {
         when (pos) {
             1 -> { // Order by NAME
-                this.sitios.sortWith() { uno: Site, dos: Site -> uno.name.compareTo(dos.name) }
+                this.sitios.sortWith() { uno: Site, dos: Site ->
+                    uno.name.toUpperCase().compareTo(dos.name.toUpperCase())
+                }
                 my_sites_recicler.adapter = adapter
             }
 
@@ -250,19 +358,20 @@ class MySitesFragment : Fragment() {
             }
 
             3 -> { // Order by RATINGS
-                this.sitios.sortWith() { uno: Site, dos: Site -> dos.rating.compareTo(uno.rating) }
+                this.sitios.sortWith() { uno: Site, dos: Site -> (dos.rating / dos.votos).compareTo((uno.rating / uno.votos)) }
                 my_sites_recicler.adapter = adapter
             }
         }
     }
 
     private fun borrarElemento(position: Int) {
-        // Acciones
         val deletedSite = sitios[position]
-        adapter.removeItem(position)
-
-        confirmDialog(deletedSite, position)
-
+        if (USER.id == deletedSite.userID) {
+            adapter.removeItem(position)
+            confirmDialog(deletedSite, position)
+        } else {
+            Toast.makeText(requireContext(), R.string.no_permiss, Toast.LENGTH_SHORT).show()
+        }
     }
 
     /**
@@ -281,17 +390,35 @@ class MySitesFragment : Fragment() {
     }
 
     fun acceptDelete(site: Site) {
-        try {
-            // Borramos el sitio de Base de Datos
-            SiteController.deleteSite(site)
-            Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
-            vibrate()
-            cargaSitios()
+        // Borramos el sitio de Base de Datos
+        val turistREST = TuristAPI.service
+        val call: Call<SiteDTO> = turistREST.siteDelete(site.id)
+        call.enqueue((object : Callback<SiteDTO> {
 
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), R.string.error, Toast.LENGTH_SHORT).show()
-        }
+            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
+                Log.i("REST", "onResponse delsite")
+                if (response.isSuccessful) {
+                    Log.i("REST", "isSuccessful delsite")
+                    Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
+
+                    vibrate()
+                    cargaSitios(null)
+
+                } else {
+                    Log.i("REST", "Error: isSuccessful delsite")
+                }
+            }
+
+            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
+                Toast.makeText(
+                    context!!,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }))
+
     }
 
     fun cancelDelete(site: Site, position: Int) {
@@ -305,7 +432,12 @@ class MySitesFragment : Fragment() {
      */
     private fun editarElemento(position: Int) {
         val site = sitios[position]
-        openSite(site, 2)
+        if (USER.id == site.userID) {
+            openSite(site, 2)
+        } else {
+            Toast.makeText(requireContext(), R.string.no_permiss, Toast.LENGTH_SHORT).show()
+        }
+
         // Esto es para que no se quede el color
         adapter.removeItem(position)
         adapter.restoreItem(site, position)
@@ -379,7 +511,7 @@ class MySitesFragment : Fragment() {
         transaction.add(R.id.nav_host_fragment, addSites)
         transaction.addToBackStack(null)
         transaction.commit()
-        cargaSitios()
+        cargaSitios(null)
     }
 
     /**

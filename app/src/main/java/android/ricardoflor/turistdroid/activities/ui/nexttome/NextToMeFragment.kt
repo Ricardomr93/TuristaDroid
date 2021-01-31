@@ -1,6 +1,7 @@
 package android.ricardoflor.turistdroid.activities.ui.nexttome
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Bundle
@@ -9,14 +10,20 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
 import android.ricardoflor.turistdroid.activities.ui.mySites.MySitesFragment
 import android.ricardoflor.turistdroid.activities.ui.mySites.SiteFragment
+import android.ricardoflor.turistdroid.apirest.TuristAPI
+import android.ricardoflor.turistdroid.bd.image.Image
+import android.ricardoflor.turistdroid.bd.image.ImageDTO
+import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.site.SiteController
+import android.ricardoflor.turistdroid.bd.site.SiteDTO
+import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -31,6 +38,11 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.fragment_next_to_me.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.util.*
 
 class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -40,8 +52,9 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     private var location: Location? = null
     private var posicion: LatLng? = null
     private var locationRequest: LocationRequest? = null
-    private var DISTANCE = 0.035000
-
+    private var DISTANCE = 1.0//en Km
+    //private var img: String = ""
+    private var imagesSlider: MutableList<Image> = mutableListOf()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,10 +74,11 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     }
 
     private fun init() {
-        if(initPermisos()){
+        if (initPermisos()) {
+            cargarImagenes()
             initMap()
             myActualPosition()
-        }else{
+        } else {
             Toast.makeText(
                 context?.applicationContext,
                 getString(R.string.need_location),
@@ -104,6 +118,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         getPosition()
         locationReq()
         clickOnInfoWIndow()
+        changeDistance()
     }
 
     /**
@@ -114,6 +129,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         infoWindow()
         return false
     }
+
     /**
      * Metodo que pinta un marcador en la posicion indicada
      */
@@ -131,6 +147,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         )
         marker.tag = site // para recuperarlo al pulsar
     }
+
     /**
      * Actualiza la camara para que se vean todos los marcadores
      * @param listaLugares MutableList<Site>?
@@ -140,12 +157,12 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         for (item in listaLugares!!) {
             bc.include(LatLng(item.latitude, item.longitude))
         }
-        bc.include(LatLng(posicion!!.latitude,posicion!!.longitude))
+        bc.include(LatLng(posicion!!.latitude, posicion!!.longitude))
         //si no encuentra ninguno no entra
-        if(listaLugares.size > 0){
+        if (listaLugares.size > 0) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 120))
-        }else{
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion,15f))
+        } else {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion, 15f))
             Toast.makeText(
                 context?.applicationContext,
                 getString(R.string.not_found),
@@ -154,49 +171,170 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         }
     }
 
+    fun changeDistance() {
+        seekBarNextToMe.progress = 1
+        seekBarNextToMe.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                DISTANCE = (progress+1).toDouble()
+                val prog = progress+1
+                txtKmNextToMe.text = "$prog Km"
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                addMarkerSite()
+            }
+        })
+    }
+
+    /**
+     * Calcula la distancia entre dos coordenadas y devuelve la longitud en Km
+     */
+    fun distanciaCoord(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val radioTierra = 6371.0 //en kilómetros
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val sindLat = Math.sin(dLat / 2)
+        val sindLng = Math.sin(dLng / 2)
+        val va1 = Math.pow(sindLat, 2.0) + (Math.pow(sindLng, 2.0)
+                * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)))
+        val va2 = 2 * Math.atan2(Math.sqrt(va1), Math.sqrt(1 - va1))
+        return radioTierra * va2
+    }
+
     /**
      * Metodo que muestra todos los lugares cercanos a la posicion dada por parametro
      * @param loc :LatLng
      */
-    private fun addMarkerSite(loc: LatLng) {
-        Log.i("mape", loc.latitude.toString() + "-+" + loc.longitude.toString())
-        val listSites = SiteController.selectByNear(loc.latitude, loc.longitude, DISTANCE)
-        //var listSites = SiteController.selectAllSite()
-        Log.i("mape", listSites.toString())
-        //si hay lugares los pinta
-        if (listSites != null) {
-            for (site in listSites) {
-                Log.i("mape", site.toString())
-                val loc = LatLng(site.latitude, site.longitude)
-                markCurrentPostition(loc, site)
+    private fun addMarkerSite() {
+        try {
+        val turistREST = TuristAPI.service
+        val call = turistREST.siteGetAll()
+        val nearme = mutableListOf<Site>()
+        call.enqueue((object : Callback<List<SiteDTO>> {
+            override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
+                Log.i("REST", "Entra en onResponse addMarkerSite")
+                if (response.isSuccessful && response.body()!!.isNotEmpty()) {
+                    Log.i("REST", "Entra en isSuccessful addMarkerSite")
+                    val siteList =
+                        SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>) as MutableList<Site>//saca todos los resultados
+                    //Los va recorriendo y rellenando
+                    for (site in siteList) {
+                        if (posicion != null) {
+                            val distance =
+                                distanciaCoord(posicion!!.latitude, posicion!!.longitude, site.latitude, site.longitude)
+                            Log.i("Mapa", "${site.name}: $distance distancia2: $DISTANCE")
+                            if (distance <= DISTANCE) {
+                                nearme.add(site)
+                                val loc = LatLng(site.latitude, site.longitude)
+                                markCurrentPostition(loc, site)
+                            }
+                        }
+                    }
+                    allSeeMarker(nearme)
+                }
             }
-            allSeeMarker(listSites)
-        }else{
-            Log.i("mape", "ningun lugar cercano)")
+
+            override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
+                Log.i("Rest", "Entra en onFailure addMarkerSite")
+            }
+
+        }))
+
+        } catch (e: Exception) {
+
         }
     }
+
 
     /**
      * Metodo que muestra una burbuja de dialogo con el nombre foto y puntuacion
      */
-    private fun infoWindow(){
-        mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter{
+    private fun infoWindow() {
+        //TODO
+        mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(marker: Marker): View? {
+                /*val site = marker.tag as Site
+                cargaImagen(site.id)*/
                 return null
             }
+
             override fun getInfoContents(marker: Marker): View {
                 val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
-                val ratin : TextView = row.findViewById(R.id.txtmakerdialograting)
+                val ratin: TextView = row.findViewById(R.id.txtmakerdialograting)
                 val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
-                val site =  marker.tag as Site
+                val site = marker.tag as Site
+
                 txtNamePlaceInfo.text = site.name
-                ratin.text = site.rating.toString()
-                //si no tiene fotos muestra la de por defecto
-                if (site.image.size > 0){
-                    imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(site.image[0]!!.image))
+                ratin.text = String.format("%.1f", (site.rating/site.votos))
+
+                //imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img))
+
+                if (null != imagesSlider && !imagesSlider!!.isEmpty()) {
+
+                    for (img in imagesSlider!!) {
+                        if (site.id.equals(img.siteID)) {
+                            imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img.uri))
+                            break
+                        }
+                    }
                 }
+
                 return row
+            }
+        })
+    }
+
+    /*private fun cargaImagen(id: String){
+
+        //Cargamos una imagen para mostrar en el pincho y si no tiene fotos muestra la de por defecto
+        var listaImg: MutableList<Image>? = null
+        val turistREST = TuristAPI.service
+        val call: Call<List<ImageDTO>> = turistREST.imageGetbyIDSite(id)
+        call.enqueue(object : Callback<List<ImageDTO>> {
+            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
+                if (response.isSuccessful) {
+                    listaImg =
+                        ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
+
+                    if (null != listaImg && !listaImg!!.isEmpty()){
+                        img = listaImg!![0].uri
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
+                /*Toast.makeText(applicationContext,getText(R.string.service_error).toString() + t.localizedMessage,Toast.LENGTH_LONG).show()*/
+            }
+        })
+    }*/
+    /**
+     * Metodo encargado de buscar y rellenar las imagenes en el slaider
+     */
+    private fun cargarImagenes() {
+
+        var listaImg: MutableList<Image>? = null
+        val turistREST = TuristAPI.service
+        val call: Call<List<ImageDTO>> = turistREST.imageGetAll()
+        call.enqueue(object : Callback<List<ImageDTO>> {
+            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
+                if (response.isSuccessful) {
+                    imagesSlider =
+                        ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
+                }
+            }
+
+            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
+                /*Toast.makeText(
+                    applicationContext,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()*/
             }
         })
     }
@@ -204,11 +342,11 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     /**
      * Método que al hacer click en el cuadro de dialogo abre el sitio
      */
-    private fun clickOnInfoWIndow(){
-        if (this::mMap.isInitialized){
+    private fun clickOnInfoWIndow() {
+        if (this::mMap.isInitialized) {
             mMap.setOnInfoWindowClickListener {
                 val site = it.tag as Site
-                openSite(site,3)
+                openSite(site, 3)
             }
         }
 
@@ -217,7 +355,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
     /**
      * Método que abre un fragment sitio
      */
-    private fun openSite(site: Site, modo: Int){
+    private fun openSite(site: Site, modo: Int) {
         val addSites = SiteFragment(modo, site)
         val transaction = activity!!.supportFragmentManager.beginTransaction()
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
@@ -262,7 +400,8 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                             location!!.latitude,
                             location!!.longitude
                         )
-                        addMarkerSite(posicion!!)
+                        Log.i("Mapa", "Posicion acutal: $posicion")
+                        addMarkerSite()
                     }
                 }
             }
@@ -282,12 +421,13 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      */
     private fun initPermisos(): Boolean {
         var permiss = true
-        if (!(activity!!.application as MyApplication).initPermissesLocation()){
+        if (!(activity!!.application as MyApplication).initPermissesLocation()) {
             permiss = false
         }
         return permiss
     }
-    private fun goMySites(){
+
+    private fun goMySites() {
 
         (activity as NavigationActivity?)!!.isEventoFila = true
         val fragm = MySitesFragment()

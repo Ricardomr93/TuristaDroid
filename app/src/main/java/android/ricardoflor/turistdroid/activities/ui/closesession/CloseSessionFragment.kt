@@ -1,4 +1,4 @@
-package android.ricardoflor.turistdroid.activities.ui
+package android.ricardoflor.turistdroid.activities.ui.closesession
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,7 +10,7 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.LoginActivity
 import android.ricardoflor.turistdroid.utils.UtilSession
 
-class CerrarSesionFragment : Fragment() {
+class CloseSessionFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,7 +24,9 @@ class CerrarSesionFragment : Fragment() {
      * Funcion para Cerrar Sesion
      */
     private fun logout() {
-        UtilSession.closeSession()
+        UtilSession.deleteSessionPref(context!!)
+        UtilSession.closeSession(context!!)
         startActivity(Intent(context, LoginActivity::class.java))
+        activity!!.finish()
     }
 }

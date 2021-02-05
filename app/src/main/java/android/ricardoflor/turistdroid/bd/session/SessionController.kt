@@ -20,9 +20,9 @@ object SessionController {
      * Cierra la sesion y borra el email del user
      */
     fun deleteSession(session : Session){
-        Log.i("util","session a borrar: "+session.useremail)
+        Log.i("util","session a borrar: "+session.id)
         Realm.getDefaultInstance().executeTransaction {
-            it.where<Session>().equalTo("useremail", session.useremail).findFirst()?.deleteFromRealm()
+            it.where<Session>().equalTo("useremail", session.id).findFirst()?.deleteFromRealm()
             Log.i("util","Session borrada")
         }
     }

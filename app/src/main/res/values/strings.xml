@@ -19,11 +19,24 @@
     <string name="exit">Exit</string>
 
     <string name="menu_import">Import</string>
-    <string name="menu_export">Export</string>
+    <string name="menu_export">Export Sites</string>
     <string name="menu_light">Light</string>
 
-    <string name="order">Order</string>
+    <string name="filter">Filter</string>
     <string-array name="Filters">
+        <item>Filter...</item>
+        <item>All Sites</item>
+        <item>My Sites</item>
+        <item>City</item>
+        <item>Park</item>
+        <item>Bar</item>
+        <item>Monument</item>
+        <item>Restaurant</item>
+        <item>Shop</item>
+    </string-array>
+
+    <string name="order">Order</string>
+    <string-array name="Orders">
         <item>Order...</item>
         <item>Order by name</item>
         <item>Order by date</item>
@@ -102,9 +115,23 @@
     <string name="userDelete">User deleted successfully</string>
     <string name="importok">Import successfully</string>
     <string name="exportok">Export successfully</string>
-    <string name="errorImport">Error:file not found</string>
+    <string name="errorImport">Error: file not found</string>
     <string name="needPosition">Error : error your position is necessary</string>
+    <string name="needFields">Error : all fields must be filled</string>
+    <string name="selectSite">Error: Select one site</string>
+    <string name="no_site_filter">No site with that filter</string>
 
     <string name="share_mysite">This is my Site</string>
+    <string name="not_found">No nearby sites found</string>
+    <string name="need_camera">You need camera permissions</string>
+    <string name="need_gallery">You need gallery permissions</string>
+    <string name="need_location">You need location permissions</string>
+    <string name="service_error">Error with the service</string>
+    <string name="no_net">Error you need an internet connection</string>
+    <string name="error_post">Error with user insertion</string>
+    <string name="error_put">Error with user update</string>
+    <string name="limite_expired">Your time limit has expired</string>
+    <string name="no_net_back_login">There is not internet connection, returning to login</string>
+    <string name="no_permiss">Permission Denied</string>
 
 </resources>

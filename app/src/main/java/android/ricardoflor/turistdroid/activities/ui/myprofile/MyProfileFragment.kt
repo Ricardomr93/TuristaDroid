@@ -1,6 +1,5 @@
 package android.ricardoflor.turistdroid.activities.ui.myprofile
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
@@ -10,16 +9,22 @@ import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
-import android.ricardoflor.turistdroid.MyApplication.Companion.SESSION
+import android.provider.Settings
+import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.LoginActivity
 import android.ricardoflor.turistdroid.activities.NavigationActivity
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.session.SessionController
+import android.ricardoflor.turistdroid.bd.session.SessionDTO
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
+import android.ricardoflor.turistdroid.bd.user.UserDTO
+import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
+import android.ricardoflor.turistdroid.utils.UtilNet
 import android.ricardoflor.turistdroid.utils.UtilSession
 import android.util.Log
 import android.util.Patterns
@@ -30,14 +35,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.google.android.material.snackbar.Snackbar
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
+import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_my_profile.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.IOException
+import java.lang.NullPointerException
 
 class MyProfileFragment : Fragment() {
     // Constantes
@@ -47,7 +53,6 @@ class MyProfileFragment : Fragment() {
     private val IMAGEN_DIR = "/TuristDroid"
     private lateinit var FOTO: Bitmap
     private lateinit var IMAGEN_NOMBRE: String
-    private var user = User()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -62,11 +67,94 @@ class MyProfileFragment : Fragment() {
     }
 
     private fun init() {
-        updateUser()
-        deleteUser()
+        btnUpdateMyprofile.setOnClickListener { buttomUpdate() }
+        btnUnsubMyProfile.setOnClickListener { buttomDelete() }
         getInformation()
         initButtoms()
-        initPermisses()
+
+    }
+
+    /**
+     * Metodo que al pulsar el boton de update  comprueba que hay conexion
+     * en caso de no haberla salta un mensaje para activarlo
+     * si la hay modifica el usuario
+     */
+    private fun buttomUpdate() {
+        if (UtilNet.hasInternetConnection(context)) {
+            updateUser()
+        } else {
+            val snackbar = Snackbar.make(
+                activity!!.findViewById(android.R.id.content),
+                R.string.no_net,
+                Snackbar.LENGTH_INDEFINITE
+            )
+            snackbar.setActionTextColor(activity!!.getColor(R.color.accent))
+            snackbar.setAction("Conectar") {
+                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                startActivity(intent)
+                activity!!.finish()
+            }
+            snackbar.show()
+        }
+    }
+
+    /**
+     * Metodo que al pulsar el boton de delete comprueba que hay conexion
+     * en caso de no haberla salta un mensaje para activarlo
+     * si la hay borra el usuario
+     */
+    private fun buttomDelete() {
+        if (UtilNet.hasInternetConnection(context)) {
+            dialogDelete()
+        } else {
+            val snackbar = Snackbar.make(
+                activity!!.findViewById(android.R.id.content),
+                R.string.no_net,
+                Snackbar.LENGTH_INDEFINITE
+            )
+            snackbar.setActionTextColor(activity!!.getColor(R.color.accent))
+            snackbar.setAction("Conectar") {
+                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                startActivity(intent)
+                activity!!.finish()
+            }
+            snackbar.show()
+        }
+    }
+
+    /**
+     * Funcion para compartir con Gmail
+     */
+    private fun shareGmail() {
+        //val uri = getImageUri(requireContext(), qrShare)
+        val intent = Intent().apply {
+            Intent(Intent.ACTION_SENDTO)
+            data = Uri.parse("mailto:")
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_mysite))
+            putExtra(Intent.EXTRA_TEXT, getString(R.string.share_mysite))
+            //putExtra(Intent.EXTRA_STREAM, uri)
+            type = "image/jpeg"
+        }
+        val shareIntent = Intent.createChooser(intent, null)
+        startActivity(shareIntent)
+    }
+
+    /**
+     * Funcion para compartir con Twitter, Facebook e Instagram
+     */
+    fun shareSite(str: String) {
+        val msg: String = getString(R.string.share_mysite)
+        //val uri = getImageUri(requireContext(), qrShare)
+        val intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, msg)
+            type = "text/plain"
+            //putExtra(Intent.EXTRA_STREAM, uri)
+            //type = "image/jpeg"
+            setPackage(str)
+        }
+        val shareIntent = Intent.createChooser(intent, null)
+        startActivity(shareIntent)
     }
 
     /**
@@ -81,38 +169,128 @@ class MyProfileFragment : Fragment() {
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
     private fun update() {
+        if (emailChanges()) {//si el email es distinto al del usuario comprueba si existe en la bd
+            emailExists()
+        } else {
+            updateRest()
+        }
+    }
+
+    /**
+     * Metodo que cambia los valores del usuario por los de las cajas de texto y devuelve el usuario
+     */
+    private fun changeUser(): User {
         val name = txtNameMyProfile.text.toString()
         val nameUser = txtUserNameMyProfile.text.toString()
         val email = txtEmailMyProfile.text.toString()
+        var im: String
+        var pass: String
         Log.d("profile", name + nameUser + email)
-        user.name = name
-        user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
-        user.nameUser = nameUser
-        user.email = email
         if (this::FOTO.isInitialized) {
-            user.image = UtilImage.toBase64(FOTO)!!
+            im = UtilImage.toBase64(FOTO)!!
         } else {
-            user.image = USER.image
+            im = USER.image
         }
-        UserController.updateUser(user)
+        if (txtPassMyprofile.text.toString().isEmpty()) {
+            pass = USER.password
+        } else {
+            pass = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
+        }
+        val user = User(
+            id = USER.id,
+            name = name,
+            nameUser = nameUser,
+            password = pass,
+            email = email,
+            image = im,
+            twitter = "",
+            instagram = "",
+            facebook = "",
+        )
+        Log.i("Update", user.toString())
+        return user
+    }
+
+    /**
+     * Metodo que comprueba que el email no existe para evitar duplicados
+     */
+    private fun emailExists() {
+        val turistREST = TuristAPI.service
+        val email = txtEmailMyProfile.text.toString()
+        val call = turistREST.userGetByEmail(email)
+        Log.i("REST", "email: $email")
+        call.enqueue((object : Callback<List<UserDTO>> {
+
+            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
+                Log.i("REST", "emailExists en onResponse")
+                if (response.isSuccessful) {
+                    Log.i("REST", "emailExists en isSuccessful")
+                    if (response.body()!!.isEmpty()) {
+                        updateRest()
+                    } else {
+                        txtEmailMyProfile.error = resources.getString(R.string.isAlreadyExist)
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
+                Log.i("REST", "emailExists onFailure")
+                Toast.makeText(
+                    context,
+                    getText(R.string.service_error),
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
+
+    }
+
+    /**
+     * Metodo que hace una llamada y modifica el usuario
+     */
+    private fun updateRest() {
+        val user = changeUser()
+        val turistREST = TuristAPI.service
+        val call: Call<UserDTO> = turistREST.userUpdate(user.id, UserMapper.toDTO(user))
+        call.enqueue(object : Callback<UserDTO> {
+            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+                if (response.isSuccessful) {
+                    USER = UserMapper.fromDTO(response.body()!!)
+                    changeNavigation()
+                    Toast.makeText(context!!, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, R.string.error_put, Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                Toast.makeText(
+                    context,
+                    getText(R.string.service_error),
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+
+        })
+        Log.i("user", user.toString())
     }
 
     /**
      * Metodo que modifica al usuario si los campos son correctos
      */
     private fun updateUser() {
-        btnUpdateMyprofile.setOnClickListener {
-            if (isMailValid(txtEmailMyProfile.text.toString())) {
-                if (isPasswordValid(txtPassMyprofile.text.toString())) {
-                    if (!someIsEmpty()) {
-                        dialogUpdate()
-                    }
-                } else {
-                    txtPassMyprofile.error = resources.getString(R.string.pwd_incorrecto)
+        if (isMailValid(txtEmailMyProfile.text.toString())) {
+            if (isPasswordValid(txtPassMyprofile.text.toString())) {
+                if (!someIsEmpty()) {
+                    dialogUpdate()
                 }
             } else {
-                txtEmailMyProfile.error = resources.getString(R.string.email_incorrecto)
+                txtPassMyprofile.error = resources.getString(R.string.pwd_incorrecto)
             }
+        } else {
+            txtEmailMyProfile.error = resources.getString(R.string.email_incorrecto)
         }
     }
 
@@ -127,53 +305,6 @@ class MyProfileFragment : Fragment() {
             NavigationActivity.navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
             UtilImage.redondearFoto(NavigationActivity.navUserImage)
         }
-    }
-
-    /**
-     * Metodo que borra e inserta
-     */
-    fun deleteAndInsertUser() {
-        UserController.deleteUser(USER.email)
-        UtilSession.closeSession()
-        addUser()
-        SESSION = SessionController.selectSession()!!
-    }
-
-
-    /**
-     * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
-     */
-    private fun addUser() {
-        try {
-            user.name = txtNameMyProfile.text.toString()
-            //si la contraseña está vacia mantiene la que ya tiene
-            if (txtPassMyprofile.text.isNullOrEmpty()) {
-                user.password = USER.password
-            } else {
-                user.password = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
-            }
-            user.nameUser = txtUserNameMyProfile.text.toString()
-            user.email = txtEmailMyProfile.text.toString()
-            if (this::FOTO.isInitialized) {
-                user.image = UtilImage.toBase64(FOTO)!!
-            } else {
-                user.image = USER.image
-            }
-            UserController.insertUser(user)
-            USER = user
-            UtilSession.createSession(user.email)
-            Log.i("user", user.toString())
-        } catch (ex: RealmPrimaryKeyConstraintException) {
-            txtEmailMyProfile.error = resources.getString(R.string.isAlreadyExist)
-            restauredUser()//restaura el usuario para no perder los datos
-        }
-    }
-
-    /**
-     * Restaura los datos del usuario borrado por si ocurre algun error
-     */
-    fun restauredUser() {
-        UserController.insertUser(USER)
     }
 
     /**
@@ -215,15 +346,6 @@ class MyProfileFragment : Fragment() {
     }
 
     /**
-     * Metodo que al pulsar pide un cuadro de dialogo para confirmar
-     */
-    private fun deleteUser() {
-        btnUnsubMyProfile.setOnClickListener {
-            dialogDelete()
-        }
-    }
-
-    /**
      * Cuadro de dialogo para advertir al usuario si queire borrar su cuenta
      * si acepta borra al usuario
      */
@@ -233,12 +355,42 @@ class MyProfileFragment : Fragment() {
             .setMessage(getText(R.string.sure_delete))
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 UserController.deleteUser(USER.email)
-                UtilSession.closeSession()
-                startActivity(Intent(context, LoginActivity::class.java))
-                Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
+                delUser()
+
             }
             .setNegativeButton(getString(R.string.Cancel), null)
             .show()
+    }
+
+    private fun delUser() {
+        val turistREST = TuristAPI.service
+        val call: Call<UserDTO> = turistREST.userDelete(USER.id)
+        call.enqueue((object : Callback<UserDTO> {
+
+            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+                Log.i("REST", "onResponse delUser")
+                if (response.isSuccessful) {
+                    Log.i("REST", "isSuccessful delUser")
+                    UtilSession.closeSession(context!!)
+                    startActivity(Intent(context, LoginActivity::class.java))
+                    activity!!.finish()
+                    Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
+                    Log.i("REST", "sesionDelete ok")
+                } else {
+                    Log.i("REST", "Error: isSuccessful delUser")
+                }
+            }
+
+            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                Log.i("REST", "delUser failure")
+                Toast.makeText(
+                    context,
+                    getText(R.string.service_error),
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
     }
 
     private fun dialogUpdate() {
@@ -247,10 +399,7 @@ class MyProfileFragment : Fragment() {
             .setMessage(getText(R.string.sure_update))
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 Log.i("updater", "usuario cambia")
-                deleteAndInsertUser()
-                Log.i("updater", UserController.selectAllUser().toString())
-                changeNavigation()
-                Toast.makeText(context!!, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
+                update()
             }
             .setNegativeButton(getString(R.string.Cancel), null)
             .show()
@@ -271,56 +420,16 @@ class MyProfileFragment : Fragment() {
 
     }
     //************************************************************
-    //METODO  PARA LOS PERMISOS**********************
-    /**
-     * Comprobamos los permisos de la aplicación
-     */
-    private fun initPermisses() {
-        //ACTIVIDAD DONDE TRABAJA
-        Dexter.withContext(context)
-            //PERMISOS
-            .withPermissions(
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-            )//LISTENER DE MULTIPLES PERMISOS
-            .withListener(object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
-                        Log.i("sing", "Ha aceptado todos los permisos")
-                    }
-                    // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                    }
-                }//NOTIFICAR DE LOS PERMISOS
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: List<PermissionRequest?>?,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            }).withErrorListener {
-                Toast.makeText(
-                    context?.applicationContext,
-                    getString(R.string.error_permissions),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            .onSameThread()
-            .check()
-
-
-    }
-    //************************************************************
     //METODOS PARA LA IMAGEN**************************************
     /**
      * Inicia los eventos de los botones
      */
     private fun initButtoms() {
-        imgMyprofile.setOnClickListener {
-            initDialogPhoto()
-        }
+        imgMyprofile.setOnClickListener {initDialogPhoto()}
+        imgEmailMyProfile?.setOnClickListener { shareGmail() }
+        imgFaceMyProfile?.setOnClickListener { shareSite("com.facebook.katana") }
+        imgTwitterMyProfile?.setOnClickListener { shareSite("com.twitter.android") }
+        imgInstaMyProfile?.setOnClickListener { shareSite("com.instagram.android") }
     }
 
     /**
@@ -336,8 +445,20 @@ class MyProfileFragment : Fragment() {
             .setTitle(getString(R.string.SelectOption))
             .setItems(fotoDialogoItems) { _, modo ->
                 when (modo) {
-                    0 -> takephotoFromGallery()
-                    1 -> takePhotoFromCamera()
+                    0 -> {
+                        if ((activity!!.application as MyApplication).initPermissesGallery()) {
+                            takephotoFromGallery()
+                        } else {
+                            (activity!!.application as MyApplication).initPermissesGallery()
+                        }
+                    }
+                    1 -> {
+                        if ((activity!!.application as MyApplication).initPermissesCamera()) {
+                            takePhotoFromCamera()
+                        } else {
+                            (activity!!.application as MyApplication).initPermissesCamera()
+                        }
+                    }
                 }
             }
             .show()
@@ -390,6 +511,8 @@ class MyProfileFragment : Fragment() {
                 val contentURI = data.data!!
                 try {
                     FOTO = differentVersion(contentURI)
+                    FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
+
                     imgMyprofile.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgMyprofile)
                 } catch (e: IOException) {
@@ -402,11 +525,14 @@ class MyProfileFragment : Fragment() {
             //cogemos la imagen
             try {
                 FOTO = differentVersion(IMAGE)
+                FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
+                
                 // Mostramos la imagen
                 imgMyprofile.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgMyprofile)
-            } catch (e: Exception) {
+            } catch (e: NullPointerException) {
                 e.printStackTrace()
+            } catch (ex: Exception) {
                 Toast.makeText(context!!, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
         }

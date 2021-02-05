@@ -1,6 +1,5 @@
 package android.ricardoflor.turistdroid.activities
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,26 +7,30 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.StrictMode
 import android.provider.MediaStore
-import android.ricardoflor.turistdroid.MyApplication.Companion.USER
+import android.provider.Settings
+import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.R
+import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.user.User
-import android.ricardoflor.turistdroid.bd.user.UserController
+import android.ricardoflor.turistdroid.bd.user.UserDTO
+import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
+import android.ricardoflor.turistdroid.utils.UtilNet
 import android.util.Log
 import android.util.Patterns
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
-import io.realm.exceptions.RealmPrimaryKeyConstraintException
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_singin.*
 import java.io.IOException
+import java.lang.NullPointerException
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class SinginActivity : AppCompatActivity() {
 
@@ -35,11 +38,13 @@ class SinginActivity : AppCompatActivity() {
     private var nameuser = ""
     private var email = ""
     private var pass = ""
-    private var user = User()
     private lateinit var FOTO: Bitmap
-    private lateinit var IMAGE: Uri
-    private var image : Bitmap? = null
+    private var IMAGE: Uri? = null
+    private var image: Bitmap? = null
+
     // Constantes
+    private val IMAGEN_DIR = "/TuristDroid"
+    private lateinit var IMAGEN_NOMBRE: String
     private val GALLERY = 1
     private val CAMERA = 2
 
@@ -48,6 +53,7 @@ class SinginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_singin)
         initUI()
     }
+
     /**
      * Metodo para registrar un usuario
      * Una vez registrado, vuelve al LoginActivity
@@ -55,37 +61,115 @@ class SinginActivity : AppCompatActivity() {
     fun singin() {
         btnSing.setOnClickListener {
             if (anyEmpty()) {
-                try {
                     if (isMailValid(txtEmail.text.toString())) {//campo email correcto
-                        //Comprobar el campo password
-                            addUser()
-                            val intent = Intent(this, LoginActivity::class.java)
-                            startActivity(intent)
+                        if (UtilNet.hasInternetConnection(this)){
+                            emailExists()
+                        }else{
+                            val snackbar = Snackbar.make(
+                                findViewById(android.R.id.content),
+                                R.string.no_net,
+                                Snackbar.LENGTH_INDEFINITE
+                            )
+                            snackbar.setActionTextColor(getColor(R.color.accent))
+                            snackbar.setAction("Conectar") {
+                                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                                startActivity(intent)
+                                finish()
+                            }
+                            snackbar.show()
+                        }
+
                     } else {
                         txtEmail.error = resources.getString(R.string.email_incorrecto)
                     }
-                } catch (ex: RealmPrimaryKeyConstraintException) {
-                    txtEmail.error = resources.getString(R.string.isAlreadyExist)
-                }
-
             }
         }
+    }
+
+    /**
+     * Método que hace un intent al login
+     */
+    fun startLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
     }
 
     /**
      * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
      */
     private fun addUser() {
-        user.name = txtName.text.toString()
-        user.password = UtilEncryptor.encrypt(txtPass.text.toString())!!
-        user.nameUser = txtUserName.text.toString()
-        user.email = txtEmail.text.toString()
+        var im = ""
         if (this::FOTO.isInitialized) {
-            user.image = UtilImage.toBase64(FOTO)!!
+            im = UtilImage.toBase64(FOTO)!!
         }
-        UserController.insertUser(user)
-        USER = user
+        val user = User(
+            name = txtName.text.toString(),
+            nameUser = txtUserName.text.toString(),
+            password = UtilEncryptor.encrypt(txtPass.text.toString())!!,
+            email = txtEmail.text.toString(),
+            image = im,
+            twitter = "",
+            instagram = "",
+            facebook = "",
+        )
+
+        val turistREST = TuristAPI.service
+        val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))
+        call.enqueue(object : Callback<UserDTO> {
+            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+                if (response.isSuccessful) {
+                    startLogin()
+                } else {
+                    Toast.makeText(applicationContext, R.string.error_post, Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                Toast.makeText(
+                    applicationContext,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+
+        })
         Log.i("user", user.toString())
+    }
+
+    /**
+     * Metodo que hace una llamada y devuelve si el email existe para no crear duplicados
+     */
+    private fun emailExists() {
+        val turistREST = TuristAPI.service
+        email = txtEmail.text.toString()
+        val call = turistREST.userGetByEmail(email)
+        Log.i("REST", "email: $email")
+        call.enqueue((object : Callback<List<UserDTO>> {
+
+            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
+                Log.i("REST", "emailExists en onResponse")
+                if (response.isSuccessful) {
+                    Log.i("REST", "emailExists en isSuccessful")
+                    if (response.body()!!.isEmpty()) {
+                        addUser()
+                    }else{
+                        txtEmail.error = resources.getString(R.string.isAlreadyExist)
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
+                Log.i("REST", "emailExists onFailure")
+                Toast.makeText(
+                    applicationContext,
+                    getText(R.string.service_error).toString() + t.localizedMessage,
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+        }))
+
     }
 
     /**
@@ -133,7 +217,6 @@ class SinginActivity : AppCompatActivity() {
      */
     private fun initUI() {
         initButtoms()
-        initPermisses()
         singin()
     }
 
@@ -159,8 +242,20 @@ class SinginActivity : AppCompatActivity() {
             .setTitle(getString(R.string.SelectOption))
             .setItems(fotoDialogoItems) { _, modo ->
                 when (modo) {
-                    0 -> takephotoFromGallery()
-                    1 -> takePhotoFromCamera()
+                    0 -> {
+                        if ((this.application as MyApplication).initPermissesGallery()) {
+                            takephotoFromGallery()
+                        } else {
+                            (this.application as MyApplication).initPermissesGallery()
+                        }
+                    }
+                    1 -> {
+                        if ((this.application as MyApplication).initPermissesCamera()) {
+                            takePhotoFromCamera()
+                        } else {
+                            (this.application as MyApplication).initPermissesCamera()
+                        }
+                    }
                 }
             }
             .show()
@@ -181,8 +276,14 @@ class SinginActivity : AppCompatActivity() {
      * Metodo que llama al intent de la camamara para tomar una foto
      */
     private fun takePhotoFromCamera() {
+        val builder = StrictMode.VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        //CAPTURA LA FOTO
+        // Nombre de la imagen
+        IMAGEN_NOMBRE = UtilImage.crearNombreFichero()
+        // guardamos el fichero en una variable
+        val file = UtilImage.salvarImagen(IMAGEN_DIR, IMAGEN_NOMBRE, this)
+        IMAGE = Uri.fromFile(file)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE)
         startActivityForResult(intent, CAMERA)
     }
@@ -207,6 +308,8 @@ class SinginActivity : AppCompatActivity() {
                 val contentURI = data.data!!
                 try {
                     FOTO = differentVersion(contentURI)
+                    FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
+
                     imgBtnPhoto.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgBtnPhoto)
                 } catch (e: IOException) {
@@ -218,12 +321,15 @@ class SinginActivity : AppCompatActivity() {
             Log.d("sing", "Entramos en Camara")
             //cogemos la imagen
             try {
-                FOTO = differentVersion(IMAGE)
+                FOTO = differentVersion(IMAGE!!)
+                FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
+
                 // Mostramos la imagen
                 imgBtnPhoto.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgBtnPhoto)
-            } catch (e: Exception) {
+            } catch (e: NullPointerException) {
                 e.printStackTrace()
+            } catch (ex: Exception) {
                 Toast.makeText(this, getText(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
         }
@@ -245,47 +351,6 @@ class SinginActivity : AppCompatActivity() {
         return bitmap;
     }
     //************************************************************
-    //METODO  PARA LOS PERMISOS**********************
-    /**
-     * Comprobamos los permisos de la aplicación
-     */
-    private fun initPermisses() {
-        //ACTIVIDAD DONDE TRABAJA
-        Dexter.withContext(this)
-            //PERMISOS
-            .withPermissions(
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-            )//LISTENER DE MULTIPLES PERMISOS
-            .withListener(object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
-                        Log.i("sing", "Ha aceptado todos los permisos")
-                    }
-                    // COMPROBAMOS QUE NO HAY PERMISOS SIN ACEPTAR
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                    }
-                }//NOTIFICAR DE LOS PERMISOS
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: List<PermissionRequest?>?,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            }).withErrorListener {
-                Toast.makeText(
-                    this,
-                    getString(R.string.error_permissions),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            .onSameThread()
-            .check()
-
-    }
-    //************************************************************
     //METODOS PARA LA RECUPERACION DE DATOS***********************
     /**
      * Método sobreescrito que salva el estado en el ciclo del vida
@@ -303,6 +368,7 @@ class SinginActivity : AppCompatActivity() {
         // llama a la clase padre para salvar los datos
         super.onSaveInstanceState(outState)
     }
+
     /**
      * Metodo sobreescrito para recuperar el estado del ciclo de vida
      */

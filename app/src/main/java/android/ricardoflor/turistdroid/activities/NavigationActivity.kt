@@ -31,6 +31,9 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -46,6 +49,9 @@ class NavigationActivity : AppCompatActivity() {
     private lateinit var cameraId: String
     private var encendida: Boolean = false
 
+    //autenticador
+    private lateinit var auth: FirebaseAuth
+
     companion object {
         lateinit var navUsername: TextView
         lateinit var navUserEmail: TextView
@@ -55,7 +61,7 @@ class NavigationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         /* TODO -> esta es la unica forma que he encontrado para que no falle la aplicacion al girar en SiteFragment
            Lo que pasa es que gira la pantalla y vuelve a MySitesFragment, el fragment anterior al que me encuentro */
-
+        auth = Firebase.auth
         super.onCreate(null)
         //super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
@@ -76,7 +82,8 @@ class NavigationActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         //opciones adicionales
-        actualizarDatos(this)
+        //actualizarDatos(this)
+        cambiarDatos()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -211,9 +218,26 @@ class NavigationActivity : AppCompatActivity() {
         navUserImage = headerView.findViewById(R.id.imgNavUser)
         //obtenemos el email de la sesion y obtenemos el usuario
         Log.i("util", USER.toString())
-        //cambiamos los valores por los del usuario
-        navUsername.text = USER.nameUser
-        navUserEmail.text = USER.email
+
+        val user = Firebase.auth.currentUser
+        user?.let {
+            // Name, email address, and profile photo Url
+            val name = user.displayName
+            val email = user.email
+            val photoUrl = user.photoUrl
+            // Check if user's email is verified
+            val emailVerified = user.isEmailVerified
+            // The user's ID, unique to the Firebase project. Do NOT use this value to
+            // authenticate with your backend server, if you have one. Use
+            // FirebaseUser.getToken() instead.
+            val uid = user.uid
+            //cambiamos los valores por los del usuario
+            navUsername.text = "name"//TODO
+            navUserEmail.text = email
+            //navUserImage = TODO picasso
+        }
+
+
         if (USER.image != "") {
             Log.i("util", "Carga imagen")
             navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))

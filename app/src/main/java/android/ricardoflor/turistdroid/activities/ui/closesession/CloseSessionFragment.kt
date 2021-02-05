@@ -9,13 +9,18 @@ import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.LoginActivity
 import android.ricardoflor.turistdroid.utils.UtilSession
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class CloseSessionFragment : Fragment() {
-
+    //autenticador
+    private lateinit var auth: FirebaseAuth
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        auth = Firebase.auth
         logout()
         return inflater.inflate(R.layout.fragment_my_sites, container, false)
     }
@@ -24,8 +29,7 @@ class CloseSessionFragment : Fragment() {
      * Funcion para Cerrar Sesion
      */
     private fun logout() {
-        UtilSession.deleteSessionPref(context!!)
-        UtilSession.closeSession(context!!)
+        Firebase.auth.signOut()
         startActivity(Intent(context, LoginActivity::class.java))
         activity!!.finish()
     }

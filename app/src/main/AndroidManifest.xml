@@ -55,8 +55,10 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".activities.SinginActivity"/>
-        <activity android:name=".activities.LoginActivity"/>
+        <activity android:name=".activities.SinginActivity"
+                  android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".activities.LoginActivity"
+                  android:theme="@style/AppTheme.NoActionBar"/>
         <activity android:name=".activities.ui.mySites.CaptureActivity"
                   android:screenOrientation="fullSensor"
                   android:stateNotNeeded="true"

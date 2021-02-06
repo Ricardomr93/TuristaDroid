@@ -8,7 +8,10 @@
 
     <string name="login">Login</string>
     <string name="singin">Sing in</string>
+    <string name="no_count">Don\'t have an account?</string>
+    <string name="createAccount">Create Account</string>
     <string name="logout">Logout</string>
+    <string name="or_log">or Login with</string>
 
     <string name="want_to_logout">Do you want to Logout?</string>
 
@@ -133,5 +136,6 @@
     <string name="limite_expired">Your time limit has expired</string>
     <string name="no_net_back_login">There is not internet connection, returning to login</string>
     <string name="no_permiss">Permission Denied</string>
+    <string name="with_google">Sing in with google</string>
 
 </resources>

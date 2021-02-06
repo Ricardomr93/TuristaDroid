@@ -25,12 +25,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.*
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.ktx.userProfileChangeRequest
+import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_singin.*
-import java.io.IOException
-import java.lang.NullPointerException
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
+
 
 class SinginActivity : AppCompatActivity() {
 
@@ -42,9 +46,19 @@ class SinginActivity : AppCompatActivity() {
     private var IMAGE: Uri? = null
     private var image: Bitmap? = null
 
+    //autenticador
+    private lateinit var auth: FirebaseAuth
+
+
+    private lateinit var IMAGEN_NOMBRE: String
+    private lateinit var txtname: String
+    private lateinit var txtxnameUser: String
+    private lateinit var txtpassword: String
+    private lateinit var txtemail: String
+
+
     // Constantes
     private val IMAGEN_DIR = "/TuristDroid"
-    private lateinit var IMAGEN_NOMBRE: String
     private val GALLERY = 1
     private val CAMERA = 2
 
@@ -52,6 +66,9 @@ class SinginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_singin)
         initUI()
+        txtxnameUser = txtUserName.text.toString()
+        txtpassword = UtilEncryptor.encrypt(txtPass.text.toString())!!
+        txtemail = txtEmail.text.toString()
     }
 
     /**
@@ -60,116 +77,15 @@ class SinginActivity : AppCompatActivity() {
      */
     fun singin() {
         btnSing.setOnClickListener {
-            if (anyEmpty()) {
-                    if (isMailValid(txtEmail.text.toString())) {//campo email correcto
-                        if (UtilNet.hasInternetConnection(this)){
-                            emailExists()
-                        }else{
-                            val snackbar = Snackbar.make(
-                                findViewById(android.R.id.content),
-                                R.string.no_net,
-                                Snackbar.LENGTH_INDEFINITE
-                            )
-                            snackbar.setActionTextColor(getColor(R.color.accent))
-                            snackbar.setAction("Conectar") {
-                                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
-                                startActivity(intent)
-                                finish()
-                            }
-                            snackbar.show()
-                        }
-
-                    } else {
-                        txtEmail.error = resources.getString(R.string.email_incorrecto)
-                    }
-            }
+            createAccount()
         }
     }
-
     /**
      * Método que hace un intent al login
      */
     fun startLogin() {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
-    }
-
-    /**
-     * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
-     */
-    private fun addUser() {
-        var im = ""
-        if (this::FOTO.isInitialized) {
-            im = UtilImage.toBase64(FOTO)!!
-        }
-        val user = User(
-            name = txtName.text.toString(),
-            nameUser = txtUserName.text.toString(),
-            password = UtilEncryptor.encrypt(txtPass.text.toString())!!,
-            email = txtEmail.text.toString(),
-            image = im,
-            twitter = "",
-            instagram = "",
-            facebook = "",
-        )
-
-        val turistREST = TuristAPI.service
-        val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))
-        call.enqueue(object : Callback<UserDTO> {
-            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
-                if (response.isSuccessful) {
-                    startLogin()
-                } else {
-                    Toast.makeText(applicationContext, R.string.error_post, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-            }
-
-        })
-        Log.i("user", user.toString())
-    }
-
-    /**
-     * Metodo que hace una llamada y devuelve si el email existe para no crear duplicados
-     */
-    private fun emailExists() {
-        val turistREST = TuristAPI.service
-        email = txtEmail.text.toString()
-        val call = turistREST.userGetByEmail(email)
-        Log.i("REST", "email: $email")
-        call.enqueue((object : Callback<List<UserDTO>> {
-
-            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
-                Log.i("REST", "emailExists en onResponse")
-                if (response.isSuccessful) {
-                    Log.i("REST", "emailExists en isSuccessful")
-                    if (response.body()!!.isEmpty()) {
-                        addUser()
-                    }else{
-                        txtEmail.error = resources.getString(R.string.isAlreadyExist)
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Log.i("REST", "emailExists onFailure")
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-            }
-        }))
-
     }
 
     /**
@@ -204,7 +120,7 @@ class SinginActivity : AppCompatActivity() {
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(txtName) && notEmpty(txtEmail) && notEmpty(txtPass) && notEmpty(txtUserName)) {
+        if (notEmpty(txtEmail) && notEmpty(txtPass) && notEmpty(txtUserName)) {
             valid = false
         }
         return valid
@@ -216,6 +132,7 @@ class SinginActivity : AppCompatActivity() {
      * Inicia la interfaz y los eventos de la apliación
      */
     private fun initUI() {
+        auth = Firebase.auth
         initButtoms()
         singin()
     }
@@ -360,7 +277,6 @@ class SinginActivity : AppCompatActivity() {
         outState.run {
             // Actualizamos los datos o los recogemos de la interfaz
             putString("EMAIL", email)
-            putString("NAME", name)
             putString("NAMEUSER", nameuser)
             putString("PASSWORD", pass)
             putString("IMAGE", image?.let { UtilImage.toBase64(it) })
@@ -384,4 +300,77 @@ class SinginActivity : AppCompatActivity() {
             image = UtilImage.toBitmap(getString("IMAGE").toString())
         }
     }
+
+    private fun isCorrect(txtemail: String): Boolean {
+        var valide = false
+        if (anyEmpty() && isMailValid(txtemail)) {
+            if (UtilNet.hasInternetConnection(this)) {
+                valide = true
+            } else {
+                val snackbar = Snackbar.make(
+                    findViewById(android.R.id.content),
+                    R.string.no_net,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                snackbar.setActionTextColor(getColor(R.color.accent))
+                snackbar.setAction("Conectar") {
+                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                    startActivity(intent)
+                    finish()
+                }
+                snackbar.show()
+            }
+        } else {
+            txtEmail.error = resources.getString(R.string.email_incorrecto)
+        }
+        return valide
+    }
+
+
+    /*TODO AHI TOCHO****************************************************************
+    ****************************************************************************** */
+    private fun createAccount() {
+        txtpassword = UtilEncryptor.encrypt(txtPass.text.toString())!!
+        txtemail = txtEmail.text.toString()
+        if (!isCorrect(txtemail)) {
+            return
+        }
+        Log.d("fairbase", "createAccount:$txtemail")
+        // empieza la creacion del usuario con el email
+        auth.createUserWithEmailAndPassword(txtemail, txtpassword)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d("fairbase", "createUserWithEmail:success")
+                    val user = auth.currentUser
+                    updateProfile(user!!)
+                    startLogin()
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w("fairbase", "createUserWithEmail:failure", task.exception)
+                    txtEmail.error = resources.getString(R.string.isAlreadyExist)
+                }
+                // [START_EXCLUDE]
+                //puede que lo haga
+                //hideProgressBar()
+                // [END_EXCLUDE]
+            }
+    }
+
+    private fun updateProfile(user: FirebaseUser) {
+
+        val profileUpdates = userProfileChangeRequest {
+            displayName = txtName.text.toString()
+            photoUri = Uri.parse("https://example.com/jane-q-user/profile.jpg")
+        }
+
+        user!!.updateProfile(profileUpdates)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("TAG", "User profile updated.")
+                }
+            }
+        // [END update_profile]
+    }
+
 }

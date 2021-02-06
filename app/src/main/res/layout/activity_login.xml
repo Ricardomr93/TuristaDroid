@@ -113,13 +113,13 @@
                         android:layout_height="55dp">
                     <ImageButton
                             android:layout_width="186dp"
-                            android:layout_height="wrap_content" app:srcCompat="@drawable/ic_google_plus"
-                            android:id="@+id/imageButton5" android:layout_weight="1" android:scaleType="fitCenter"
+                            android:layout_height="wrap_content" app:srcCompat="@drawable/ic_google_round"
+                            android:id="@+id/btnGoogleLogin" android:layout_weight="1" android:scaleType="fitCenter"
                             android:background="@null" android:layout_marginLeft="85dp"/>
                     <ImageButton
                             android:layout_width="188dp"
                             android:layout_height="wrap_content" app:srcCompat="@drawable/ic_twitter_round"
-                            android:id="@+id/imageButton4" android:layout_weight="1" android:scaleType="fitCenter"
+                            android:id="@+id/btnTwitterLogin" android:layout_weight="1" android:scaleType="fitCenter"
                             android:background="@null"
                             android:layout_marginRight="85dp"/>
                 </LinearLayout>

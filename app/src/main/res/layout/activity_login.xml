@@ -39,9 +39,12 @@
                 <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/textInputLayoutEmail"
+                        android:id="@+id/txtInLaLoginEmail"
                         app:errorEnabled="true"
-                        app:startIconDrawable="@drawable/ic_email">
+                        app:startIconDrawable="@drawable/ic_email"
+                        app:helperTextEnabled="true"
+                        app:errorTextColor="#CD0000"
+                >
 
                     <com.google.android.material.textfield.TextInputEditText
                             android:layout_width="match_parent"
@@ -53,8 +56,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:passwordToggleEnabled="true"
-                        android:id="@+id/textInputLayout"
-                        app:startIconDrawable="@drawable/ic_lock">
+                        android:id="@+id/txtInLaLoginPass"
+                        app:startIconDrawable="@drawable/ic_lock"
+                        app:helperTextEnabled="true"
+                        app:errorTextColor="#CD0000"
+                >
 
 
                     <com.google.android.material.textfield.TextInputEditText

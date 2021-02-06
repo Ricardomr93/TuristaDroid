@@ -22,10 +22,7 @@ import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
-import android.ricardoflor.turistdroid.utils.UtilEncryptor
-import android.ricardoflor.turistdroid.utils.UtilImage
-import android.ricardoflor.turistdroid.utils.UtilNet
-import android.ricardoflor.turistdroid.utils.UtilSession
+import android.ricardoflor.turistdroid.utils.*
 import android.util.Log
 import android.util.Patterns
 import android.view.LayoutInflater
@@ -67,8 +64,14 @@ class MyProfileFragment : Fragment() {
     }
 
     private fun init() {
-        btnUpdateMyprofile.setOnClickListener { buttomUpdate() }
-        btnUnsubMyProfile.setOnClickListener { buttomDelete() }
+        btnUpdateMyprofile.setOnClickListener {
+            UtilText.cleanErrors(txtInLaMyprofileEmail, txtInLaMyprofileName, txtInLaMyprofilePass)
+            buttomUpdate()
+        }
+        btnUnsubMyProfile.setOnClickListener {
+            UtilText.cleanErrors(txtInLaMyprofileEmail, txtInLaMyprofileName, txtInLaMyprofilePass)
+            buttomDelete()
+        }
         getInformation()
         initButtoms()
 
@@ -180,12 +183,11 @@ class MyProfileFragment : Fragment() {
      * Metodo que cambia los valores del usuario por los de las cajas de texto y devuelve el usuario
      */
     private fun changeUser(): User {
-        val name = txtNameMyProfile.text.toString()
-        val nameUser = txtUserNameMyProfile.text.toString()
+        val name = txtUserNameMyProfile.text.toString()
         val email = txtEmailMyProfile.text.toString()
         var im: String
         var pass: String
-        Log.d("profile", name + nameUser + email)
+        Log.d("profile", name + email)
         if (this::FOTO.isInitialized) {
             im = UtilImage.toBase64(FOTO)!!
         } else {
@@ -199,7 +201,6 @@ class MyProfileFragment : Fragment() {
         val user = User(
             id = USER.id,
             name = name,
-            nameUser = nameUser,
             password = pass,
             email = email,
             image = im,
@@ -281,16 +282,16 @@ class MyProfileFragment : Fragment() {
      * Metodo que modifica al usuario si los campos son correctos
      */
     private fun updateUser() {
-        if (isMailValid(txtEmailMyProfile.text.toString())) {
-            if (isPasswordValid(txtPassMyprofile.text.toString())) {
+        if (UtilText.isMailValid(txtEmailMyProfile.text.toString())) {
+            if (UtilText.isPasswordValid(txtPassMyprofile.text.toString())) {
                 if (!someIsEmpty()) {
                     dialogUpdate()
                 }
             } else {
-                txtPassMyprofile.error = resources.getString(R.string.pwd_incorrecto)
+                txtInLaMyprofilePass.error = resources.getString(R.string.pwd_incorrecto)
             }
         } else {
-            txtEmailMyProfile.error = resources.getString(R.string.email_incorrecto)
+            txtInLaMyprofileEmail.error = resources.getString(R.string.email_incorrecto)
         }
     }
 
@@ -308,38 +309,17 @@ class MyProfileFragment : Fragment() {
     }
 
     /**
-     * Metodo para validar el EMAIL
-     */
-    private fun isMailValid(mail: String): Boolean {
-        return Patterns.EMAIL_ADDRESS.matcher(mail).matches()
-    }
-
-    /**
-     * Metodo para validar la PASSWORD
-     */
-    private fun isPasswordValid(password: String): Boolean {
-        return password.length > 5 || password.isNullOrEmpty()
-    }
-
-    /**
-     * Método que comprueba si el campo esta vacio y lanza un mensaje
-     * @param txt TextView
-     */
-    private fun empty(txt: TextView): Boolean {
-        var empty = false
-        if (txt.text.isEmpty()) {
-            txt.error = resources.getString(R.string.isEmpty)
-            empty = true
-        }
-        return empty
-    }
-
-    /**
      * Método que devuelve true si alguno de los valores está vácio
      */
     private fun someIsEmpty(): Boolean {
         var valid = false
-        if (empty(txtEmailMyProfile) || empty(txtNameMyProfile) || empty(txtUserNameMyProfile)) {
+        if (UtilText.empty(txtEmailMyProfile, txtInLaMyprofileName, context!!)
+            || UtilText.empty(txtPassMyprofile, txtInLaMyprofilePass, context!!) || UtilText.empty(
+                txtUserNameMyProfile,
+                txtInLaMyprofileName,
+                context!!
+            )
+        ) {
             valid = true
         }
         return valid
@@ -410,7 +390,7 @@ class MyProfileFragment : Fragment() {
      */
     private fun getInformation() {
         txtEmailMyProfile.setText(USER.email)
-        txtNameMyProfile.setText(USER.name)
+        txtUserNameMyProfile.setText(USER.name)
         txtUserNameMyProfile.setText(USER.nameUser)
         if (USER.image != "") {
             Log.i("util", "Carga imagen")
@@ -425,7 +405,7 @@ class MyProfileFragment : Fragment() {
      * Inicia los eventos de los botones
      */
     private fun initButtoms() {
-        imgMyprofile.setOnClickListener {initDialogPhoto()}
+        imgMyprofile.setOnClickListener { initDialogPhoto() }
         imgEmailMyProfile?.setOnClickListener { shareGmail() }
         imgFaceMyProfile?.setOnClickListener { shareSite("com.facebook.katana") }
         imgTwitterMyProfile?.setOnClickListener { shareSite("com.twitter.android") }
@@ -526,7 +506,7 @@ class MyProfileFragment : Fragment() {
             try {
                 FOTO = differentVersion(IMAGE)
                 FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
-                
+
                 // Mostramos la imagen
                 imgMyprofile.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgMyprofile)

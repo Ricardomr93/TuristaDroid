@@ -7,6 +7,7 @@ import android.provider.Settings
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilNet
+import android.ricardoflor.turistdroid.utils.UtilText
 import android.util.Log
 import android.view.SurfaceControl
 import android.widget.TextView
@@ -14,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.Auth
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -32,7 +34,10 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
         auth = Firebase.auth
-        login()
+        buttonLoginLogin.setOnClickListener {
+            UtilText.cleanErrors(txtInLaLoginPass, txtInLaLoginEmail)
+            login()
+        }
         SingIn()
     }
 
@@ -41,29 +46,27 @@ class LoginActivity : AppCompatActivity() {
      * logea al usuario
      */
     private fun login() {
-        buttonLoginLogin.setOnClickListener {
-            email = editTextLoginMail.text.toString()
-            pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
+        email = editTextLoginMail.text.toString()
+        pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
 
-            if (anyEmpty()) {
-                if (UtilNet.hasInternetConnection(this)) {
-                    userExists(email, pass)
-                } else {//muestra una barra para pedir conexion a internet
-                    val snackbar = Snackbar.make(
-                        findViewById(android.R.id.content),
-                        R.string.no_net,
-                        Snackbar.LENGTH_INDEFINITE
-                    )
-                    snackbar.setActionTextColor(getColor(R.color.accent))
-                    snackbar.setAction("Conectar") {
-                        val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
-                        startActivity(intent)
-                        finish()
-                    }
-                    snackbar.show()
+        if (anyEmpty()) {
+            if (UtilNet.hasInternetConnection(this)) {
+                userExists(email, pass)
+            } else {//muestra una barra para pedir conexion a internet
+                val snackbar = Snackbar.make(
+                    findViewById(android.R.id.content),
+                    R.string.no_net,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                snackbar.setActionTextColor(getColor(R.color.accent))
+                snackbar.setAction("Conectar") {
+                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                    startActivity(intent)
+                    finish()
                 }
-                Log.i("realm", "usuario logeado")
+                snackbar.show()
             }
+            Log.i("realm", "usuario logeado")
         }
     }
 
@@ -72,25 +75,12 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(editTextLoginMail) && notEmpty(editTextLoginPassword)) {
+        if (UtilText.empty(editTextLoginMail, txtInLaLoginEmail,this) || UtilText.empty(editTextLoginPassword, txtInLaLoginPass,this)) {
             valid = false
+            Log.i("valido","alguno vacio")
         }
         return valid
     }
-
-    /**
-     * Método que comprueba si el campo esta vacio y lanza un mensaje
-     * @param txt TextView
-     */
-    private fun notEmpty(txt: TextView): Boolean {
-        var empty = false
-        if (txt.text.isEmpty()) {
-            txt.error = resources.getString(R.string.isEmpty)
-            empty = true
-        }
-        return empty
-    }
-
     /**
      * Funcion onClick del botón Singin para llevarlo a la actividad
      */
@@ -122,7 +112,7 @@ class LoginActivity : AppCompatActivity() {
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w("fairbase", "signInWithEmail:failure", task.exception)
-                    editTextLoginMail.error = resources.getString(R.string.userNotCorrect)
+                    txtInLaLoginPass.error = resources.getString(R.string.userNotCorrect)
                 }
 
             }

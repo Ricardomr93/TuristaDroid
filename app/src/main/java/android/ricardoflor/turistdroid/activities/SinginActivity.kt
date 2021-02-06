@@ -66,7 +66,6 @@ class SinginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_singin)
         initUI()
-        txtname = txtName.text.toString()
         txtxnameUser = txtUserName.text.toString()
         txtpassword = UtilEncryptor.encrypt(txtPass.text.toString())!!
         txtemail = txtEmail.text.toString()
@@ -81,91 +80,12 @@ class SinginActivity : AppCompatActivity() {
             createAccount()
         }
     }
-
     /**
      * Método que hace un intent al login
      */
     fun startLogin() {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
-    }
-
-    /**
-     * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
-     */
-    private fun addUser() {
-        var im = ""
-        if (this::FOTO.isInitialized) {
-            im = UtilImage.toBase64(FOTO)!!
-        }
-        val user = User(
-            name = txtName.text.toString(),
-            nameUser = txtUserName.text.toString(),
-            password = UtilEncryptor.encrypt(txtPass.text.toString())!!,
-            email = txtEmail.text.toString(),
-            image = im,
-            twitter = "",
-            instagram = "",
-            facebook = "",
-        )
-
-        val turistREST = TuristAPI.service
-        val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))
-        call.enqueue(object : Callback<UserDTO> {
-            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
-                if (response.isSuccessful) {
-                    startLogin()
-                } else {
-                    Toast.makeText(applicationContext, R.string.error_post, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-            }
-
-        })
-        Log.i("user", user.toString())
-    }
-
-    /**
-     * Metodo que hace una llamada y devuelve si el email existe para no crear duplicados
-     */
-    private fun emailExists() {
-        val turistREST = TuristAPI.service
-        email = txtEmail.text.toString()
-        val call = turistREST.userGetByEmail(email)
-        Log.i("REST", "email: $email")
-        call.enqueue((object : Callback<List<UserDTO>> {
-
-            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
-                Log.i("REST", "emailExists en onResponse")
-                if (response.isSuccessful) {
-                    Log.i("REST", "emailExists en isSuccessful")
-                    if (response.body()!!.isEmpty()) {
-                        addUser()
-                    } else {
-                        txtEmail.error = resources.getString(R.string.isAlreadyExist)
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Log.i("REST", "emailExists onFailure")
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-            }
-        }))
-
     }
 
     /**
@@ -200,7 +120,7 @@ class SinginActivity : AppCompatActivity() {
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(txtName) && notEmpty(txtEmail) && notEmpty(txtPass) && notEmpty(txtUserName)) {
+        if (notEmpty(txtEmail) && notEmpty(txtPass) && notEmpty(txtUserName)) {
             valid = false
         }
         return valid
@@ -357,7 +277,6 @@ class SinginActivity : AppCompatActivity() {
         outState.run {
             // Actualizamos los datos o los recogemos de la interfaz
             putString("EMAIL", email)
-            putString("NAME", name)
             putString("NAMEUSER", nameuser)
             putString("PASSWORD", pass)
             putString("IMAGE", image?.let { UtilImage.toBase64(it) })
@@ -424,7 +343,7 @@ class SinginActivity : AppCompatActivity() {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d("fairbase", "createUserWithEmail:success")
                     val user = auth.currentUser
-                    // updateProfile(user!!)
+                    updateProfile(user!!)
                     startLogin()
                 } else {
                     // If sign in fails, display a message to the user.
@@ -438,12 +357,10 @@ class SinginActivity : AppCompatActivity() {
             }
     }
 
-    /*private fun updateProfile() {
-        // [START update_profile]
-        val user = Firebase.auth.currentUser
+    private fun updateProfile(user: FirebaseUser) {
 
         val profileUpdates = userProfileChangeRequest {
-            displayName = "Jane Q. User"
+            displayName = txtName.text.toString()
             photoUri = Uri.parse("https://example.com/jane-q-user/profile.jpg")
         }
 
@@ -454,6 +371,6 @@ class SinginActivity : AppCompatActivity() {
                 }
             }
         // [END update_profile]
-    }*/
+    }
 
 }

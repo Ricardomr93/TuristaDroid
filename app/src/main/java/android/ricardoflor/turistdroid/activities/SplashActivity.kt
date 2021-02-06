@@ -51,9 +51,7 @@ class SplashActivity : AppCompatActivity() {
         //cargamos el login con un delay
         Handler(Looper.getMainLooper()).postDelayed({
             run {
-                startActivity(Intent(this, LoginActivity::class.java))
-                overridePendingTransition(R.anim.face_in,R.anim.face_out)
-                finish()
+               init()
             }
         }, TIME_SPLASH)
     }
@@ -75,16 +73,16 @@ class SplashActivity : AppCompatActivity() {
     private fun toNavigation() {
         val intent = Intent(applicationContext, NavigationActivity::class.java)
         startActivity(intent)
+        overridePendingTransition(R.anim.face_in,R.anim.face_out)
         finish()
     }
 
     /**
      * metodo que viaja al login y da un mensaje en Toast de lo que ha ocurrido
      */
-    private fun toLogin(string: String){
+    private fun toLogin(){
         startActivity(Intent(this, LoginActivity::class.java))
         overridePendingTransition(R.anim.face_in,R.anim.face_out)
-
         finish()
     }
 

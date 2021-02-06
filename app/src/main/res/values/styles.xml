@@ -8,7 +8,8 @@
         <item name="icon">@color/icons</item>
         <item name="android:textColorPrimary">@color/ic_launcher_background</item>
         <item name="android:textColor">@color/primary_text</item>
-        <item name="android:windowBackground">@drawable/background_app</item>
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowContentTransitions">true</item>
     </style>
     <!--Tema para el splash screen-->
     <style name="AppTheme.NoActionBar">

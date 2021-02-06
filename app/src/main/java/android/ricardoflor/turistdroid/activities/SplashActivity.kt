@@ -20,6 +20,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import androidx.navigation.Navigation.findNavController
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import kotlinx.android.synthetic.main.activity_splash.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -49,7 +51,9 @@ class SplashActivity : AppCompatActivity() {
         //cargamos el login con un delay
         Handler(Looper.getMainLooper()).postDelayed({
             run {
-                   init()
+                startActivity(Intent(this, LoginActivity::class.java))
+                overridePendingTransition(R.anim.face_in,R.anim.face_out)
+                finish()
             }
         }, TIME_SPLASH)
     }
@@ -77,8 +81,10 @@ class SplashActivity : AppCompatActivity() {
     /**
      * metodo que viaja al login y da un mensaje en Toast de lo que ha ocurrido
      */
-    private fun toLogin(){
+    private fun toLogin(string: String){
         startActivity(Intent(this, LoginActivity::class.java))
+        overridePendingTransition(R.anim.face_in,R.anim.face_out)
+
         finish()
     }
 

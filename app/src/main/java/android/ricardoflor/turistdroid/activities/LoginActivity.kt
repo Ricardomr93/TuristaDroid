@@ -8,6 +8,7 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilNet
 import android.util.Log
+import android.view.SurfaceControl
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -96,6 +97,7 @@ class LoginActivity : AppCompatActivity() {
     private fun SingIn() {
         buttonLoginSingin.setOnClickListener {
             val intent = Intent(this, SinginActivity::class.java).apply {
+
             }
             startActivity(intent)
         }

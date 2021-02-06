@@ -23,44 +23,44 @@
                     android:layout_width="match_parent"
                     android:layout_height="150dp" android:id="@+id/imgBtnPhoto"
                     android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_ricflor_ninja"/>
+                    app:srcCompat="@drawable/ic_ricflor_user"/>
             <Space
                     android:layout_width="match_parent"
                     android:layout_height="40dp"/>
             <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/textInputLayout5"
-                    app:startIconDrawable="@drawable/ic_person">
+                    android:layout_height="match_parent"
+                    android:id="@+id/txtInLaSingName"
+                    app:startIconDrawable="@drawable/ic_person"
+                    app:helperTextEnabled="true"
+                    app:errorTextColor="#CD0000" android:layout_marginBottom="20dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/username" android:id="@+id/txtUserName"/>
             </com.google.android.material.textfield.TextInputLayout>
-            <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="20dp"/>
             <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/textInputLayout3"
-                    app:startIconDrawable="@drawable/ic_email">
+                    android:layout_height="match_parent"
+                    android:id="@+id/txtInLaSingEmail"
+                    app:startIconDrawable="@drawable/ic_email"
+                    app:helperTextEnabled="true"
+                    app:errorTextColor="#CD0000" android:layout_marginBottom="20dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/email" android:id="@+id/txtEmail"/>
             </com.google.android.material.textfield.TextInputLayout>
-            <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="20dp"/>
             <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/textInputLayout4"
+                    android:layout_height="match_parent"
+                    android:id="@+id/txtInLaSingPass"
                     app:passwordToggleEnabled="true"
-                    app:startIconDrawable="@drawable/ic_lock">
+                    app:startIconDrawable="@drawable/ic_lock"
+                    app:helperTextEnabled="true"
+                    app:errorTextColor="#CD0000">
 
                 <com.google.android.material.textfield.TextInputEditText
                         android:layout_width="match_parent"
@@ -74,7 +74,7 @@
             <Button
                     android:text="@string/singin"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:id="@+id/btnSing"
+                    android:layout_height="match_parent" android:id="@+id/btnSing"
                     android:textColor="@color/white"
                     android:background="@drawable/buttom_round"
                     android:layout_marginLeft="40dp" android:layout_marginRight="40dp"/>

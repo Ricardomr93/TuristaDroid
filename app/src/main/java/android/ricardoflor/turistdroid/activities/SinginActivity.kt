@@ -12,27 +12,22 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.apirest.TuristAPI
-import android.ricardoflor.turistdroid.bd.user.User
-import android.ricardoflor.turistdroid.bd.user.UserDTO
-import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilNet
+import android.ricardoflor.turistdroid.utils.UtilText
 import android.util.Log
 import android.util.Patterns
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.*
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_singin.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.IOException
 
 
@@ -77,6 +72,7 @@ class SinginActivity : AppCompatActivity() {
      */
     fun singin() {
         btnSing.setOnClickListener {
+            UtilText.cleanErrors(txtInLaSingEmail,txtInLaSingName,txtInLaSingPass)
             createAccount()
         }
     }
@@ -89,42 +85,18 @@ class SinginActivity : AppCompatActivity() {
     }
 
     /**
-     * Metodo para validar el EMAIL
-     */
-    private fun isMailValid(mail: String): Boolean {
-        return Patterns.EMAIL_ADDRESS.matcher(mail).matches()
-    }
-
-    /**
-     * Metodo para validar la PASSWORD
-     */
-    private fun isPasswordValid(password: String): Boolean {
-        return password.length > 5
-    }
-
-    /**
-     * Método que comprueba si el campo esta vacio y lanza un mensaje
-     * @param txt TextView
-     */
-    private fun notEmpty(txt: TextView): Boolean {
-        var empty = false
-        if (txt.text.isEmpty()) {
-            txt.error = resources.getString(R.string.isEmpty)
-            empty = true
-        }
-        return empty
-    }
-
-    /**
      * Método que devuelve false si alguno de los valores está vácio
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(txtEmail) && notEmpty(txtPass) && notEmpty(txtUserName)) {
+        if (UtilText.empty(txtEmail,txtInLaSingEmail,this) || UtilText.empty(txtPass,txtInLaSingPass,this)
+            || UtilText.empty(txtUserName,txtInLaSingName,this)) {
             valid = false
         }
         return valid
     }
+
+
     //************************************************************
     //METODOS PARA LA IMAGEN**************************************
 
@@ -303,7 +275,7 @@ class SinginActivity : AppCompatActivity() {
 
     private fun isCorrect(txtemail: String): Boolean {
         var valide = false
-        if (anyEmpty() && isMailValid(txtemail)) {
+        if (anyEmpty() && UtilText.isMailValid(txtemail)) {
             if (UtilNet.hasInternetConnection(this)) {
                 valide = true
             } else {
@@ -321,7 +293,7 @@ class SinginActivity : AppCompatActivity() {
                 snackbar.show()
             }
         } else {
-            txtEmail.error = resources.getString(R.string.email_incorrecto)
+            txtInLaSingEmail.error = resources.getString(R.string.email_incorrecto)
         }
         return valide
     }
@@ -333,6 +305,10 @@ class SinginActivity : AppCompatActivity() {
         txtpassword = UtilEncryptor.encrypt(txtPass.text.toString())!!
         txtemail = txtEmail.text.toString()
         if (!isCorrect(txtemail)) {
+            return
+        }
+        if (!UtilText.isPasswordValid(txtPass.text.toString())){
+            txtInLaSingPass.error = resources.getString(R.string.pwd_incorrecto)
             return
         }
         Log.d("fairbase", "createAccount:$txtemail")
@@ -348,7 +324,7 @@ class SinginActivity : AppCompatActivity() {
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w("fairbase", "createUserWithEmail:failure", task.exception)
-                    txtEmail.error = resources.getString(R.string.isAlreadyExist)
+                    txtInLaSingEmail.error = resources.getString(R.string.isAlreadyExist)
                 }
                 // [START_EXCLUDE]
                 //puede que lo haga

@@ -6,7 +6,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".activities.LoginActivity"
-        android:background="@drawable/background_login">
+        android:background="@drawable/background_login"
+        android:transitionName="splashLogin">
 
     <FrameLayout
             android:layout_width="match_parent"

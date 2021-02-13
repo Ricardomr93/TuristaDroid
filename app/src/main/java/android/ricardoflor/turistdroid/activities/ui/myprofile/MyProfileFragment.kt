@@ -1,6 +1,8 @@
 package android.ricardoflor.turistdroid.activities.ui.myprofile
 
+import android.animation.ObjectAnimator
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -22,9 +24,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.loader.content.AsyncTaskLoader
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
@@ -35,6 +43,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.activity_singin.*
 import kotlinx.android.synthetic.main.fragment_my_profile.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -45,6 +54,8 @@ import java.io.IOException
 import java.lang.NullPointerException
 import java.time.Instant
 
+
+
 class MyProfileFragment : Fragment() {
     // Constantes
     private val GALLERY = 1
@@ -53,6 +64,10 @@ class MyProfileFragment : Fragment() {
     private val IMAGEN_DIR = "/TuristDroid"
     private lateinit var FOTO: Bitmap
     private lateinit var IMAGEN_NOMBRE: String
+
+    //proveedor
+    var provider : String = ""
+    lateinit var imageProvider : ImageView
 
     //storage
     lateinit var storage: FirebaseStorage
@@ -66,22 +81,39 @@ class MyProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val prefs = context!!.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
+        provider = prefs.getString("provider","").toString()
+        Log.i("fairebase", "provider: $provider")
         init()
     }
 
     private fun init() {
         storage = Firebase.storage
-        btnUpdateMyprofile.setOnClickListener {
-            UtilText.cleanErrors(txtInLaMyprofileEmail, txtInLaMyprofileName, txtInLaMyprofilePass)
-            buttomUpdate()
-        }
-        btnUnsubMyProfile.setOnClickListener {
-            UtilText.cleanErrors(txtInLaMyprofileEmail, txtInLaMyprofileName, txtInLaMyprofilePass)
-            buttomDelete()
-        }
         getInformation()
-        initButtoms()
-
+        if (provider != NavigationActivity.ProviderType.BASIC.name){
+            btnUpdateMyprofile.isVisible = false
+            btnUnsubMyProfile.isVisible = false
+            txtInLaMyprofilePass.isVisible = false
+            txtEmailMyProfile.isClickable = false
+            if(provider == NavigationActivity.ProviderType.GOOGLE.name){
+                lblMyProfileProvider.text = "$provider \n account"
+                imgMyProfileProvider.setImageDrawable(ContextCompat.getDrawable(context!!,R.drawable.ic_google_round))
+                txtUserNameMyProfile.isEnabled = false
+                txtEmailMyProfile.isEnabled = false
+            }
+        }else{
+            lblMyProfileProvider.isVisible = false
+            imgMyProfileProvider.isVisible = false
+            btnUpdateMyprofile.setOnClickListener {
+                UtilText.cleanErrors(txtInLaMyprofileEmail, txtInLaMyprofileName, txtInLaMyprofilePass)
+                buttomUpdate()
+            }
+            btnUnsubMyProfile.setOnClickListener {
+                UtilText.cleanErrors(txtInLaMyprofileEmail, txtInLaMyprofileName, txtInLaMyprofilePass)
+                buttomDelete()
+            }
+            initButtoms()
+        }
     }
 
     /**
@@ -173,6 +205,7 @@ class MyProfileFragment : Fragment() {
     private fun updateUser() {
         if (UtilText.isMailValid(txtEmailMyProfile.text.toString())) {
             if (UtilText.isPasswordValid(txtPassMyprofile.text.toString()) || txtPassMyprofile.text.isNullOrEmpty() && !someIsEmpty()) {
+                progressBarMyProfile.visibility
                 dialogUpdate()
             }
         } else {
@@ -279,35 +312,54 @@ class MyProfileFragment : Fragment() {
             displayName = txtUserNameMyProfile.text.toString()
             loadImage(displayName!!, user!!)
         }
-        try {
-            updateEmailAndPassword()
-            user!!.updateProfile(profileUpdates)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        changeNavigation()
-                        Toast.makeText(context, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
-                        Log.d("TAG", "User profile updated.")
-                    }
+        updateEmailAndPassword()
+        user!!.updateProfile(profileUpdates)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    changeNavigation()
+                    Toast.makeText(context, getText(R.string.update_user), Toast.LENGTH_SHORT).show()
+                    Log.d("TAG", "User profile updated.")
+                } else {
+                    Toast.makeText(context, task.exception!!.message.toString(), Toast.LENGTH_SHORT).show()
                 }
-        } catch (e: FirebaseAuthRecentLoginRequiredException) {
-            AlertDialog.Builder(context).setTitle(getText(R.string.caution))
-                .setMessage(getText(R.string.user_old)).setPositiveButton(getText(R.string.ok)) { _, _ ->
-                }.show()
-        }
 
+            }
     }
 
     private fun updateEmailAndPassword() {
+        var old_user = false
         val user = Firebase.auth.currentUser
         val email = txtEmailMyProfile.text.toString()
         if (user!!.email != email) {
-            user.updateEmail(email)
+            user.updateEmail(email).addOnCompleteListener {
+                if (it.isSuccessful) {
+                    Log.i("fairebase", "email cambiado")
+                } else {
+                    errorEmpass(it.exception!!.message.toString())
+                    Log.i("fairebase", "email no cambiado error")
+                }
+            }
         }
         if (!txtPassMyprofile.text.toString().isEmpty() && UtilText.isPasswordValid(txtPassMyprofile.text.toString())
         ) {
             val pass = UtilEncryptor.encrypt(txtPassMyprofile.text.toString())!!
-            user.updatePassword(pass)
+            user.updatePassword(pass).addOnCompleteListener {
+                if (!it.isSuccessful) {
+                    errorEmpass(it.exception!!.message.toString())
+                    Log.i("fairebase", "email no cambiado error")
+                }
+            }
         }
+        if (old_user) {
+
+            Log.i("fairebase", "email no cambiado error")
+        }
+    }
+
+    private fun errorEmpass(string: String) {
+        AlertDialog.Builder(context).setTitle(getText(R.string.caution))
+            .setMessage(string).setPositiveButton(getText(R.string.ok)) { _, _ ->
+            }.show()
     }
 
     private fun loadImage(string: String, user: FirebaseUser) {
@@ -461,7 +513,6 @@ class MyProfileFragment : Fragment() {
                 val contentURI = data.data!!
                 try {
                     FOTO = differentVersion(contentURI)
-
                     imgMyprofile.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgMyprofile)
                 } catch (e: IOException) {
@@ -500,5 +551,7 @@ class MyProfileFragment : Fragment() {
         }
         return bitmap;
     }
+
+
 }
 

@@ -54,6 +54,11 @@ class NavigationActivity : AppCompatActivity() {
     private lateinit var cameraManager: CameraManager
     private lateinit var cameraId: String
     private var encendida: Boolean = false
+    //tipo de proveedor
+    enum class ProviderType {
+        BASIC,
+        GOOGLE
+    }
 
     //autenticador
     private lateinit var auth: FirebaseAuth
@@ -94,9 +99,20 @@ class NavigationActivity : AppCompatActivity() {
 
         //opciones adicionales
         //actualizarDatos(this)
+        init()
         cambiarDatos()
-    }
 
+    }
+    private fun init(){
+        auth = Firebase.auth
+        val bundle = intent.extras
+        if (bundle != null){
+            val provider = bundle?.getString("provider")
+            val prefs = getSharedPreferences("TuristDroid",Context.MODE_PRIVATE).edit()
+            prefs.putString("provider",provider)
+            prefs.apply()
+        }
+    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.navigation, menu)

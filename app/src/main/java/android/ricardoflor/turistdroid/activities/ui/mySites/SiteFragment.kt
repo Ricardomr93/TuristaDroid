@@ -82,10 +82,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     // Botones y Cajas de Texto
     private var btnAddUpdate: Button? = null
     private var btnAddImage: FloatingActionButton? = null
-    private var btnMail: FloatingActionButton? = null
-    private var btnFace: FloatingActionButton? = null
-    private var btnTwit: FloatingActionButton? = null
-    private var btnInsta: FloatingActionButton? = null
     private var cajaSiteName: EditText? = null
     private var cajaLocalizacion: Spinner? = null
     private var cajaFecha: EditText? = null
@@ -139,10 +135,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
          }*/
 
         cajaFecha?.setOnClickListener { showDatePickerDialog() }
-        btnMail?.setOnClickListener { shareGmail() }
-        btnFace?.setOnClickListener { shareSite("com.facebook.katana") }
-        btnTwit?.setOnClickListener { shareSite("com.twitter.android") }
-        btnInsta?.setOnClickListener { shareSite("com.instagram.android") }
     }
 
     /**
@@ -205,10 +197,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun initButtons() {
         btnAddUpdate = root.findViewById(R.id.buttonSiteAddUpdate)
-        btnMail = root.findViewById(R.id.btnGMail)
-        btnFace = root.findViewById(R.id.btnFacebook)
-        btnTwit = root.findViewById(R.id.btnTwitter)
-        btnInsta = root.findViewById(R.id.btnInstagram)
         cajaSiteName = root.findViewById(R.id.txtNameSiteSite)
         cajaLocalizacion = root.findViewById(R.id.txtSiteSite)
         cajaFecha = root.findViewById(R.id.txtDateSite)
@@ -293,7 +281,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 slider.adapter = adapter
 
                 btnAddUpdate?.text = getString(R.string.add)
-                mostrarBotonesSocial(false)
                 add(btnAddUpdate!!)
                 if (initPermisos()) {
                     initMap()
@@ -305,7 +292,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             2 -> { // Fragment de Edicion
                 cargarDatosSite()
                 btnAddUpdate?.text = getString(R.string.update)
-                mostrarBotonesSocial(false)
                 update(btnAddUpdate!!)
             }
 
@@ -313,7 +299,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 cargarDatosSite()
                 btnAddUpdate?.isVisible = false
                 btnAddImage?.isVisible = false
-                mostrarBotonesSocial(true)
 
                 cajaSiteName?.isEnabled = false
                 cajaLocalizacion?.isEnabled = false
@@ -338,15 +323,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         return true
     }
-
-
-    private fun mostrarBotonesSocial(bool: Boolean) {
-        btnMail?.isVisible = bool
-        btnFace?.isVisible = bool
-        btnTwit?.isVisible = bool
-        btnInsta?.isVisible = bool
-    }
-
     /**
      * Metodo para cargar los datos del Sitio en el Fragment
      */

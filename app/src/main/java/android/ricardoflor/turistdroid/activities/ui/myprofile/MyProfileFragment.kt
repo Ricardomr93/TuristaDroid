@@ -55,7 +55,6 @@ import java.lang.NullPointerException
 import java.time.Instant
 
 
-
 class MyProfileFragment : Fragment() {
     // Constantes
     private val GALLERY = 1
@@ -66,8 +65,8 @@ class MyProfileFragment : Fragment() {
     private lateinit var IMAGEN_NOMBRE: String
 
     //proveedor
-    var provider : String = ""
-    lateinit var imageProvider : ImageView
+    var provider: String = ""
+    lateinit var imageProvider: ImageView
 
     //storage
     lateinit var storage: FirebaseStorage
@@ -82,7 +81,7 @@ class MyProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val prefs = context!!.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
-        provider = prefs.getString("provider","").toString()
+        provider = prefs.getString("provider", "").toString()
         Log.i("fairebase", "provider: $provider")
         init()
     }
@@ -90,18 +89,18 @@ class MyProfileFragment : Fragment() {
     private fun init() {
         storage = Firebase.storage
         getInformation()
-        if (provider != NavigationActivity.ProviderType.BASIC.name){
+        if (provider != NavigationActivity.ProviderType.BASIC.name) {
             btnUpdateMyprofile.isVisible = false
             btnUnsubMyProfile.isVisible = false
             txtInLaMyprofilePass.isVisible = false
             txtEmailMyProfile.isClickable = false
-            if(provider == NavigationActivity.ProviderType.GOOGLE.name){
+            if (provider == NavigationActivity.ProviderType.GOOGLE.name) {
                 lblMyProfileProvider.text = "$provider \n account"
-                imgMyProfileProvider.setImageDrawable(ContextCompat.getDrawable(context!!,R.drawable.ic_google_round))
+                imgMyProfileProvider.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_google_round))
                 txtUserNameMyProfile.isEnabled = false
                 txtEmailMyProfile.isEnabled = false
             }
-        }else{
+        } else {
             lblMyProfileProvider.isVisible = false
             imgMyProfileProvider.isVisible = false
             btnUpdateMyprofile.setOnClickListener {
@@ -147,7 +146,7 @@ class MyProfileFragment : Fragment() {
      */
     private fun buttomDelete() {
         if (UtilNet.hasInternetConnection(context)) {
-            //TODO  dialogDelete()
+                dialogDelete()
         } else {
             val snackbar = Snackbar.make(
                 activity!!.findViewById(android.R.id.content),
@@ -255,45 +254,27 @@ class MyProfileFragment : Fragment() {
             .setTitle(getText(R.string.caution))
             .setMessage(getText(R.string.sure_delete))
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
-                //TODO ->    delUser()
+                delUser()
 
             }
             .setNegativeButton(getString(R.string.Cancel), null)
             .show()
     }
-
-    /*TODO ->
         private fun delUser() {
-            val turistREST = TuristAPI.service
-            val call: Call<UserDTO> = turistREST.userDelete(USER.id)
-            call.enqueue((object : Callback<UserDTO> {
-
-                override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
-                    Log.i("REST", "onResponse delUser")
-                    if (response.isSuccessful) {
-                        Log.i("REST", "isSuccessful delUser")
-                        UtilSession.closeSession(context!!)
+            val user = Firebase.auth.currentUser
+            user!!.delete()
+                .addOnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        Toast.makeText(context, task.exception!!.message.toString(), Toast.LENGTH_SHORT).show()
+                        Log.d("fairebase", "User account deleted.")
+                    }else{
                         startActivity(Intent(context, LoginActivity::class.java))
                         activity!!.finish()
                         Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
-                        Log.i("REST", "sesionDelete ok")
-                    } else {
-                        Log.i("REST", "Error: isSuccessful delUser")
                     }
                 }
-
-                override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                    Log.i("REST", "delUser failure")
-                    Toast.makeText(
-                        context,
-                        getText(R.string.service_error),
-                        Toast.LENGTH_LONG
-                    )
-                        .show()
-                }
-            }))
         }
-    */
+
     private fun dialogUpdate() {
         AlertDialog.Builder(context)
             .setTitle(getText(R.string.caution))
@@ -327,7 +308,6 @@ class MyProfileFragment : Fragment() {
     }
 
     private fun updateEmailAndPassword() {
-        var old_user = false
         val user = Firebase.auth.currentUser
         val email = txtEmailMyProfile.text.toString()
         if (user!!.email != email) {
@@ -349,10 +329,6 @@ class MyProfileFragment : Fragment() {
                     Log.i("fairebase", "email no cambiado error")
                 }
             }
-        }
-        if (old_user) {
-
-            Log.i("fairebase", "email no cambiado error")
         }
     }
 
@@ -379,7 +355,7 @@ class MyProfileFragment : Fragment() {
             Log.i("fairebase", "error al subir la foto a storage")
         }.addOnSuccessListener { taskSnapshot ->
             uploadTask = imageRef.putFile(file)
-            val urlTask = uploadTask.continueWithTask { task ->
+            uploadTask.continueWithTask { task ->
                 imageRef.downloadUrl
             }.addOnCompleteListener { task ->
                 if (task.isSuccessful) {

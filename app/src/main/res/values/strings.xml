@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Turist Droid</string>
+    <string name="twitter_api_key" translatable="false">2gb60EtVWSNnoadmlvFl4IeJI</string>
+    <string name="twitter_api_secret" translatable="false">lWxd4SP7MOx1998rJ6oCM521HvMzW4P4aKR7VL9aomdnfOyTap</string>
 
     <string name="email">Email</string>
     <string name="name">Name</string>
@@ -11,7 +13,7 @@
     <string name="no_count">Don\'t have an account?</string>
     <string name="createAccount">Create Account</string>
     <string name="logout">Logout</string>
-    <string name="or_log">or Login with</string>
+    <string name="or_log">or</string>
 
     <string name="want_to_logout">Do you want to Logout?</string>
 

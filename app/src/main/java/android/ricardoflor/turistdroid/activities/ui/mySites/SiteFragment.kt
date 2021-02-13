@@ -60,6 +60,7 @@ import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.widget.RatingBar
 import android.widget.RatingBar.OnRatingBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
@@ -123,6 +124,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
     // Vibrador
     private var vibrator: Vibrator? = null
+
+    //autenticador
+    private var auth: FirebaseAuth = Firebase.auth
 
     // Cloud Firestore
     private var db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -316,6 +320,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 btnAddUpdate?.text = getString(R.string.update)
                 mostrarBotonesSocial(false)
                 update(btnAddUpdate!!)
+                cajaRating?.isEnabled = false
             }
 
             3 -> { // Fragment de Consulta
@@ -327,29 +332,35 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 cajaSiteName?.isEnabled = false
                 cajaLocalizacion?.isEnabled = false
                 cajaFecha?.isEnabled = false
-                cajaRating?.isEnabled = true
-                /* TODO - cajaRating?.onRatingBarChangeListener =
-                    OnRatingBarChangeListener { ratingBar, rating, fromUser -> votar(rating) } */
+
+                if (auth.currentUser!!.uid != SITIO!!.userID) {
+                    cajaRating?.isEnabled = true
+                    cajaRating?.onRatingBarChangeListener =
+                        OnRatingBarChangeListener { ratingBar, rating, fromUser -> votar(rating) }
+
+                } else {
+                    cajaRating?.isEnabled = false
+                }
             }
         }
     }
 
-    /* TODO VOTAR ----> Comprobamos la lista votos para ver si existe ya el userId y si no, sumamos su puntuacion en ratings y añadimos el userId a votos
     private fun votar(rating: Float): Boolean {
+
+        SITIO?.votos?.add(auth.currentUser!!.uid)
+
         // Hacemos la media
-        var numVotos = SITIO?.votos?.plus(1)
-        var total = SITIO?.rating?.plus(rating)
-        var media = total!! / numVotos!!
+        var numVotos = SITIO?.votos?.size
+        SITIO?.rating = SITIO?.rating?.plus(rating)!!
+        var media = SITIO.rating.div(numVotos!!)
 
         cajaRating?.rating = media.toFloat()
         cajaRating?.isEnabled = false
 
-        update(numVotos, total)
+        db.collection("sites").document(SITIO.id).set(SITIO)
 
         return true
     }
-    */
-
 
     private fun mostrarBotonesSocial(bool: Boolean) {
         btnMail?.isVisible = bool
@@ -380,10 +391,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         cajaFecha?.setText(SITIO!!.date)
 
-        if (modo == 2) {
-            var mediaVotos = SITIO!!.rating / SITIO!!.votos.size
-            cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
-        }
+        var mediaVotos = SITIO!!.rating / SITIO!!.votos.size
+        cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
 
         //Cargamos las imagenes de la BD
         cargarImagenes()
@@ -484,7 +493,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
                         lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, user.uid, votos, images)
 
-                        db.collection("sites").add(lugar)
+                        db.collection("sites").document(lugar.id).set(lugar)
 
                         // Vibracion
                         vibrate()
@@ -513,37 +522,27 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         try {
             btn.setOnClickListener {//TODO que no pueda modificar sin internet y asi para todos
 
-                name = cajaSiteName?.text.toString()
-                site = cajaLocalizacion?.selectedItem.toString()
-                date = cajaFecha?.text.toString()
+                SITIO!!.name = cajaSiteName?.text.toString()
+                SITIO!!.site = cajaLocalizacion?.selectedItem.toString()
+                SITIO!!.date = cajaFecha?.text.toString()
 
                 if (anyEmpty()) {
                     if (posicion != null) {
-                        latitude = posicion!!.latitude
-                        longitude = posicion!!.longitude
-                    } else {
-                        latitude = SITIO!!.latitude
-                        longitude = SITIO!!.longitude
+                        SITIO!!.latitude = posicion!!.latitude
+                        SITIO!!.longitude = posicion!!.longitude
                     }
 
-                    val siteRef = db.collection("sites").document(SITIO!!.id)
-                    val updates = hashMapOf<String, Any>(
-                        "name" to name!!,
-                        "site" to site!!,
-                        "date" to date!!,
-                        "latitude" to latitude,
-                        "longitude" to longitude,
-                        "images" to images
-                    )
-
-                    siteRef.update(updates)
-
-                    // Vibracion
-                    vibrate()
-                    // Volvemos a MySites Fragment
-                    volverMySites()
-
-                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+                    db.collection("sites").document(SITIO.id).set(SITIO)
+                        .addOnSuccessListener {
+                            // Vibracion
+                            vibrate()
+                            // Volvemos a MySites Fragment
+                            volverMySites()
+                            Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context!!, R.string.error, Toast.LENGTH_SHORT).show()
+                        }
 
                     Log.i("site", SITIO.toString())
 

@@ -32,7 +32,10 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 
 
 class MySitesFragment : Fragment() {
@@ -50,6 +53,9 @@ class MySitesFragment : Fragment() {
 
     // Cloud Firestore
     private var db: FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    //autenticador
+    private var auth: FirebaseAuth = Firebase.auth
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -129,11 +135,17 @@ class MySitesFragment : Fragment() {
         } else {
             db.collection("sites").whereEqualTo("site", callFilter).get()
                 .addOnSuccessListener { result ->
-                    for (item in result) {
-                        val lugar = item.toObject(Site::class.java)
-                        sitios.add(lugar)
+                    if (result.isEmpty){
                         cargaAdapter(sitios)
+
+                    } else{
+                        for (item in result) {
+                            val lugar = item.toObject(Site::class.java)
+                            sitios.add(lugar)
+                            cargaAdapter(sitios)
+                        }
                     }
+
                 }
                 .addOnFailureListener { exception ->
                     Log.i("fairebase", "error al cargar sitios")
@@ -176,6 +188,7 @@ class MySitesFragment : Fragment() {
      * Realiza el swipe horizontal si es necesario
      */
     private fun iniciarSwipeHorizontal() {
+
         val simpleItemTouchCallback: ItemTouchHelper.SimpleCallback = object : ItemTouchHelper.SimpleCallback(
             0, ItemTouchHelper.LEFT or
                     ItemTouchHelper.RIGHT
@@ -192,21 +205,28 @@ class MySitesFragment : Fragment() {
             // Analizamos el evento según la dirección
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
-                // Si pulsamos a la de izquierda o a la derecha
-                when (direction) {
-                    ItemTouchHelper.LEFT -> {
-                        // Borramos el elemento
-                        if ((activity as NavigationActivity?)!!.isEventoFila) {
-                            borrarElemento(position)
+                val site = sitios[position]
+
+                if (auth.currentUser?.uid == site.userID) {
+                    // Si pulsamos a la de izquierda o a la derecha
+                    when (direction) {
+                        ItemTouchHelper.LEFT -> {
+                            // Borramos el elemento
+                            if ((activity as NavigationActivity?)!!.isEventoFila) {
+                                borrarElemento(position)
+                            }
+                        }
+                        else -> {
+                            // Editamos el elemento
+                            if ((activity as NavigationActivity?)!!.isEventoFila) {
+                                editarElemento(position)
+                            }
                         }
                     }
-                    else -> {
-                        // Editamos el elemento
-                        if ((activity as NavigationActivity?)!!.isEventoFila) {
-                            editarElemento(position)
-                        }
-                    }
+                } else {
+                    // Toast.makeText(requireContext(), R.string.no_permiss, Toast.LENGTH_SHORT).show()
                 }
+
                 cargaSitios("")
             }
 
@@ -348,15 +368,10 @@ class MySitesFragment : Fragment() {
         }
     }
 
-    // TODO -----------------------------------------------------------------
     private fun borrarElemento(position: Int) {
         val deletedSite = sitios[position]
-        if (USER.id == deletedSite.userID) {
-            adapter.removeItem(position)
-            confirmDialog(deletedSite, position)
-        } else {
-            Toast.makeText(requireContext(), R.string.no_permiss, Toast.LENGTH_SHORT).show()
-        }
+        adapter.removeItem(position)
+        confirmDialog(deletedSite, position)
     }
 
     /**
@@ -376,34 +391,19 @@ class MySitesFragment : Fragment() {
 
     fun acceptDelete(site: Site) {
 
-        // Borramos el sitio de Base de Datos
-        val turistREST = TuristAPI.service
-        val call: Call<SiteDTO> = turistREST.siteDelete(site.id)
-        call.enqueue((object : Callback<SiteDTO> {
+        db.collection("sites").document(site.id).delete()
+            .addOnSuccessListener {
+                Log.i("fairbase", "successful delsite")
+                Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
-            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                Log.i("REST", "onResponse delsite")
-                if (response.isSuccessful) {
-                    Log.i("REST", "isSuccessful delsite")
-                    Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
-
-                    vibrate()
-                    cargaSitios("")
-
-                } else {
-                    Log.i("REST", "Error: isSuccessful delsite")
-                }
+                vibrate()
+                cargaSitios("")
             }
 
-            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                Toast.makeText(
-                    context!!,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                ).show()
+            .addOnFailureListener{ e ->
+                Toast.makeText(context!!,getText(R.string.service_error).toString(),Toast.LENGTH_LONG).show()
+                Log.i("fairbase", e.localizedMessage)
             }
-        }))
-
     }
 
     fun cancelDelete(site: Site, position: Int) {
@@ -417,11 +417,7 @@ class MySitesFragment : Fragment() {
      */
     private fun editarElemento(position: Int) {
         val site = sitios[position]
-        if (USER.id == site.userID) {
-            openSite(site, 2)
-        } else {
-            Toast.makeText(requireContext(), R.string.no_permiss, Toast.LENGTH_SHORT).show()
-        }
+        openSite(site, 2)
 
         // Esto es para que no se quede el color
         adapter.removeItem(position)

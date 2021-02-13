@@ -84,6 +84,7 @@ object UtilExp {
      * Metodo para recuperar los sitios segun id User
      */
     private fun sitesRest(context: Context) {
+/*
         val call: Call<List<SiteDTO>> = clientREST.siteGetByUserID(USER.id)
         call.enqueue((object : Callback<List<SiteDTO>> {
 
@@ -114,7 +115,7 @@ object UtilExp {
                     .show()
             }
         }))
-    }
+*/    }
 
     /**
      * Archiva los datos

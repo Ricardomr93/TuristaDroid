@@ -211,6 +211,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      */
     private fun addMarkerSite() {
         try {
+/*
         val turistREST = TuristAPI.service
         val call = turistREST.siteGetAll()
         val nearme = mutableListOf<Site>()
@@ -243,7 +244,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
             }
 
         }))
-
+*/
         } catch (e: Exception) {
 
         }
@@ -270,7 +271,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                 val site = marker.tag as Site
 
                 txtNamePlaceInfo.text = site.name
-                ratin.text = String.format("%.1f", (site.rating/site.votos))
+                ratin.text = String.format("%.1f", (site.rating/site.votos.size))
 
                 //imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img))
 
@@ -316,7 +317,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * Metodo encargado de buscar y rellenar las imagenes en el slaider
      */
     private fun cargarImagenes() {
-
+/*
         var listaImg: MutableList<Image>? = null
         val turistREST = TuristAPI.service
         val call: Call<List<ImageDTO>> = turistREST.imageGetAll()
@@ -337,7 +338,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
                     .show()*/
             }
         })
-    }
+*/    }
 
     /**
      * Método que al hacer click en el cuadro de dialogo abre el sitio

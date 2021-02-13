@@ -83,6 +83,8 @@ dependencies {
     implementation('com.twitter.sdk.android:twitter:3.3.0@aar') { transitive = true }
     //storage
     implementation 'com.google.firebase:firebase-storage-ktx'
+    // cloud firestore
+    implementation 'com.google.firebase:firebase-firestore-ktx'
     //picasso
     implementation 'com.squareup.picasso:picasso:2.71828'
 }

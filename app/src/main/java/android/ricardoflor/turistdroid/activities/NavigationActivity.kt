@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
+import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.RoundImagePicasso
@@ -34,6 +35,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.nav_header_main.*
@@ -59,6 +62,8 @@ class NavigationActivity : AppCompatActivity() {
 
     //autenticador
     private lateinit var auth: FirebaseAuth
+    // Cloud Firestore
+    private lateinit var db: FirebaseFirestore
 
     companion object {
         lateinit var navUsername: TextView
@@ -67,8 +72,12 @@ class NavigationActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        auth = Firebase.auth
+        db = FirebaseFirestore.getInstance()
+
         /* TODO -> esta es la unica forma que he encontrado para que no falle la aplicacion al girar en SiteFragment
            Lo que pasa es que gira la pantalla y vuelve a MySitesFragment, el fragment anterior al que me encuentro */
+
         super.onCreate(null)
         //super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)

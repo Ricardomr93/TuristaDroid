@@ -60,6 +60,11 @@ import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.widget.RatingBar
 import android.widget.RatingBar.OnRatingBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.ktx.Firebase
 import java.io.IOException
 import kotlin.Exception
 
@@ -99,9 +104,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private var rating: Double = 0.0
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
-    private var userID: String? = null
-    private var votos: Int = 0
-    private var numVotos: Int = 0
+    private var votos: ArrayList<String> = ArrayList()
+    private var images: ArrayList<String> = ArrayList()
 
     // Variables Camara
     private val GALLERY = 1
@@ -119,6 +123,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
     // Vibrador
     private var vibrator: Vibrator? = null
+
+    // Cloud Firestore
+    private var db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -294,11 +301,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
                 btnAddUpdate?.text = getString(R.string.add)
                 mostrarBotonesSocial(false)
-                add(btnAddUpdate!!)
+
                 if (initPermisos()) {
                     initMap()
                     myActualPosition()
                 }
+
+                add(btnAddUpdate!!)
 
             }
 
@@ -319,12 +328,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 cajaLocalizacion?.isEnabled = false
                 cajaFecha?.isEnabled = false
                 cajaRating?.isEnabled = true
-                cajaRating?.onRatingBarChangeListener =
-                    OnRatingBarChangeListener { ratingBar, rating, fromUser -> votar(rating) }
+                /* TODO - cajaRating?.onRatingBarChangeListener =
+                    OnRatingBarChangeListener { ratingBar, rating, fromUser -> votar(rating) } */
             }
         }
     }
 
+    /* TODO VOTAR ----> Comprobamos la lista votos para ver si existe ya el userId y si no, sumamos su puntuacion en ratings y añadimos el userId a votos
     private fun votar(rating: Float): Boolean {
         // Hacemos la media
         var numVotos = SITIO?.votos?.plus(1)
@@ -338,6 +348,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         return true
     }
+    */
 
 
     private fun mostrarBotonesSocial(bool: Boolean) {
@@ -352,72 +363,49 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun cargarDatosSite() {
 
-        val turistREST = TuristAPI.service
-        val call: Call<SiteDTO> = turistREST.siteGetById(SITIO!!.id)
-        call.enqueue(object : Callback<SiteDTO> {
-            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                if (response.isSuccessful) {
-                    //TODO
-                    lugar = SiteMapper.fromDTO(response.body()!!)
+        cajaSiteName?.setText(SITIO!!.name)
 
-                    cajaSiteName?.setText(lugar.name)
+        // Cargamos el spinner con la opcion correcta
+        var lista: Array<String> = resources.getStringArray(R.array.sites_types)
 
-                    // Cargamos el spinner con la opcion correcta
-                    var lista: Array<String> = resources.getStringArray(R.array.sites_types)
+        var opc: Int = 0
 
-                    var opc: Int = 0
-
-                    for (it in lista) {
-                        if (it.equals(lugar?.site.toString())) {
-                            break
-                        }
-                        opc++
-                    }
-                    cajaLocalizacion?.setSelection(opc)
-
-                    cajaFecha?.setText(lugar?.date)
-
-                    if (modo == 2) {
-                        var mediaVotos = lugar?.rating / lugar?.votos
-                        cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
-                    }
-
-                    //Cargamos las imagenes de la BD
-                    cargarImagenes()
-
-                    var textoQr: String =
-                        lugar?.name + ";" + opc + ";" + lugar?.date + ";" +
-                                (lugar?.rating)?.toFloat() + ";" + (lugar.latitude) + ";" + (lugar.longitude)
-
-                    generateQRCode(textoQr)
-                    positionSite = LatLng(lugar!!.latitude, lugar!!.longitude)
-                    Log.i("mapa", "cargarDatosSite-positionSite: $positionSite")
-                    if (initPermisos()) {
-                        initMap()
-                        myActualPosition()
-                    }
-
-
-                } else {
-                    Toast.makeText(context!!, "Error POST", Toast.LENGTH_SHORT).show()
-                }
+        for (it in lista) {
+            if (it.equals(SITIO!!.site)) {
+                break
             }
+            opc++
+        }
+        cajaLocalizacion?.setSelection(opc)
 
-            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                Toast.makeText(
-                    context!!,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        cajaFecha?.setText(SITIO!!.date)
 
-        })
+        if (modo == 2) {
+            var mediaVotos = SITIO!!.rating / SITIO!!.votos.size
+            cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
+        }
+
+        //Cargamos las imagenes de la BD
+        cargarImagenes()
+
+        var textoQr: String =
+            SITIO!!.name + ";" + opc + ";" + SITIO!!.date + ";" +
+                    (SITIO!!.rating)?.toFloat() + ";" + (SITIO!!.latitude) + ";" + (SITIO!!.longitude)
+
+        generateQRCode(textoQr)
+        positionSite = LatLng(SITIO!!.latitude, SITIO!!.longitude)
+        Log.i("mapa", "cargarDatosSite-positionSite: $positionSite")
+        if (initPermisos()) {
+            initMap()
+            myActualPosition()
+        }
     }
 
     /**
-     * Metodo encargado de buscar y rellenar las imagenes en el slaider
+     * Metodo encargado de buscar y rellenar las imagenes en el slider
      */
     private fun cargarImagenes() {
+        /* TODO -------------------------------------------------------------------------------
 
         var listaImg: MutableList<Image>? = null
         val turistREST = TuristAPI.service
@@ -439,12 +427,14 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                         slider.adapter = adapter
                     }
                 }
-            }
+
+
+             }
 
             override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
                 //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
             }
-        })
+        })*/
     }
 
     /**
@@ -468,6 +458,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     fun add(btn: Button) {
         try {
+            val user = Firebase.auth.currentUser
 
             btn.setOnClickListener {
                 if (anyEmpty() && isSelectSite(cajaLocalizacion!!)) {
@@ -476,61 +467,32 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     site = cajaLocalizacion?.selectedItem.toString()
                     date = cajaFecha?.text.toString()
                     rating = cajaRating?.rating?.toDouble() ?: 0.0
-                    votos = 1
+                    votos.add(user!!.uid)
 
                     if (posicion != null) {
                         latitude = posicion!!.latitude
                         longitude = posicion!!.longitude
 
-                        lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, USER.id, votos)
+                        for (img in imagesSlider) {
+                            if (!imagenIni) {
+                                var imgStr = UtilImage.toBase64(img)!!
+                                //val imag = Image(imgStr, USER.id, lugar.id)
 
-                        val turistREST = TuristAPI.service
-                        val call: Call<SiteDTO> = turistREST.sitePost(SiteMapper.toDTO(lugar!!))
-                        call.enqueue(object : Callback<SiteDTO> {
-                            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                                if (response.isSuccessful) {
-                                    Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
-                                    Log.i("site", lugar.toString())
-
-                                    for (img in imagesSlider) {
-                                        if (!imagenIni) {
-                                            var imgStr = UtilImage.toBase64(img)!!
-                                            val imag = Image(imgStr, USER.id, lugar.id)
-
-                                            //Se almacena la imagen en la BD
-                                            val call: Call<ImageDTO> = turistREST.imagePost(ImageMapper.toDTO(imag))
-                                            call.enqueue(object : Callback<ImageDTO> {
-                                                override fun onResponse(
-                                                    call: Call<ImageDTO>,
-                                                    response: Response<ImageDTO>
-                                                ) {
-
-                                                }
-
-                                                override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                                    //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
-                                                }
-                                            })
-                                        }
-                                    }
-
-                                    // Vibracion
-                                    vibrate()
-                                    // Volvemos a MySites Fragment
-                                    volverMySites()
-                                }
+                                // TODO ----- images.add() -- String de la URI
                             }
+                        }
 
-                            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                                Toast.makeText(
-                                    context!!,
-                                    getText(R.string.service_error).toString() + t.localizedMessage,
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
+                        lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, user.uid, votos, images)
 
-                        })
-                        Log.i("site", lugar.toString())
+                        db.collection("sites").add(lugar)
+
+                        // Vibracion
+                        vibrate()
+                        // Volvemos a MySites Fragment
+                        volverMySites()
+
+
+                        Log.i("fairbase", lugar.toString())
 
                     } else {
                         Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
@@ -550,108 +512,46 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun update(btn: Button) {
         try {
             btn.setOnClickListener {//TODO que no pueda modificar sin internet y asi para todos
-                // Recuperamos las fotos subidas
+
                 name = cajaSiteName?.text.toString()
                 site = cajaLocalizacion?.selectedItem.toString()
                 date = cajaFecha?.text.toString()
-                rating = cajaRating?.rating?.toDouble() ?: 0.0
+
                 if (anyEmpty()) {
                     if (posicion != null) {
                         latitude = posicion!!.latitude
                         longitude = posicion!!.longitude
                     } else {
-                        latitude = lugar!!.latitude
-                        longitude = lugar!!.longitude
+                        latitude = SITIO!!.latitude
+                        longitude = SITIO!!.longitude
                     }
-                    if (lugar != null) {
-                        lugar.name = name!!
-                        lugar.site = site!!
-                        lugar.date = date!!
 
-                        lugar.latitude = latitude
-                        lugar.longitude = longitude
+                    val siteRef = db.collection("sites").document(SITIO!!.id)
+                    val updates = hashMapOf<String, Any>(
+                        "name" to name!!,
+                        "site" to site!!,
+                        "date" to date!!,
+                        "latitude" to latitude,
+                        "longitude" to longitude,
+                        "images" to images
+                    )
 
-                        val turistREST = TuristAPI.service
-                        val call: Call<SiteDTO> = turistREST.siteUpdate(lugar.id, SiteMapper.toDTO(lugar!!))
-                        call.enqueue(object : Callback<SiteDTO> {
-                            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                                if (response.isSuccessful) {
-                                    // Vibracion
-                                    vibrate()
-                                    // Volvemos a MySites Fragment
-                                    volverMySites()
-                                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                    siteRef.update(updates)
 
-                            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                                Toast.makeText(
-                                    context!!,
-                                    getText(R.string.service_error).toString() + t.localizedMessage,
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
+                    // Vibracion
+                    vibrate()
+                    // Volvemos a MySites Fragment
+                    volverMySites()
 
-                        })
-                        Log.i("site", lugar.toString())
-                    }
+                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+
+                    Log.i("site", SITIO.toString())
+
                 }
             }
         } catch (e: Exception) {
 
         }
-    }
-
-    /**
-     * Metodo para editar un sitio
-     */
-    private fun update(numVotos: Int?, total: Double?) {
-        // Recuperamos las fotos subidas
-        name = cajaSiteName?.text.toString()
-        site = cajaLocalizacion?.selectedItem.toString()
-        date = cajaFecha?.text.toString()
-
-        if (anyEmpty()) {
-            if (posicion != null) {
-                latitude = posicion!!.latitude
-                longitude = posicion!!.longitude
-            } else {
-                latitude = lugar!!.latitude
-                longitude = lugar!!.longitude
-            }
-            if (lugar != null) {
-                lugar.name = name!!
-                lugar.site = site!!
-                lugar.date = date!!
-                lugar.rating = total!!
-                lugar.latitude = latitude
-                lugar.longitude = longitude
-                lugar.votos = numVotos!!
-
-                val turistREST = TuristAPI.service
-                val call: Call<SiteDTO> = turistREST.siteUpdate(lugar.id, SiteMapper.toDTO(lugar!!))
-                call.enqueue(object : Callback<SiteDTO> {
-                    override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                        if (response.isSuccessful) {
-                            Toast.makeText(requireContext(), R.string.site_modified, Toast.LENGTH_SHORT).show()
-                            Log.i("site", lugar.toString())
-                        }
-                    }
-
-                    override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                        Toast.makeText(
-                            requireContext(),
-                            getText(R.string.service_error).toString() + t.localizedMessage,
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-
-                })
-                Log.i("site", lugar.toString())
-            }
-            Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-        }
-
     }
 
     /**
@@ -683,7 +583,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         }
     }
 
-//**************************************************************************
+    //**************************************************************************
     //METODO PARA LOS PERMISOS **********************
     /**
      * Comprobamos los permisos de la aplicación
@@ -818,7 +718,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        //TODO
+        //TODO IMAGES
         try {
             //Recupera la informacion si ha escaneado un QR
             val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
@@ -844,7 +744,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     val contentURI = data.data!!
                     try {
                         FOTO = differentVersion(contentURI)
-                        FOTO = Bitmap.createScaledBitmap(FOTO, 200 /*Ancho*/, 200 /*Alto*/, false /* filter*/)
 
                         // Mostramos la imagen
                         var imgStr = UtilImage.toBase64(FOTO)!!
@@ -893,7 +792,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 //cogemos la imagen
                 try {
                     FOTO = differentVersion(IMAGE)
-                    FOTO = Bitmap.createScaledBitmap(FOTO, 200 /*Ancho*/, 200 /*Alto*/, false /* filter*/)
 
                     // Mostramos la imagen
                     var imgStr = UtilImage.toBase64(FOTO)!!
@@ -1167,3 +1065,13 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     }
 
 }
+
+
+
+
+
+
+
+
+
+

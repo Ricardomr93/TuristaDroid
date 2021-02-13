@@ -6,6 +6,7 @@ import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import java.io.Serializable
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Clase modelo de los sitios
@@ -17,7 +18,8 @@ import java.util.*
  * @property latitude Double
  * @property longitude Double
  * @property userID String
- * @property votos Int
+ * @property votos ArrayList<String>
+ * @property images ArrayList<String>
  */
 open class Site(
     @PrimaryKey
@@ -29,8 +31,9 @@ open class Site(
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
     var userID: String = "",
-    var votos: Int = 0,
-) : RealmObject(), Serializable {
+    var votos: ArrayList<String> = ArrayList(),
+    var images: ArrayList<String> = ArrayList(),
+) : Serializable {
 
     /**
      * Constructor
@@ -41,7 +44,8 @@ open class Site(
      * @property latitude Double
      * @property longitude Double
      * @property userID String
-     * @property votos Int
+     * @property votos ArrayList<String>
+     * @property images ArrayList<String>
      * @constructor
      */
     constructor(
@@ -52,15 +56,16 @@ open class Site(
         latitude: Double,
         longitude: Double,
         userID: String,
-        votos: Int,
+        votos: ArrayList<String>,
+        images: ArrayList<String>,
     ) :
-            this((UUID.randomUUID().toString()), name, site, date, rating, latitude, longitude, userID, votos)
+            this((UUID.randomUUID().toString()), name, site, date, rating, latitude, longitude, userID, votos, images)
 
     /**
      * Metodo sobrescrito para escribir en pantalla un Site
      */
     override fun toString(): String {
-        return "Site(id=$id, name='$name', site='$site', date=$date, rating=$rating, latitude=$latitude, longitude=$longitude, userID=$userID, votos=$votos)"
+        return "Site(id=$id, name='$name', site='$site', date=$date, rating=$rating, latitude=$latitude, longitude=$longitude, userID=$userID)"
     }
 
 }

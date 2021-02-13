@@ -81,6 +81,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
     //storage
     implementation 'com.google.firebase:firebase-storage-ktx'
+    // cloud firestore
+    implementation 'com.google.firebase:firebase-firestore-ktx'
     //picasso
     implementation 'com.squareup.picasso:picasso:2.71828'
 }

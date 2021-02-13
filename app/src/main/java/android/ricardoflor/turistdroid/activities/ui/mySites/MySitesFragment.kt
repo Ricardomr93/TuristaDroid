@@ -32,6 +32,7 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class MySitesFragment : Fragment() {
@@ -46,6 +47,9 @@ class MySitesFragment : Fragment() {
 
     // Vibrador
     private var vibrator: Vibrator? = null
+
+    // Cloud Firestore
+    private var db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,7 +73,7 @@ class MySitesFragment : Fragment() {
         iniciarSwipeRecarga()
 
         // Cargamos los datos por primera vez
-        cargaSitios(null)
+        cargaSitios("")
 
         // Solo si hemos cargado hacemos sl swipeHorizontal
         iniciarSwipeHorizontal()
@@ -98,74 +102,63 @@ class MySitesFragment : Fragment() {
         my_sites_swipe.setOnRefreshListener {
             spinnerOrder?.setSelection(0)
             spinnerFilter?.setSelection(0)
-            cargaSitios(null)
+            cargaSitios("")
         }
     }
 
     /**
      * Carga los Sitios
      */
-    private fun cargaSitios(callFilter: Call<List<SiteDTO>>?) {
+    private fun cargaSitios(callFilter: String) {
         sitios = mutableListOf<Site>()
 
+        if (callFilter.equals("")) {
+            db.collection("sites").get()
+                .addOnSuccessListener { result ->
+                    for (item in result) {
+                        val lugar = item.toObject(Site::class.java)
+                        sitios.add(lugar)
+                        cargaAdapter(sitios)
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.i("fairebase", "error al cargar sitios")
+                    Toast.makeText(context!!, R.string.service_error, Toast.LENGTH_SHORT).show()
+                }
+
+        } else {
+            db.collection("sites").whereEqualTo("site", callFilter).get()
+                .addOnSuccessListener { result ->
+                    for (item in result) {
+                        val lugar = item.toObject(Site::class.java)
+                        sitios.add(lugar)
+                        cargaAdapter(sitios)
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.i("fairebase", "error al cargar sitios")
+                    Toast.makeText(context!!, R.string.service_error, Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
+
+    private fun cargaAdapter(sitios: MutableList<Site>) {
         val executor = Executors.newSingleThreadExecutor()
         val handler = Handler(Looper.getMainLooper())
         executor.execute {
-
             //doInBackground()
-            val turistREST = TuristAPI.service
-            var call: Call<List<SiteDTO>>? = null
+            handler.post {
+                //onPostExecute
+                adapter = SiteListAdapter(sitios) {
+                    eventoClicFila(it)
+                }
 
-            // Identificamos si el call trae informacion, sino se la asignamos
-            if (callFilter == null) {
-                call = turistREST.siteGetAll()
-            } else {
-                call = callFilter
+                my_sites_recicler.adapter = adapter
+                // Avismos que ha cambiado
+                adapter.notifyDataSetChanged()
+                my_sites_recicler.setHasFixedSize(true)
+                my_sites_swipe.isRefreshing = false
             }
-
-            call!!.enqueue(object : Callback<List<SiteDTO>> {
-                override fun onResponse(call: Call<List<SiteDTO>>, response: Response<List<SiteDTO>>) {
-                    if (response.isSuccessful && response.body()!!.isNotEmpty()) {
-                        sitios =
-                            SiteMapper.fromDTO(response.body() as MutableList<SiteDTO>) as MutableList<Site>//saca todos los resultados
-
-                        handler.post {
-                            //onPostExecute
-                            adapter = SiteListAdapter(sitios) {
-                                eventoClicFila(it)
-                            }
-
-                            my_sites_recicler.adapter = adapter
-                            // Avismos que ha cambiado
-                            adapter.notifyDataSetChanged()
-                            my_sites_recicler.setHasFixedSize(true)
-                            my_sites_swipe.isRefreshing = false
-                        }
-
-                    } else {
-
-                        handler.post {
-                            //onPostExecute
-                            adapter = SiteListAdapter(sitios) {
-                                eventoClicFila(it)
-                            }
-
-                            my_sites_recicler.adapter = adapter
-                            // Avismos que ha cambiado
-                            adapter.notifyDataSetChanged()
-                            my_sites_recicler.setHasFixedSize(true)
-                            my_sites_swipe.isRefreshing = false
-                        }
-
-                        Toast.makeText(context!!, R.string.no_site_filter, Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onFailure(call: Call<List<SiteDTO>>, t: Throwable) {
-
-                }
-
-            })
         }
     }
 
@@ -214,7 +207,7 @@ class MySitesFragment : Fragment() {
                         }
                     }
                 }
-                cargaSitios(null)
+                cargaSitios("")
             }
 
             // Dibujamos los botones
@@ -274,47 +267,38 @@ class MySitesFragment : Fragment() {
      * Metodo que realiza el filtrado de los GETs
      */
     private fun filterSites(pos: Int) {
-        val turistREST = TuristAPI.service
-        var call: Call<List<SiteDTO>>? = null
 
         when (pos) {
             1 -> { // Filter by ALL SITES
-                cargaSitios(null)
+                cargaSitios("")
             }
 
             2 -> { // Filter by MY SITES
-                call = turistREST.siteGetByUserID(USER.id)
-                cargaSitios(call)
+                cargaSitios(USER.id)
             }
 
             3 -> { // Filter by CITY
-                call = turistREST.siteGetBySite("City")
-                cargaSitios(call)
+                cargaSitios("City")
             }
 
             4 -> { // Filter by PARK
-                call = turistREST.siteGetBySite("Park")
-                cargaSitios(call)
+                cargaSitios("Park")
             }
 
             5 -> { // Filter by BAR
-                call = turistREST.siteGetBySite("Bar")
-                cargaSitios(call)
+                cargaSitios("Bar")
             }
 
             6 -> { // Filter by MONUMENT
-                call = turistREST.siteGetBySite("Monument")
-                cargaSitios(call)
+                cargaSitios("Monument")
             }
 
             7 -> { // Filter by RESTAURANT
-                call = turistREST.siteGetBySite("Restaurant")
-                cargaSitios(call)
+                cargaSitios("Restaurant")
             }
 
             8 -> { // Filter by SHOP
-                call = turistREST.siteGetBySite("Shop")
-                cargaSitios(call)
+                cargaSitios("Shop")
             }
         }
     }
@@ -358,12 +342,13 @@ class MySitesFragment : Fragment() {
             }
 
             3 -> { // Order by RATINGS
-                this.sitios.sortWith() { uno: Site, dos: Site -> (dos.rating / dos.votos).compareTo((uno.rating / uno.votos)) }
+                this.sitios.sortWith() { uno: Site, dos: Site -> (dos.rating / dos.votos.size).compareTo((uno.rating / uno.votos.size)) }
                 my_sites_recicler.adapter = adapter
             }
         }
     }
 
+    // TODO -----------------------------------------------------------------
     private fun borrarElemento(position: Int) {
         val deletedSite = sitios[position]
         if (USER.id == deletedSite.userID) {
@@ -403,7 +388,7 @@ class MySitesFragment : Fragment() {
                     Toast.makeText(requireContext(), R.string.site_deleted, Toast.LENGTH_SHORT).show()
 
                     vibrate()
-                    cargaSitios(null)
+                    cargaSitios("")
 
                 } else {
                     Log.i("REST", "Error: isSuccessful delsite")
@@ -511,7 +496,7 @@ class MySitesFragment : Fragment() {
         transaction.add(R.id.nav_host_fragment, addSites)
         transaction.addToBackStack(null)
         transaction.commit()
-        cargaSitios(null)
+        cargaSitios("")
     }
 
     /**

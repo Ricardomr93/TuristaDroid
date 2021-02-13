@@ -53,7 +53,7 @@ class SiteListAdapter(
             var siteLocation: String = listaSitios[position].site
             var siteDate: String = listaSitios[position].date
             var siteRatings: Double = listaSitios[position].rating
-            var siteNumVotos: Int = listaSitios[position].votos
+            var siteNumVotos: Int = listaSitios[position].votos.size
             var siteMedia: String = String.format("%.1f", (siteRatings/siteNumVotos))
 
             //Controlamos la longitud para que si llega a una cantidad de caracteres, recortarlo

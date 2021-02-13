@@ -103,32 +103,27 @@
                 </LinearLayout>
                 <Space
                         android:layout_width="match_parent"
-                        android:layout_height="15dp"/>
-                <TextView
-                        android:text="@string/or_log"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:id="@+id/textViewLoginOr"
-                        android:textAlignment="center"
-                        android:textSize="16sp"/>
-                <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="12dp"/>
+                        android:layout_height="20dp"/>
                 <LinearLayout
                         android:orientation="horizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="55dp">
-                    <ImageButton
-                            android:layout_width="186dp"
-                            android:layout_height="wrap_content" app:srcCompat="@drawable/ic_google_round"
-                            android:id="@+id/btnGoogleLogin" android:layout_weight="1" android:scaleType="fitCenter"
-                            android:background="@null" android:layout_marginLeft="85dp"/>
-                    <ImageButton
-                            android:layout_width="188dp"
-                            android:layout_height="wrap_content" app:srcCompat="@drawable/ic_twitter_round"
-                            android:id="@+id/btnTwitterLogin" android:layout_weight="1" android:scaleType="fitCenter"
-                            android:background="@null"
-                            android:layout_marginRight="85dp"/>
+                        android:layout_height="match_parent" android:background="@drawable/buttom_round_white"
+                        android:layout_marginRight="32dp" android:layout_marginLeft="32dp"
+                        android:id="@+id/buttomGoogleLogin">
+                    <ImageView
+                            android:layout_width="51dp"
+                            android:layout_height="46dp" app:srcCompat="@drawable/ic_google_round"
+                            android:id="@+id/imageView2"
+                            android:scaleType="fitEnd"/>
+                    <TextView
+                            android:text="@string/with_google"
+                            android:layout_width="220dp"
+                            android:layout_height="match_parent" android:id="@+id/textView" android:textSize="16sp"
+                            android:textAlignment="center" android:textAllCaps="true" android:layout_marginTop="10dp"
+                            android:fontFamily="sans-serif-medium" android:layout_marginBottom="10dp"
+                            android:layout_marginRight="10dp"/>
                 </LinearLayout>
+
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>

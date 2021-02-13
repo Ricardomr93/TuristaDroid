@@ -14,11 +14,13 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.*
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.twitter.sdk.android.core.*
 import kotlinx.android.synthetic.main.activity_login.*
 
 
@@ -31,6 +33,7 @@ class LoginActivity : AppCompatActivity() {
     private val GOOGLE_SING_IN = 100
     var email: String = ""
     var pass: String = ""
+
     //tipo proveedor
     enum class ProviderType {
         BASIC,
@@ -47,7 +50,7 @@ class LoginActivity : AppCompatActivity() {
             UtilText.cleanErrors(txtInLaLoginPass, txtInLaLoginEmail)
             login()
         }
-        btnGoogleLogin.setOnClickListener {
+        buttomGoogleLogin.setOnClickListener {
             loginGoogle()
         }
         SingIn()
@@ -61,11 +64,16 @@ class LoginActivity : AppCompatActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
         googleSignInClient.signOut()
     }
-
+    /*
+    * ****************************************************
+    * GOOGLE AUTH
+    * ****************************************************
+    * */
     private fun loginGoogle() {
         val signInIntent: Intent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, GOOGLE_SING_IN)
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -79,7 +87,7 @@ class LoginActivity : AppCompatActivity() {
                 firebaseAuthWithGoogle(account.idToken!!)
             } catch (e: ApiException) {
                 // Google Sign In failed, update UI appropriately
-                Log.w("fairebase" ,"Google sign in failed")
+                Log.w("fairebase", "Google sign in failed")
             }
         }
     }
@@ -100,6 +108,11 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
+    /*
+    * ****************************************************
+    * BASIC AUTH
+    * ****************************************************
+    * */
 
     /**
      * Método que cuando pulsa en en el boton si lo campos son correctos
@@ -187,7 +200,7 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun toNavigation(provider: ProviderType) {
         val intent = Intent(applicationContext, NavigationActivity::class.java).apply {
-            putExtra("provider",provider.name)
+            putExtra("provider", provider.name)
         }
         startActivity(intent)
         finish()

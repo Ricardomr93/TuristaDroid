@@ -79,6 +79,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx'
     //auth google
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
+    //auth twitter
+    implementation('com.twitter.sdk.android:twitter:3.3.0@aar') { transitive = true }
     //storage
     implementation 'com.google.firebase:firebase-storage-ktx'
     // cloud firestore

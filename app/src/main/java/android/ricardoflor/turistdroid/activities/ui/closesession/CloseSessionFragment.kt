@@ -1,5 +1,6 @@
 package android.ricardoflor.turistdroid.activities.ui.closesession
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -29,7 +30,9 @@ class CloseSessionFragment : Fragment() {
      * Funcion para Cerrar Sesion
      */
     private fun logout() {
-        Firebase.auth.signOut()
+        auth.signOut()
+        val prefs = context!!.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE).edit()
+        prefs.clear()
         startActivity(Intent(context, LoginActivity::class.java))
         activity!!.finish()
     }

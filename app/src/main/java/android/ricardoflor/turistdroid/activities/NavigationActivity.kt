@@ -51,6 +51,11 @@ class NavigationActivity : AppCompatActivity() {
     private lateinit var cameraManager: CameraManager
     private lateinit var cameraId: String
     private var encendida: Boolean = false
+    //tipo de proveedor
+    enum class ProviderType {
+        BASIC,
+        GOOGLE
+    }
 
     //autenticador
     private lateinit var auth: FirebaseAuth
@@ -64,7 +69,6 @@ class NavigationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         /* TODO -> esta es la unica forma que he encontrado para que no falle la aplicacion al girar en SiteFragment
            Lo que pasa es que gira la pantalla y vuelve a MySitesFragment, el fragment anterior al que me encuentro */
-        auth = Firebase.auth
         super.onCreate(null)
         //super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
@@ -86,9 +90,20 @@ class NavigationActivity : AppCompatActivity() {
 
         //opciones adicionales
         //actualizarDatos(this)
+        init()
         cambiarDatos()
-    }
 
+    }
+    private fun init(){
+        auth = Firebase.auth
+        val bundle = intent.extras
+        if (bundle != null){
+            val provider = bundle?.getString("provider")
+            val prefs = getSharedPreferences("TuristDroid",Context.MODE_PRIVATE).edit()
+            prefs.putString("provider",provider)
+            prefs.apply()
+        }
+    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.navigation, menu)

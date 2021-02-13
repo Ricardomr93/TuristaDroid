@@ -76,6 +76,7 @@
     <string name="name_incorrecto">"The name isn\'t in the correct format"</string>
     <string name="email_incorrecto">"The email isn\'t in the correct format"</string>
     <string name="pwd_incorrecto">The password must be at least 6 characters</string>
+    <string name="user_old">This operation is sensitive and requires recent auth. Log in again before retrying this requests.</string>
 
     <string name="title_activity_navigation">NavigationActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>

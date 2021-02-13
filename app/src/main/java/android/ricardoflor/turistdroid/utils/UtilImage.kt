@@ -13,6 +13,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.ricardoflor.turistdroid.bd.image.Image
 import android.util.Base64
+import android.view.animation.Transformation
 import android.widget.ImageView
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
@@ -140,6 +141,7 @@ object UtilImage {
         if (imagenUri.toFile().exists())
             imagenUri.toFile().delete()
     }
+
 
     /**
      * Método que redondea la imagen

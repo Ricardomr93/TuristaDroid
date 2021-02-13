@@ -13,6 +13,7 @@ import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
+import android.ricardoflor.turistdroid.utils.RoundImagePicasso
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilExp
 import android.ricardoflor.turistdroid.utils.UtilSession
@@ -34,6 +35,8 @@ import androidx.appcompat.widget.Toolbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.nav_header_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -218,28 +221,21 @@ class NavigationActivity : AppCompatActivity() {
         navUserImage = headerView.findViewById(R.id.imgNavUser)
         //obtenemos el email de la sesion y obtenemos el usuario
         Log.i("util", USER.toString())
-
         val user = Firebase.auth.currentUser
         user?.let {
             // Name, email address, and profile photo Url
             val name = user.displayName
             val email = user.email
             val photoUrl = user.photoUrl
-            // The user's ID, unique to the Firebase project. Do NOT use this value to
-            // authenticate with your backend server, if you have one. Use
-            // FirebaseUser.getToken() instead.
+            Log.i("fairebase","photoUrl: $photoUrl")
             val uid = user.uid
             //cambiamos los valores por los del usuario
             navUsername.text = name
             navUserEmail.text = email
-            //navUserImage = TODO picasso
-        }
-
-
-        if (USER.image != "") {
-            Log.i("util", "Carga imagen")
-            navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
-            UtilImage.redondearFoto(navUserImage)
+            Picasso.get()
+                .load(photoUrl)
+                .transform(RoundImagePicasso())
+                .into(navUserImage)
         }
     }
 

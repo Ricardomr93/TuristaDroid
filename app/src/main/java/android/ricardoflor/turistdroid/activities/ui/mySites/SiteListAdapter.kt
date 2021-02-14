@@ -1,6 +1,7 @@
 package android.ricardoflor.turistdroid.activities.ui.mySites
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.image.Image
@@ -14,6 +15,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.ViewPager
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 import kotlinx.android.synthetic.main.item_site.view.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -74,34 +78,19 @@ class SiteListAdapter(
             holder.siteRating.text = siteMedia
 
             //Cargamos una imagen para mostrar en el listado de sitios
-            var listaImg: MutableList<Image>? = null
-            val turistREST = TuristAPI.service
-            val call: Call<List<ImageDTO>> = turistREST.imageGetbyIDSite(listaSitios[position].id)
-            call.enqueue(object : Callback<List<ImageDTO>> {
-                override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
-                    if (response.isSuccessful) {
-                        listaImg =
-                            ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
-
-                        if (null != listaImg && !listaImg!!.isEmpty()){
-
-                            for (it in listaImg!!){
-                                holder.siteImage.setImageBitmap(UtilImage.toBitmap(it.uri))
+             if (listaSitios[position].images.isNotEmpty()) {
+                for (img in listaSitios[position].images) {
+                    Picasso.get().load(img).into(object : Target {
+                        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                            if (bitmap != null) {
+                                holder.siteImage.setImageBitmap(bitmap)
                             }
                         }
-                    }
+                        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+                        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
+                    })
                 }
-
-                override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
-                    /*Toast.makeText(
-                        applicationContext,
-                        getText(R.string.service_error).toString() + t.localizedMessage,
-                        Toast.LENGTH_LONG
-                    )
-                        .show()*/
-                }
-
-            })
+            }
 
             // Programamos el clic de cada fila (itemView)
             holder.btnViewSiteFloating

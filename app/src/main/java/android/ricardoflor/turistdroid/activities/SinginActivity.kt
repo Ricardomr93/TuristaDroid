@@ -355,6 +355,7 @@ class SinginActivity : AppCompatActivity() {
             }
         }
     }
+
     //************************************************************
     //METODOS PARA LA RECUPERACION DE DATOS***********************
     /**

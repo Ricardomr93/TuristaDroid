@@ -132,13 +132,33 @@ class MySitesFragment : Fragment() {
                     Toast.makeText(context!!, R.string.service_error, Toast.LENGTH_SHORT).show()
                 }
 
+        } else if (callFilter.equals("USER")) {
+            db.collection("sites").whereEqualTo("userID", auth.currentUser?.uid).get()
+                .addOnSuccessListener { result ->
+                    if (result.isEmpty) {
+                        cargaAdapter(sitios)
+
+                    } else {
+                        for (item in result) {
+                            val lugar = item.toObject(Site::class.java)
+                            sitios.add(lugar)
+                            cargaAdapter(sitios)
+                        }
+                    }
+
+                }
+                .addOnFailureListener { exception ->
+                    Log.i("fairebase", "error al cargar sitios")
+                    Toast.makeText(context!!, R.string.service_error, Toast.LENGTH_SHORT).show()
+                }
+
         } else {
             db.collection("sites").whereEqualTo("site", callFilter).get()
                 .addOnSuccessListener { result ->
-                    if (result.isEmpty){
+                    if (result.isEmpty) {
                         cargaAdapter(sitios)
 
-                    } else{
+                    } else {
                         for (item in result) {
                             val lugar = item.toObject(Site::class.java)
                             sitios.add(lugar)
@@ -240,21 +260,28 @@ class MySitesFragment : Fragment() {
                 actionState: Int,
                 isCurrentlyActive: Boolean
             ) {
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    val itemView = viewHolder.itemView
-                    val height = itemView.bottom.toFloat() - itemView.top.toFloat()
-                    val width = height / 3
-                    // Si es dirección a la derecha: izquierda->derecha
-                    // Pintamos de azul y ponemos el icono
-                    if (dX > 0) {
-                        // Pintamos el botón izquierdo
-                        botonIzquierdo(canvas, dX, itemView, width)
-                    } else {
-                        // Caso contrario
-                        botonDerecho(canvas, dX, itemView, width)
+                val position = viewHolder.adapterPosition
+                if (position >= 0) {
+                    val site = sitios[position]
+
+                    if (auth.currentUser?.uid == site.userID) {
+                        if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                            val itemView = viewHolder.itemView
+                            val height = itemView.bottom.toFloat() - itemView.top.toFloat()
+                            val width = height / 3
+                            // Si es dirección a la derecha: izquierda->derecha
+                            // Pintamos de azul y ponemos el icono
+                            if (dX > 0) {
+                                // Pintamos el botón izquierdo
+                                botonIzquierdo(canvas, dX, itemView, width)
+                            } else {
+                                // Caso contrario
+                                botonDerecho(canvas, dX, itemView, width)
+                            }
+                        }
+                        super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
                     }
                 }
-                super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
             }
         }
         // Añadimos los eventos al RV
@@ -294,7 +321,7 @@ class MySitesFragment : Fragment() {
             }
 
             2 -> { // Filter by MY SITES
-                cargaSitios(USER.id)
+                cargaSitios("USER")
             }
 
             3 -> { // Filter by CITY
@@ -400,8 +427,8 @@ class MySitesFragment : Fragment() {
                 cargaSitios("")
             }
 
-            .addOnFailureListener{ e ->
-                Toast.makeText(context!!,getText(R.string.service_error).toString(),Toast.LENGTH_LONG).show()
+            .addOnFailureListener { e ->
+                Toast.makeText(context!!, getText(R.string.service_error).toString(), Toast.LENGTH_LONG).show()
                 Log.i("fairbase", e.localizedMessage)
             }
     }

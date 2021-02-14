@@ -5,10 +5,14 @@ import android.app.Application
 import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.session.Session
 import android.ricardoflor.turistdroid.bd.session.SessionController
+import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.user.User
 import android.ricardoflor.turistdroid.bd.user.UserController
 import android.util.Log
 import android.widget.Toast
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -25,11 +29,17 @@ class MyApplication : Application() {
     var PERMISSIONSGALLERY = false
     var PERMISSIONSLOCATION = false
 
+    // Cloud Firestore
+    private lateinit var db: FirebaseFirestore
+
     override fun onCreate() {
         super.onCreate()
         BdController.initRealm(this)
         sessionExist()
         initAllPermisses()
+
+        db = Firebase.firestore
+
     }
 
     fun sessionExist() {

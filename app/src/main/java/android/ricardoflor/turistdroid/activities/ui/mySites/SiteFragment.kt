@@ -22,11 +22,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
-import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.site.SiteDTO
-import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.widget.*
@@ -49,19 +46,25 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.integration.android.IntentIntegrator
 import kotlinx.android.synthetic.main.fragment_site.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.ByteArrayOutputStream
-import android.ricardoflor.turistdroid.MyApplication.Companion.USER
-import android.ricardoflor.turistdroid.bd.image.Image
-import android.ricardoflor.turistdroid.bd.image.ImageDTO
-import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.widget.RatingBar
 import android.widget.RatingBar.OnRatingBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.squareup.picasso.Picasso
+import java.io.File
 import java.io.IOException
+import java.time.Instant
 import kotlin.Exception
+import com.squareup.picasso.Picasso.LoadedFrom
+import android.graphics.drawable.Drawable
+import android.ricardoflor.turistdroid.utils.UtilText
+import com.squareup.picasso.Target
+
 
 
 class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -82,10 +85,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     // Botones y Cajas de Texto
     private var btnAddUpdate: Button? = null
     private var btnAddImage: FloatingActionButton? = null
-    private var btnMail: FloatingActionButton? = null
-    private var btnFace: FloatingActionButton? = null
-    private var btnTwit: FloatingActionButton? = null
-    private var btnInsta: FloatingActionButton? = null
     private var cajaSiteName: EditText? = null
     private var cajaLocalizacion: Spinner? = null
     private var cajaFecha: EditText? = null
@@ -99,9 +98,8 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private var rating: Double = 0.0
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
-    private var userID: String? = null
-    private var votos: Int = 0
-    private var numVotos: Int = 0
+    private var votos: ArrayList<String> = ArrayList()
+    private var images: ArrayList<String> = ArrayList()
 
     // Variables Camara
     private val GALLERY = 1
@@ -110,6 +108,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private val IMAGEN_DIR = "/TuristDroid"
     lateinit var IMAGE: Uri
     private lateinit var FOTO: Bitmap
+    private var ArrayFoto: ArrayList<Bitmap> = ArrayList()
     private var imagenIni: Boolean = true
     private lateinit var qrShare: Bitmap
 
@@ -119,6 +118,15 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
     // Vibrador
     private var vibrator: Vibrator? = null
+
+    //autenticador
+    private var auth: FirebaseAuth = Firebase.auth
+
+    // Cloud Firestore
+    private var db: FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    //storage
+    private var storage: FirebaseStorage = FirebaseStorage.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -133,51 +141,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun init() {
         initButtons()
         initEditCreateMode()
-        /* if (initPermisos()) {
-             initMap()
-             myActualPosition()
-         }*/
+        if (initPermisos()) {
+            initMap()
+            myActualPosition()
+        }
 
         cajaFecha?.setOnClickListener { showDatePickerDialog() }
-        btnMail?.setOnClickListener { shareGmail() }
-        btnFace?.setOnClickListener { shareSite("com.facebook.katana") }
-        btnTwit?.setOnClickListener { shareSite("com.twitter.android") }
-        btnInsta?.setOnClickListener { shareSite("com.instagram.android") }
-    }
-
-    /**
-     * Funcion para compartir con Gmail
-     */
-    private fun shareGmail() {
-        val uri = getImageUri(requireContext(), qrShare)
-        val intent = Intent().apply {
-            Intent(Intent.ACTION_SENDTO)
-            data = Uri.parse("mailto:")
-            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_mysite))
-            putExtra(Intent.EXTRA_TEXT, getString(R.string.share_mysite))
-            putExtra(Intent.EXTRA_STREAM, uri)
-            type = "image/jpeg"
-        }
-        val shareIntent = Intent.createChooser(intent, null)
-        startActivity(shareIntent)
-    }
-
-    /**
-     * Funcion para compartir con Twitter, Facebook e Instagram
-     */
-    fun shareSite(str: String) {
-        val msg: String = getString(R.string.share_mysite)
-        val uri = getImageUri(requireContext(), qrShare)
-        val intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, msg)
-            type = "text/plain"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            type = "image/jpeg"
-            setPackage(str)
-        }
-        val shareIntent = Intent.createChooser(intent, null)
-        startActivity(shareIntent)
     }
 
     /**
@@ -205,10 +174,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun initButtons() {
         btnAddUpdate = root.findViewById(R.id.buttonSiteAddUpdate)
-        btnMail = root.findViewById(R.id.btnGMail)
-        btnFace = root.findViewById(R.id.btnFacebook)
-        btnTwit = root.findViewById(R.id.btnTwitter)
-        btnInsta = root.findViewById(R.id.btnInstagram)
         cajaSiteName = root.findViewById(R.id.txtNameSiteSite)
         cajaLocalizacion = root.findViewById(R.id.txtSiteSite)
         cajaFecha = root.findViewById(R.id.txtDateSite)
@@ -230,10 +195,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         // Se concatena un 0 a la izquierda
         if (dia.length == 1) {
-            dia = "0" + dia
+            dia = "0$dia"
         }
         if (mes.length == 1) {
-            mes = "0" + mes
+            mes = "0$mes"
         }
         cajaFecha?.setText("$dia/$mes/$year")
     }
@@ -243,23 +208,15 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (empty(txtNameSiteSite) || empty(txtDateSite)) {
+        if (UtilText.empty(txtNameSiteSite, txtInSiteName, context!!) || UtilText.empty(
+                txtDateSite,
+                txtInSiteDate,
+                context!!
+            )
+        ) {
             valid = false
         }
         return valid
-    }
-
-    /**
-     * Método que comprueba si el campo esta vacio y lanza un mensaje
-     * @param txt TextView
-     */
-    private fun empty(txt: TextView): Boolean {
-        var empty = false
-        if (txt.text.isEmpty()) {
-            txt.error = resources.getString(R.string.isEmpty)
-            empty = true
-        }
-        return empty
     }
 
     private fun isSelectSite(spinner: Spinner): Boolean {
@@ -293,58 +250,71 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 slider.adapter = adapter
 
                 btnAddUpdate?.text = getString(R.string.add)
-                mostrarBotonesSocial(false)
                 add(btnAddUpdate!!)
                 if (initPermisos()) {
                     initMap()
                     myActualPosition()
                 }
 
+                add(btnAddUpdate!!)
+
             }
 
             2 -> { // Fragment de Edicion
                 cargarDatosSite()
                 btnAddUpdate?.text = getString(R.string.update)
-                mostrarBotonesSocial(false)
                 update(btnAddUpdate!!)
+                cajaRating?.isEnabled = false
             }
 
             3 -> { // Fragment de Consulta
                 cargarDatosSite()
                 btnAddUpdate?.isVisible = false
                 btnAddImage?.isVisible = false
-                mostrarBotonesSocial(true)
 
                 cajaSiteName?.isEnabled = false
                 cajaLocalizacion?.isEnabled = false
                 cajaFecha?.isEnabled = false
-                cajaRating?.isEnabled = true
-                cajaRating?.onRatingBarChangeListener =
-                    OnRatingBarChangeListener { ratingBar, rating, fromUser -> votar(rating) }
+
+                if (!userExistVote()) {
+                    cajaRating?.isEnabled = true
+                    cajaRating?.onRatingBarChangeListener =
+                        OnRatingBarChangeListener { ratingBar, rating, fromUser -> votar(rating) }
+
+                } else {
+                    cajaRating?.isEnabled = false
+                }
             }
         }
     }
 
+    private fun userExistVote(): Boolean {
+        var encontrado = false
+
+        for (it in SITIO?.votos!!) {
+            if (it.equals(auth.currentUser!!.uid)) {
+                encontrado = true
+            }
+        }
+
+        return encontrado
+    }
+
     private fun votar(rating: Float): Boolean {
+
+        SITIO?.votos?.add(auth.currentUser!!.uid)
+
         // Hacemos la media
-        var numVotos = SITIO?.votos?.plus(1)
-        var total = SITIO?.rating?.plus(rating)
-        var media = total!! / numVotos!!
+        val numVotos = SITIO?.votos?.size
+        SITIO?.rating = SITIO?.rating?.plus(rating)!!
+        val media = SITIO.rating.div(numVotos!!)
 
         cajaRating?.rating = media.toFloat()
         cajaRating?.isEnabled = false
 
-        update(numVotos, total)
+        db.collection("sites").document(SITIO.id).set(SITIO)
 
         return true
-    }
-
-
-    private fun mostrarBotonesSocial(bool: Boolean) {
-        btnMail?.isVisible = bool
-        btnFace?.isVisible = bool
-        btnTwit?.isVisible = bool
-        btnInsta?.isVisible = bool
     }
 
     /**
@@ -352,99 +322,68 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun cargarDatosSite() {
 
-        val turistREST = TuristAPI.service
-        val call: Call<SiteDTO> = turistREST.siteGetById(SITIO!!.id)
-        call.enqueue(object : Callback<SiteDTO> {
-            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                if (response.isSuccessful) {
-                    //TODO
-                    lugar = SiteMapper.fromDTO(response.body()!!)
+        cajaSiteName?.setText(SITIO!!.name)
 
-                    cajaSiteName?.setText(lugar.name)
+        // Cargamos el spinner con la opcion correcta
+        val lista: Array<String> = resources.getStringArray(R.array.sites_types)
 
-                    // Cargamos el spinner con la opcion correcta
-                    var lista: Array<String> = resources.getStringArray(R.array.sites_types)
+        var opc: Int = 0
 
-                    var opc: Int = 0
-
-                    for (it in lista) {
-                        if (it.equals(lugar?.site.toString())) {
-                            break
-                        }
-                        opc++
-                    }
-                    cajaLocalizacion?.setSelection(opc)
-
-                    cajaFecha?.setText(lugar?.date)
-
-                    if (modo == 2) {
-                        var mediaVotos = lugar?.rating / lugar?.votos
-                        cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
-                    }
-
-                    //Cargamos las imagenes de la BD
-                    cargarImagenes()
-
-                    var textoQr: String =
-                        lugar?.name + ";" + opc + ";" + lugar?.date + ";" +
-                                (lugar?.rating)?.toFloat() + ";" + (lugar.latitude) + ";" + (lugar.longitude)
-
-                    generateQRCode(textoQr)
-                    positionSite = LatLng(lugar!!.latitude, lugar!!.longitude)
-                    Log.i("mapa", "cargarDatosSite-positionSite: $positionSite")
-                    if (initPermisos()) {
-                        initMap()
-                        myActualPosition()
-                    }
-
-
-                } else {
-                    Toast.makeText(context!!, "Error POST", Toast.LENGTH_SHORT).show()
-                }
+        for (it in lista) {
+            if (it == SITIO!!.site) {
+                break
             }
+            opc++
+        }
+        cajaLocalizacion?.setSelection(opc)
 
-            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                Toast.makeText(
-                    context!!,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        cajaFecha?.setText(SITIO!!.date)
 
-        })
+        val mediaVotos = SITIO!!.rating / SITIO!!.votos.size
+        cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
+
+        //Cargamos las imagenes de la BD
+        cargarImagenes()
+
+        val textoQr =
+            "${SITIO.name};$opc;${SITIO.date};${SITIO.rating.toFloat()};${SITIO.latitude};${SITIO.longitude}"
+        //SITIO!!.name + ";" + opc + ";" + SITIO!!.date + ";" +
+        //        (SITIO!!.rating)?.toFloat() + ";" + (SITIO!!.latitude) + ";" + (SITIO!!.longitude)
+
+        generateQRCode(textoQr)
+        positionSite = LatLng(SITIO.latitude, SITIO.longitude)
+        Log.i("mapa", "cargarDatosSite-positionSite: $positionSite")
+        if (initPermisos()) {
+            initMap()
+            myActualPosition()
+        }
+
+
     }
 
     /**
-     * Metodo encargado de buscar y rellenar las imagenes en el slaider
+     * Metodo encargado de buscar y rellenar las imagenes en el slider
      */
     private fun cargarImagenes() {
 
-        var listaImg: MutableList<Image>? = null
-        val turistREST = TuristAPI.service
-        val call: Call<List<ImageDTO>> = turistREST.imageGetbyIDSite(SITIO!!.id)
-        call.enqueue(object : Callback<List<ImageDTO>> {
-            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
-                if (response.isSuccessful) {
-                    listaImg =
-                        ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
-
-                    if (null != listaImg && !listaImg!!.isEmpty()) {
-
-                        for (img in listaImg!!) {
-                            imagesSlider.add(UtilImage.toBitmap(img.uri)!!)
+        if (SITIO!!.images.isNotEmpty()) {
+            for (img in SITIO.images) {
+                Picasso.get().load(img).into(object : Target {
+                    override fun onBitmapLoaded(bitmap: Bitmap?, from: LoadedFrom?) {
+                        if (bitmap != null) {
+                            imagesSlider.add(bitmap)
                         }
-
-                        adapter = SliderAdapter(context!!, imagesSlider)
-                        val slider: ViewPager = root.findViewById(R.id.imageSite)
-                        slider.adapter = adapter
                     }
-                }
+
+                    override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+                    override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
+                })
             }
 
-            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
-                //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
-            }
-        })
+            adapter = SliderAdapter(context!!, imagesSlider)
+            val slider: ViewPager = root.findViewById(R.id.imageSite)
+            slider.adapter = adapter
+        }
     }
 
     /**
@@ -468,6 +407,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     fun add(btn: Button) {
         try {
+            val user = Firebase.auth.currentUser
 
             btn.setOnClickListener {
                 if (anyEmpty() && isSelectSite(cajaLocalizacion!!)) {
@@ -476,61 +416,28 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     site = cajaLocalizacion?.selectedItem.toString()
                     date = cajaFecha?.text.toString()
                     rating = cajaRating?.rating?.toDouble() ?: 0.0
-                    votos = 1
+                    votos.add(user!!.uid)
 
                     if (posicion != null) {
                         latitude = posicion!!.latitude
                         longitude = posicion!!.longitude
 
-                        lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, USER.id, votos)
+                        lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, user.uid, votos, images)
 
-                        val turistREST = TuristAPI.service
-                        val call: Call<SiteDTO> = turistREST.sitePost(SiteMapper.toDTO(lugar!!))
-                        call.enqueue(object : Callback<SiteDTO> {
-                            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                                if (response.isSuccessful) {
-                                    Toast.makeText(context!!, R.string.site_added, Toast.LENGTH_SHORT).show()
-                                    Log.i("site", lugar.toString())
+                        db.collection("sites").document(lugar.id).set(lugar)
 
-                                    for (img in imagesSlider) {
-                                        if (!imagenIni) {
-                                            var imgStr = UtilImage.toBase64(img)!!
-                                            val imag = Image(imgStr, USER.id, lugar.id)
+                        //Si se adjuntaron fotos, se insertan para obtener su URI
+                        for (foto in ArrayFoto) {
+                            saveImage(foto, lugar)
+                        }
 
-                                            //Se almacena la imagen en la BD
-                                            val call: Call<ImageDTO> = turistREST.imagePost(ImageMapper.toDTO(imag))
-                                            call.enqueue(object : Callback<ImageDTO> {
-                                                override fun onResponse(
-                                                    call: Call<ImageDTO>,
-                                                    response: Response<ImageDTO>
-                                                ) {
+                        // Vibracion
+                        vibrate()
+                        // Volvemos a MySites Fragment
+                        volverMySites()
 
-                                                }
 
-                                                override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                                    //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
-                                                }
-                                            })
-                                        }
-                                    }
-
-                                    // Vibracion
-                                    vibrate()
-                                    // Volvemos a MySites Fragment
-                                    volverMySites()
-                                }
-                            }
-
-                            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                                Toast.makeText(
-                                    context!!,
-                                    getText(R.string.service_error).toString() + t.localizedMessage,
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-
-                        })
-                        Log.i("site", lugar.toString())
+                        Log.i("fairbase", lugar.toString())
 
                     } else {
                         Toast.makeText(context!!, R.string.needPosition, Toast.LENGTH_SHORT).show()
@@ -550,108 +457,41 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun update(btn: Button) {
         try {
             btn.setOnClickListener {//TODO que no pueda modificar sin internet y asi para todos
-                // Recuperamos las fotos subidas
-                name = cajaSiteName?.text.toString()
-                site = cajaLocalizacion?.selectedItem.toString()
-                date = cajaFecha?.text.toString()
-                rating = cajaRating?.rating?.toDouble() ?: 0.0
+
+                SITIO!!.name = cajaSiteName?.text.toString()
+                SITIO!!.site = cajaLocalizacion?.selectedItem.toString()
+                SITIO!!.date = cajaFecha?.text.toString()
+
                 if (anyEmpty()) {
                     if (posicion != null) {
-                        latitude = posicion!!.latitude
-                        longitude = posicion!!.longitude
-                    } else {
-                        latitude = lugar!!.latitude
-                        longitude = lugar!!.longitude
+                        SITIO!!.latitude = posicion!!.latitude
+                        SITIO!!.longitude = posicion!!.longitude
                     }
-                    if (lugar != null) {
-                        lugar.name = name!!
-                        lugar.site = site!!
-                        lugar.date = date!!
 
-                        lugar.latitude = latitude
-                        lugar.longitude = longitude
-
-                        val turistREST = TuristAPI.service
-                        val call: Call<SiteDTO> = turistREST.siteUpdate(lugar.id, SiteMapper.toDTO(lugar!!))
-                        call.enqueue(object : Callback<SiteDTO> {
-                            override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                                if (response.isSuccessful) {
-                                    // Vibracion
-                                    vibrate()
-                                    // Volvemos a MySites Fragment
-                                    volverMySites()
-                                    Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-                                }
-                            }
-
-                            override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                                Toast.makeText(
-                                    context!!,
-                                    getText(R.string.service_error).toString() + t.localizedMessage,
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-
-                        })
-                        Log.i("site", lugar.toString())
+                    //Si se adjuntaron fotos, se insertan para obtener su URI
+                    for (foto in ArrayFoto) {
+                        saveImage(foto, SITIO)
                     }
+
+                    db.collection("sites").document(SITIO.id).set(SITIO)
+                        .addOnSuccessListener {
+                            // Vibracion
+                            vibrate()
+                            // Volvemos a MySites Fragment
+                            volverMySites()
+                            Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context!!, R.string.error, Toast.LENGTH_SHORT).show()
+                        }
+
+                    Log.i("site", SITIO.toString())
+
                 }
             }
         } catch (e: Exception) {
 
         }
-    }
-
-    /**
-     * Metodo para editar un sitio
-     */
-    private fun update(numVotos: Int?, total: Double?) {
-        // Recuperamos las fotos subidas
-        name = cajaSiteName?.text.toString()
-        site = cajaLocalizacion?.selectedItem.toString()
-        date = cajaFecha?.text.toString()
-
-        if (anyEmpty()) {
-            if (posicion != null) {
-                latitude = posicion!!.latitude
-                longitude = posicion!!.longitude
-            } else {
-                latitude = lugar!!.latitude
-                longitude = lugar!!.longitude
-            }
-            if (lugar != null) {
-                lugar.name = name!!
-                lugar.site = site!!
-                lugar.date = date!!
-                lugar.rating = total!!
-                lugar.latitude = latitude
-                lugar.longitude = longitude
-                lugar.votos = numVotos!!
-
-                val turistREST = TuristAPI.service
-                val call: Call<SiteDTO> = turistREST.siteUpdate(lugar.id, SiteMapper.toDTO(lugar!!))
-                call.enqueue(object : Callback<SiteDTO> {
-                    override fun onResponse(call: Call<SiteDTO>, response: Response<SiteDTO>) {
-                        if (response.isSuccessful) {
-                            Toast.makeText(requireContext(), R.string.site_modified, Toast.LENGTH_SHORT).show()
-                            Log.i("site", lugar.toString())
-                        }
-                    }
-
-                    override fun onFailure(call: Call<SiteDTO>, t: Throwable) {
-                        Toast.makeText(
-                            requireContext(),
-                            getText(R.string.service_error).toString() + t.localizedMessage,
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-
-                })
-                Log.i("site", lugar.toString())
-            }
-            Toast.makeText(context!!, R.string.site_modified, Toast.LENGTH_SHORT).show()
-        }
-
     }
 
     /**
@@ -668,7 +508,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     /**
      * Vibrador
      */
-    fun vibrate() {
+    private fun vibrate() {
         try {
             //Compruebe si dispositivo tiene un vibrador.
             if (vibrator!!.hasVibrator()) { //Si tiene vibrador
@@ -676,14 +516,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 val tiempo: Long = 500 //en milisegundos
                 vibrator!!.vibrate(tiempo)
 
-            } else { //no tiene
-                //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
             }
         } catch (e: Exception) {
         }
     }
 
-//**************************************************************************
+    //**************************************************************************
     //METODO PARA LOS PERMISOS **********************
     /**
      * Comprobamos los permisos de la aplicación
@@ -818,7 +656,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        //TODO
         try {
             //Recupera la informacion si ha escaneado un QR
             val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
@@ -844,44 +681,22 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     val contentURI = data.data!!
                     try {
                         FOTO = differentVersion(contentURI)
-                        FOTO = Bitmap.createScaledBitmap(FOTO, 200 /*Ancho*/, 200 /*Alto*/, false /* filter*/)
-
-                        // Mostramos la imagen
-                        var imgStr = UtilImage.toBase64(FOTO)!!
+                        FOTO = scaleImage(FOTO, 600, 600)
 
                         if (modo == 1) {
                             if (imagenIni) {
                                 imagesSlider.removeAt(0)
                                 imagenIni = false
                             }
-
-                            imagesSlider.add(FOTO)
-                            adapter = SliderAdapter(context!!, imagesSlider)
-                            val slider: ViewPager = root.findViewById(R.id.imageSite)
-                            slider.adapter = adapter
-
-                        } else {
-
-                            val img = Image(imgStr, USER.id, SITIO!!.id)
-
-                            //Se almacena la imagen en la BD
-                            val turistREST = TuristAPI.service
-                            val call: Call<ImageDTO> = turistREST.imagePost(ImageMapper.toDTO(img))
-                            call.enqueue(object : Callback<ImageDTO> {
-                                override fun onResponse(call: Call<ImageDTO>, response: Response<ImageDTO>) {
-                                    if (response.isSuccessful) {
-                                        imagesSlider.add(FOTO)
-                                        adapter = SliderAdapter(context!!, imagesSlider)
-                                        val slider: ViewPager = root.findViewById(R.id.imageSite)
-                                        slider.adapter = adapter
-                                    }
-                                }
-
-                                override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                    //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
-                                }
-                            })
                         }
+
+                        //Se almacena la imagen en el array para tenerla disponible para guardar
+                        ArrayFoto.add(FOTO)
+
+                        imagesSlider.add(FOTO)
+                        adapter = SliderAdapter(context!!, imagesSlider)
+                        val slider: ViewPager = root.findViewById(R.id.imageSite)
+                        slider.adapter = adapter
 
                     } catch (e: IOException) {
                         e.printStackTrace()
@@ -893,44 +708,23 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 //cogemos la imagen
                 try {
                     FOTO = differentVersion(IMAGE)
-                    FOTO = Bitmap.createScaledBitmap(FOTO, 200 /*Ancho*/, 200 /*Alto*/, false /* filter*/)
+                    FOTO = scaleImage(FOTO, 600, 600)
 
-                    // Mostramos la imagen
-                    var imgStr = UtilImage.toBase64(FOTO)!!
                     if (modo == 1) {
                         //Para borrar la imagen de muestra
                         if (imagenIni) {
                             imagesSlider.removeAt(0)
                             imagenIni = false
                         }
-
-                        imagesSlider.add(FOTO)
-                        adapter = SliderAdapter(context!!, imagesSlider)
-                        val slider: ViewPager = root.findViewById(R.id.imageSite)
-                        slider.adapter = adapter
-
-                    } else {
-
-                        val img = Image(imgStr, USER.id, SITIO!!.id)
-
-                        //Se almacena la imagen en la BD
-                        val turistREST = TuristAPI.service
-                        val call: Call<ImageDTO> = turistREST.imagePost(ImageMapper.toDTO(img))
-                        call.enqueue(object : Callback<ImageDTO> {
-                            override fun onResponse(call: Call<ImageDTO>, response: Response<ImageDTO>) {
-                                if (response.isSuccessful) {
-                                    imagesSlider.add(FOTO)
-                                    adapter = SliderAdapter(context!!, imagesSlider)
-                                    val slider: ViewPager = root.findViewById(R.id.imageSite)
-                                    slider.adapter = adapter
-                                }
-                            }
-
-                            override fun onFailure(call: Call<ImageDTO>, t: Throwable) {
-                                //Toast.makeText(context!!, getText(R.string.service_error).toString() + t.localizedMessage, Toast.LENGTH_LONG).show()
-                            }
-                        })
                     }
+
+                    //Se almacena la imagen en el array para tenerla disponible para guardar
+                    ArrayFoto.add(FOTO)
+
+                    imagesSlider.add(FOTO)
+                    adapter = SliderAdapter(context!!, imagesSlider)
+                    val slider: ViewPager = root.findViewById(R.id.imageSite)
+                    slider.adapter = adapter
 
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -944,6 +738,59 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     }
 
     /**
+     * Metodo que rescala la imagen
+     */
+    private fun scaleImage(foto: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+
+        if (maxHeight > 0 && maxWidth > 0) {
+            val width: Int = foto.width
+            val height: Int = foto.height
+            val ratioBitmap = width.toFloat() / height.toFloat()
+            val ratioMax = maxWidth.toFloat() / maxHeight.toFloat()
+            var finalWidth = maxWidth
+            var finalHeight = maxHeight
+            if (ratioMax > ratioBitmap) {
+                finalWidth = (maxHeight.toFloat() * ratioBitmap).toInt()
+            } else {
+                finalHeight = (maxWidth.toFloat() / ratioBitmap).toInt()
+            }
+
+            return Bitmap.createScaledBitmap(foto, finalWidth, finalHeight, false)
+
+        } else {
+            return foto
+        }
+    }
+
+    private fun saveImage(foto: Bitmap, sitio: Site) {
+
+        val time = Instant.now().toString()
+        val nombre = "${auth.currentUser?.uid}$time"
+        val baos = ByteArrayOutputStream()
+        foto.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val data = baos.toByteArray()
+        val imageRef = storage.reference.child("images/sites/$nombre.jpg")
+        var uploadTask = imageRef.putBytes(data)
+
+        //descarga y referencia URl
+        uploadTask.addOnFailureListener {
+            Log.i("fairebase", "error al subir la foto a storage")
+        }.addOnSuccessListener { taskSnapshot ->
+            val dowuri = taskSnapshot.metadata!!.reference!!.downloadUrl
+            dowuri.addOnSuccessListener { task ->
+                val uri = task.toString()
+
+                sitio.images.add(uri)
+                db.collection("sites").document(sitio.id).set(sitio)
+                    .addOnSuccessListener {
+                        Log.i("fairebase", "uri: $uri")
+                    }
+                    .addOnFailureListener {}
+            }
+        }
+    }
+
+    /**
      * Metodo que devuleve un bitmap depende de la version
      * @return un bitmap
      */
@@ -951,12 +798,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         //Para controlar la version de android usar uno u otro
         val bitmap: Bitmap
         bitmap = if (Build.VERSION.SDK_INT < 28) {
-            MediaStore.Images.Media.getBitmap(context?.contentResolver, contentURI);
+            MediaStore.Images.Media.getBitmap(context?.contentResolver, contentURI)
         } else {
             val source: ImageDecoder.Source = ImageDecoder.createSource(context?.contentResolver!!, contentURI)
             ImageDecoder.decodeBitmap(source)
         }
-        return bitmap;
+        return bitmap
     }
 
 
@@ -990,6 +837,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 Log.i("Mapa", "Insertar mapa")
                 uiSettings.isRotateGesturesEnabled = true
                 uiSettings.isZoomControlsEnabled = true
+                if (posicion != null){
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion, 15f))
+                }
             }
             2 -> {
                 Log.i("Mapa", "Modificar mapa")
@@ -1094,7 +944,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 BitmapFactory
                     .decodeResource(context?.resources, R.drawable.ic_marker)
             )
-            //marker?.remove()//borra el marcardor si existe
+            marker?.remove()//borra el marcardor si existe
             marker = mMap.addMarker(
                 MarkerOptions()
                     .position(positionSite!!) // posicion

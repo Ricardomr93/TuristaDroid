@@ -11,8 +11,10 @@ import android.os.Bundle
 import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.apirest.TuristAPI
+import android.ricardoflor.turistdroid.bd.site.Site
 import android.ricardoflor.turistdroid.bd.user.UserDTO
 import android.ricardoflor.turistdroid.bd.user.UserMapper
+import android.ricardoflor.turistdroid.utils.RoundImagePicasso
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilExp
 import android.ricardoflor.turistdroid.utils.UtilSession
@@ -31,6 +33,13 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.nav_header_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -45,6 +54,16 @@ class NavigationActivity : AppCompatActivity() {
     private lateinit var cameraManager: CameraManager
     private lateinit var cameraId: String
     private var encendida: Boolean = false
+    //tipo de proveedor
+    enum class ProviderType {
+        BASIC,
+        GOOGLE
+    }
+
+    //autenticador
+    private lateinit var auth: FirebaseAuth
+    // Cloud Firestore
+    private lateinit var db: FirebaseFirestore
 
     companion object {
         lateinit var navUsername: TextView
@@ -53,6 +72,9 @@ class NavigationActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        auth = Firebase.auth
+        db = FirebaseFirestore.getInstance()
+
         /* TODO -> esta es la unica forma que he encontrado para que no falle la aplicacion al girar en SiteFragment
            Lo que pasa es que gira la pantalla y vuelve a MySitesFragment, el fragment anterior al que me encuentro */
 
@@ -76,9 +98,21 @@ class NavigationActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         //opciones adicionales
-        actualizarDatos(this)
-    }
+        //actualizarDatos(this)
+        init()
+        cambiarDatos()
 
+    }
+    private fun init(){
+        auth = Firebase.auth
+        val bundle = intent.extras
+        if (bundle != null){
+            val provider = bundle?.getString("provider")
+            val prefs = getSharedPreferences("TuristDroid",Context.MODE_PRIVATE).edit()
+            prefs.putString("provider",provider)
+            prefs.apply()
+        }
+    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.navigation, menu)
@@ -170,36 +204,6 @@ class NavigationActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
-
-
-    /**
-     * Metodo que busca al usario con el id de la session
-     */
-    fun getUserBySession(idUser: String) {
-        val turistREST = TuristAPI.service
-
-        Log.i("rest","idUser: $idUser")
-        if (idUser != ""){
-            val call = turistREST.userGetById(idUser)
-            call.enqueue((object : Callback<UserDTO> {
-                override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
-                    Log.i("REST", "Entra en onResponse getUserBySession navigation")
-                    if (response.isSuccessful) {
-                        Log.i("REST", "Entra en isSuccessful getUserBySession navigation")
-                        val user = UserMapper.fromDTO(response.body()!!)
-                        USER = user
-                        cambiarDatos()
-                    }
-                }
-
-                override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                    Log.i("REST", "Entra en onFailure getUserBySession navigation")
-
-                }
-            }))
-        }
-    }
-
     /**
      * Metodo que recoge los datos del user y los almacena en los datos del nav
      */
@@ -211,23 +215,21 @@ class NavigationActivity : AppCompatActivity() {
         navUserImage = headerView.findViewById(R.id.imgNavUser)
         //obtenemos el email de la sesion y obtenemos el usuario
         Log.i("util", USER.toString())
-        //cambiamos los valores por los del usuario
-        navUsername.text = USER.nameUser
-        navUserEmail.text = USER.email
-        if (USER.image != "") {
-            Log.i("util", "Carga imagen")
-            navUserImage.setImageBitmap(UtilImage.toBitmap(USER.image))
-            UtilImage.redondearFoto(navUserImage)
-        }
-    }
-
-    private fun actualizarDatos(context: Context) {
-        val idUser = UtilSession.getUserID(context)
-        Log.i("Rest","iDUSER actualizarDatos: $idUser")
-        if (idUser !=""){//viene directo al navigation coge el id de las preferencias y asigna a USER
-            getUserBySession(idUser)
-        }else{//viene del login
-            cambiarDatos()
+        val user = Firebase.auth.currentUser
+        user?.let {
+            // Name, email address, and profile photo Url
+            val name = user.displayName
+            val email = user.email
+            val photoUrl = user.photoUrl
+            Log.i("fairebase","photoUrl: $photoUrl")
+            val uid = user.uid
+            //cambiamos los valores por los del usuario
+            navUsername.text = name
+            navUserEmail.text = email
+            Picasso.get()
+                .load(photoUrl)
+                .transform(RoundImagePicasso())
+                .into(navUserImage)
         }
     }
 }

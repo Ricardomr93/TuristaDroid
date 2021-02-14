@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Turist Droid</string>
+    <string name="twitter_api_key" translatable="false">2gb60EtVWSNnoadmlvFl4IeJI</string>
+    <string name="twitter_api_secret" translatable="false">lWxd4SP7MOx1998rJ6oCM521HvMzW4P4aKR7VL9aomdnfOyTap</string>
 
     <string name="email">Email</string>
     <string name="name">Name</string>
@@ -8,7 +10,10 @@
 
     <string name="login">Login</string>
     <string name="singin">Sing in</string>
+    <string name="no_count">Don\'t have an account?</string>
+    <string name="createAccount">Create Account</string>
     <string name="logout">Logout</string>
+    <string name="or_log">or</string>
 
     <string name="want_to_logout">Do you want to Logout?</string>
 
@@ -70,9 +75,10 @@
         <item>Shop</item>
     </string-array>
 
-    <string name="name_incorrecto">"The name is not in the correct format"</string>
-    <string name="email_incorrecto">"The email is not in the correct format"</string>
-    <string name="pwd_incorrecto">"The password is not in the correct format"</string>
+    <string name="name_incorrecto">"The name isn\'t in the correct format"</string>
+    <string name="email_incorrecto">"The email isn\'t in the correct format"</string>
+    <string name="pwd_incorrecto">The password must be at least 6 characters</string>
+    <string name="user_old">This operation is sensitive and requires recent auth. Log in again before retrying this requests.</string>
 
     <string name="title_activity_navigation">NavigationActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -133,5 +139,6 @@
     <string name="limite_expired">Your time limit has expired</string>
     <string name="no_net_back_login">There is not internet connection, returning to login</string>
     <string name="no_permiss">Permission Denied</string>
+    <string name="with_google">Sing in with google</string>
 
 </resources>

@@ -1,72 +1,145 @@
 package android.ricardoflor.turistdroid.activities
 
-import android.content.Context
+
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.apirest.TuristAPI
-import android.ricardoflor.turistdroid.bd.session.Session
-import android.ricardoflor.turistdroid.bd.session.SessionDTO
-import android.ricardoflor.turistdroid.bd.session.SessionMapper
-import android.ricardoflor.turistdroid.bd.user.UserDTO
-import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilNet
-import android.ricardoflor.turistdroid.utils.UtilSession
+import android.ricardoflor.turistdroid.utils.UtilText
 import android.util.Log
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.*
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.twitter.sdk.android.core.*
 import kotlinx.android.synthetic.main.activity_login.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.time.Instant
-import java.util.*
 
 
 class LoginActivity : AppCompatActivity() {
+    //autenticador
+    private lateinit var auth: FirebaseAuth
 
+    //google
+    private lateinit var googleSignInClient: GoogleSignInClient
+    private val GOOGLE_SING_IN = 100
     var email: String = ""
     var pass: String = ""
+
+    //tipo proveedor
+    enum class ProviderType {
+        BASIC,
+        GOOGLE
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-        login()
+        auth = Firebase.auth
+        initGoogle()
+        buttonLoginLogin.setOnClickListener {
+            UtilText.cleanErrors(txtInLaLoginPass, txtInLaLoginEmail)
+            login()
+        }
+        buttomGoogleLogin.setOnClickListener {
+            loginGoogle()
+        }
         SingIn()
     }
+
+    private fun initGoogle() {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+        googleSignInClient.signOut()
+    }
+    /*
+    * ****************************************************
+    * GOOGLE AUTH
+    * ****************************************************
+    * */
+    private fun loginGoogle() {
+        val signInIntent: Intent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, GOOGLE_SING_IN)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == GOOGLE_SING_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                // Google Sign In was successful, authenticate with Firebase
+                val account = task.getResult(ApiException::class.java)!!
+                Log.d("fairebase", "firebaseAuthWithGoogle:" + account.id)
+                firebaseAuthWithGoogle(account.idToken!!)
+            } catch (e: ApiException) {
+                // Google Sign In failed, update UI appropriately
+                Log.w("fairebase", "Google sign in failed")
+            }
+        }
+    }
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d("fairebase", "signInWithCredential:success")
+                    val user = auth.currentUser
+                    toNavigation(ProviderType.GOOGLE)
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w("fairebase", "signInWithCredential:failure", task.exception)
+                }
+            }
+    }
+
+    /*
+    * ****************************************************
+    * BASIC AUTH
+    * ****************************************************
+    * */
+
     /**
      * Método que cuando pulsa en en el boton si lo campos son correctos
      * logea al usuario
      */
     private fun login() {
-        buttonLoginLogin.setOnClickListener {
-            email = editTextLoginMail.text.toString()
-            pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
+        email = editTextLoginMail.text.toString()
+        pass = UtilEncryptor.encrypt(editTextLoginPassword.text.toString())!!
 
-            if (anyEmpty()) {
-                if (UtilNet.hasInternetConnection(this)) {
-                    userExists()
-                } else {//muestra una barra para pedir conexion a internet
-                    val snackbar = Snackbar.make(
-                        findViewById(android.R.id.content),
-                        R.string.no_net,
-                        Snackbar.LENGTH_INDEFINITE
-                    )
-                    snackbar.setActionTextColor(getColor(R.color.accent))
-                    snackbar.setAction("Conectar") {
-                        val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
-                        startActivity(intent)
-                        finish()
-                    }
-                    snackbar.show()
+        if (anyEmpty()) {
+            if (UtilNet.hasInternetConnection(this)) {
+                userExists(email, pass)
+            } else {//muestra una barra para pedir conexion a internet
+                val snackbar = Snackbar.make(
+                    findViewById(android.R.id.content),
+                    R.string.no_net,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                snackbar.setActionTextColor(getColor(R.color.accent))
+                snackbar.setAction("Conectar") {
+                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                    startActivity(intent)
+                    finish()
                 }
-                Log.i("realm", "usuario logeado")
+                snackbar.show()
             }
+            Log.i("realm", "usuario logeado")
         }
     }
 
@@ -75,23 +148,16 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(editTextLoginMail) && notEmpty(editTextLoginPassword)) {
+        if (UtilText.empty(editTextLoginMail, txtInLaLoginEmail, this) || UtilText.empty(
+                editTextLoginPassword,
+                txtInLaLoginPass,
+                this
+            )
+        ) {
             valid = false
+            Log.i("valido", "alguno vacio")
         }
         return valid
-    }
-
-    /**
-     * Método que comprueba si el campo esta vacio y lanza un mensaje
-     * @param txt TextView
-     */
-    private fun notEmpty(txt: TextView): Boolean {
-        var empty = false
-        if (txt.text.isEmpty()) {
-            txt.error = resources.getString(R.string.isEmpty)
-            empty = true
-        }
-        return empty
     }
 
     /**
@@ -109,55 +175,36 @@ class LoginActivity : AppCompatActivity() {
      * Método que busca por email y si lo encuentra
      * lo compara con la contraseña
      */
-    private fun userExists() {
-        val turistREST = TuristAPI.service
-        val call = turistREST.userGetByEmail(email)
-        call.enqueue((object : Callback<List<UserDTO>> {
+    private fun userExists(email: String, password: String) {
 
-            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
-                Log.i("REST", "Entra en onResponse userExists")
-                if (response.isSuccessful && response.body()!!.isNotEmpty()) {
-                    Log.i("REST", "Entra en isSuccessful userExists")
-                    Log.i("REST", "usuario existe")
-                    val user = UserMapper.fromDTO(response.body()!![0])//saca el primer resultado
-                    Log.i("rest", pass + " pass2: " + user.password)
-                    if (user.password == pass) {
-                        USER = user
-                        Log.i("rest", "Usuario: $USER")
-                        UtilSession.comprobarIDSession(USER.id, applicationContext)
-                        toNavigation()
-                    }else {
-                        editTextLoginMail.error = getString(R.string.userNotCorrect)//manda mensaje de que no son correctos
-                        Log.i("REST", "Error: usuario no existe")
-                    }
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.i("fairbase", "signInWithEmail:success")
+                    val user = auth.currentUser
+                    Log.i("fairbase", user.toString())
+                    //Toast.makeText(baseContext, "Auth: Usuario autentificado con éxito", Toast.LENGTH_SHORT).show()
+                    toNavigation(ProviderType.BASIC)
                 } else {
-                    editTextLoginMail.error = getString(R.string.userNotCorrect)//manda mensaje de que no son correctos
-                    Log.i("REST", "Error: usuario no existe")
+                    // If sign in fails, display a message to the user.
+                    Log.w("fairbase", "signInWithEmail:failure", task.exception)
+                    txtInLaLoginPass.error = resources.getString(R.string.userNotCorrect)
                 }
-            }
 
-            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Log.i("REST", "salta error userExists")
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error),
-                    Toast.LENGTH_LONG
-                )
-                    .show()
             }
-        }))
-
     }
 
     /**
      * Metodo que para ir al navigation
      */
-    private fun toNavigation() {
-        val intent = Intent(applicationContext, NavigationActivity::class.java)
+    private fun toNavigation(provider: ProviderType) {
+        val intent = Intent(applicationContext, NavigationActivity::class.java).apply {
+            putExtra("provider", provider.name)
+        }
         startActivity(intent)
         finish()
     }
-
 
     /**
      * Método sobreescrito que salva el estado en el ciclo del vida

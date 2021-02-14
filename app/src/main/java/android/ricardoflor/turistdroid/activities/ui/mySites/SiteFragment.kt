@@ -22,11 +22,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.ricardoflor.turistdroid.R
 import android.ricardoflor.turistdroid.activities.NavigationActivity
-import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.BdController
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.bd.site.SiteDTO
-import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.util.Log
 import android.widget.*
@@ -49,37 +46,20 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.integration.android.IntentIntegrator
 import kotlinx.android.synthetic.main.fragment_site.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.ByteArrayOutputStream
-import android.ricardoflor.turistdroid.MyApplication.Companion.USER
-import android.ricardoflor.turistdroid.bd.image.Image
-import android.ricardoflor.turistdroid.bd.image.ImageDTO
-import android.ricardoflor.turistdroid.bd.image.ImageMapper
-import android.ricardoflor.turistdroid.utils.RoundImagePicasso
 import android.widget.RatingBar
 import android.widget.RatingBar.OnRatingBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.drawToBitmap
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.fragment_my_profile.*
-import java.io.File
 import java.io.IOException
 import java.time.Instant
 import kotlin.Exception
 import com.squareup.picasso.Picasso.LoadedFrom
-import android.graphics.drawable.BitmapDrawable
-import androidx.core.graphics.drawable.toBitmap
 import android.graphics.drawable.Drawable
 import com.squareup.picasso.Target
 
@@ -125,6 +105,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private val IMAGEN_DIR = "/TuristDroid"
     lateinit var IMAGE: Uri
     private lateinit var FOTO: Bitmap
+    private var ArrayFoto: ArrayList<Bitmap> = ArrayList()
     private var imagenIni: Boolean = true
     private lateinit var qrShare: Bitmap
 
@@ -395,6 +376,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             imagesSlider.add(bitmap)
                         }
                     }
+
                     override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
                     override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
                 })
@@ -442,9 +424,14 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                         latitude = posicion!!.latitude
                         longitude = posicion!!.longitude
 
-                        lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, user.uid, votos,  images)
+                        lugar = Site(name!!, site!!, date!!, rating, latitude, longitude, user.uid, votos, images)
 
                         db.collection("sites").document(lugar.id).set(lugar)
+
+                        //Si se adjuntaron fotos, se insertan para obtener su URI
+                        for (foto in ArrayFoto) {
+                            saveImage(foto, lugar)
+                        }
 
                         // Vibracion
                         vibrate()
@@ -481,6 +468,11 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     if (posicion != null) {
                         SITIO!!.latitude = posicion!!.latitude
                         SITIO!!.longitude = posicion!!.longitude
+                    }
+
+                    //Si se adjuntaron fotos, se insertan para obtener su URI
+                    for (foto in ArrayFoto) {
+                        saveImage(foto, SITIO)
                     }
 
                     db.collection("sites").document(SITIO.id).set(SITIO)
@@ -693,7 +685,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     val contentURI = data.data!!
                     try {
                         FOTO = differentVersion(contentURI)
-                        FOTO = Bitmap.createScaledBitmap(FOTO, 300 /*Ancho*/, 300 /*Alto*/, false /*Filter*/)
+                        FOTO = scaleImage(FOTO, 600, 600)
 
                         if (modo == 1) {
                             if (imagenIni) {
@@ -702,7 +694,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             }
                         }
 
-                        saveImage()
+                        //Se almacena la imagen en el array para tenerla disponible para guardar
+                        ArrayFoto.add(FOTO)
+
                         imagesSlider.add(FOTO)
                         adapter = SliderAdapter(context!!, imagesSlider)
                         val slider: ViewPager = root.findViewById(R.id.imageSite)
@@ -718,7 +712,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 //cogemos la imagen
                 try {
                     FOTO = differentVersion(IMAGE)
-                    FOTO = Bitmap.createScaledBitmap(FOTO, 300 /*Ancho*/, 300 /*Alto*/, false /*Filter*/)
+                    FOTO = scaleImage(FOTO, 600, 600)
 
                     if (modo == 1) {
                         //Para borrar la imagen de muestra
@@ -727,7 +721,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                             imagenIni = false
                         }
                     }
-                    saveImage()
+
+                    //Se almacena la imagen en el array para tenerla disponible para guardar
+                    ArrayFoto.add(FOTO)
 
                     imagesSlider.add(FOTO)
                     adapter = SliderAdapter(context!!, imagesSlider)
@@ -745,34 +741,55 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         }
     }
 
-    private fun saveImage() {
-        if (!this::FOTO.isInitialized) {
-            return
+    /**
+     * Metodo que rescala la imagen
+     */
+    private fun scaleImage(foto: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+
+        if (maxHeight > 0 && maxWidth > 0) {
+            val width: Int = foto.width
+            val height: Int = foto.height
+            val ratioBitmap = width.toFloat() / height.toFloat()
+            val ratioMax = maxWidth.toFloat() / maxHeight.toFloat()
+            var finalWidth = maxWidth
+            var finalHeight = maxHeight
+            if (ratioMax > ratioBitmap) {
+                finalWidth = (maxHeight.toFloat() * ratioBitmap).toInt()
+            } else {
+                finalHeight = (maxWidth.toFloat() / ratioBitmap).toInt()
+            }
+
+            return Bitmap.createScaledBitmap(foto, finalWidth, finalHeight, false)
+
+        } else {
+            return foto
         }
+    }
+
+    private fun saveImage(foto: Bitmap, sitio: Site) {
+
         val time = Instant.now().toString()
         val nombre = "${auth.currentUser?.uid}$time"
         val baos = ByteArrayOutputStream()
-        FOTO.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        foto.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val data = baos.toByteArray()
-        val imageRef = storage.reference.child("images/$nombre.jpg")
-        var file = Uri.fromFile(File("path/to/images/$nombre.jpg"))
+        val imageRef = storage.reference.child("images/sites/$nombre.jpg")
         var uploadTask = imageRef.putBytes(data)
 
+        //descarga y referencia URl
         uploadTask.addOnFailureListener {
             Log.i("fairebase", "error al subir la foto a storage")
         }.addOnSuccessListener { taskSnapshot ->
-            uploadTask = imageRef.putFile(file)
-            uploadTask.continueWithTask { task ->
-                imageRef.downloadUrl
-            }.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val uri = task.result
-                    if (modo == 1) {
-                        images.add(uri.toString())
-                    } else{
-                        SITIO?.images?.add(uri.toString())
+            val dowuri = taskSnapshot.metadata!!.reference!!.downloadUrl
+            dowuri.addOnSuccessListener { task ->
+                val uri = task.toString()
+
+                sitio.images.add(uri)
+                db.collection("sites").document(sitio.id).set(sitio)
+                    .addOnSuccessListener {
+                        Log.i("fairebase", "uri: $uri")
                     }
-                }
+                    .addOnFailureListener {}
             }
         }
     }

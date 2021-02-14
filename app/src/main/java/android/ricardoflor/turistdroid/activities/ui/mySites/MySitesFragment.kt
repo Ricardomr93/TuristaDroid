@@ -18,20 +18,13 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_my_sites.*
 import android.content.DialogInterface
 import android.os.*
-import android.ricardoflor.turistdroid.apirest.TuristAPI
 import android.ricardoflor.turistdroid.bd.BdController
-import android.ricardoflor.turistdroid.bd.site.SiteDTO
-import android.ricardoflor.turistdroid.bd.site.SiteMapper
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
-import android.ricardoflor.turistdroid.MyApplication.Companion.USER
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -261,7 +254,7 @@ class MySitesFragment : Fragment() {
                 isCurrentlyActive: Boolean
             ) {
                 val position = viewHolder.adapterPosition
-                if (position >= 0) {
+                if (sitios.size > 0 && position >= 0) {
                     val site = sitios[position]
 
                     if (auth.currentUser?.uid == site.userID) {

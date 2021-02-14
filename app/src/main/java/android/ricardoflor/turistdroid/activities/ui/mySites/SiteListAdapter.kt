@@ -75,10 +75,17 @@ class SiteListAdapter(
         }
         //saca la diferencia entre dos fechas
         val days = compara2Fechas(siteDate)
-        if (days < 30) {
-            holder.siteDate.text = "$days day ago"
-        } else {
-            holder.siteDate.text = "More than 30 day ago"
+
+        when {
+            days == 0 -> {
+                holder.siteDate.text = "Today"
+            }
+            days < 30 -> {
+                holder.siteDate.text = "$days days ago"
+            }
+            else -> {
+                holder.siteDate.text = "More than 30 days ago"
+            }
         }
         holder.siteRating.text = siteMedia
 

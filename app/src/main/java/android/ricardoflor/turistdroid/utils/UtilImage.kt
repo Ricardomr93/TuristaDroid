@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
-import android.ricardoflor.turistdroid.bd.image.Image
 import android.util.Base64
 import android.widget.ImageView
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
@@ -19,6 +18,10 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.net.toFile
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.*
 
 object UtilImage {
@@ -45,6 +48,20 @@ object UtilImage {
     fun toBitmap(b64String: String): Bitmap? {
         val imageAsBytes: ByteArray = Base64.decode(b64String.toByteArray(), Base64.DEFAULT)
         return BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.size)
+    }
+
+    fun getBitmapFromURL(src: String?): Bitmap? {
+        return try {
+            val url = URL(src)
+            val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+            val input: InputStream = connection.inputStream
+            BitmapFactory.decodeStream(input)
+        } catch (e: IOException) {
+            // Log exception
+            null
+        }
     }
 
     /**
@@ -139,6 +156,30 @@ object UtilImage {
     fun eliminarImagen(imagenUri: Uri) {
         if (imagenUri.toFile().exists())
             imagenUri.toFile().delete()
+    }
+    /**
+     * Metodo que rescala la imagen
+     */
+     fun scaleImage(foto: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+
+        if (maxHeight > 0 && maxWidth > 0) {
+            val width: Int = foto.width
+            val height: Int = foto.height
+            val ratioBitmap = width.toFloat() / height.toFloat()
+            val ratioMax = maxWidth.toFloat() / maxHeight.toFloat()
+            var finalWidth = maxWidth
+            var finalHeight = maxHeight
+            if (ratioMax > ratioBitmap) {
+                finalWidth = (maxHeight.toFloat() * ratioBitmap).toInt()
+            } else {
+                finalHeight = (maxWidth.toFloat() / ratioBitmap).toInt()
+            }
+
+            return Bitmap.createScaledBitmap(foto, finalWidth, finalHeight, false)
+
+        } else {
+            return foto
+        }
     }
 
     /**

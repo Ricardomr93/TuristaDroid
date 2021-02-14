@@ -4,7 +4,7 @@ package android.ricardoflor.turistdroid.bd.site
 /**
  * Mapea entre DTO y Clase Modelo
  */
-object SiteMapper {
+object SiteMapper { /*
     /**
      * Lista de DTO a Modelos
      * @param items List<SiteDTO>
@@ -59,5 +59,5 @@ object SiteMapper {
             model.userID!!,
             model.votos!!
         )
-    }
+    } */
 }

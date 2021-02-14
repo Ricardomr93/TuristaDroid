@@ -5,7 +5,7 @@ import android.ricardoflor.turistdroid.bd.user.User
 import io.realm.Realm
 import io.realm.kotlin.where
 
-object SiteController {
+object SiteController { /*
     //CONTROLES PARA SITE
     /**
      * Insert Site
@@ -66,5 +66,5 @@ object SiteController {
         return Realm.getDefaultInstance().copyFromRealm(
             Realm.getDefaultInstance().where<Site>().findAll()
         )
-    }
+    } */
 }

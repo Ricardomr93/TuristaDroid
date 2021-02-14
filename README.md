@@ -3,18 +3,16 @@
         <table border="2" bordercolor="orange" frame="vsides" rules="none">
             <tr>
                 <td align="right" width="55%">
-                    <img src="https://i.imgur.com/lzh7Ktw.png">
-                    <font style="color:orange;font-size:35px;font-weight:bold;text-decoration:underline;text-shadow:3px 3px 3px #888">TuristDroid</font>
+                    <img  height="150" src="https://i.imgur.com/lzh7Ktw.png">
                     <h5 align="right" style="text-shadow:3px 3px 3px #888">ADROID IN KOTLIN</h5>
                 </td >
                 <td width="5%"></td>
                 <td width="40%">
-                    <a href="https://www.youtube.com/watch?v=yIVZRk53_qQ"><h2>* Video Youtube</h2></a>
                     <br>
                     <br>
                     <br>
                     <br>
-                    <font>Muévete y explora el mundo</font><br>
+                    <font>Muévete, comparte y descubre el mundo</font><br>
                     <font>de forma más rápida y sencilla.</font><br>
                     <br>
                     <font style="color:orange;font-size:25px;font-weight:bold;text-shadow:3px 3px 3px #888">Ricardo Martínez</font><br>
@@ -45,7 +43,7 @@
 [![Firebase](https://img.shields.io/badge/Firebase-%20Ready-FFA000)](https://firebase.google.com/)
 ![Platform](https://img.shields.io/badge/Platform-Android-green)
 
-## TuristDroid
+# TuristDroid
 TuristDroid es tu nueva app para llevar siempre en el bolsillo. Podrás guardar tus lugares y sitios de interés, así como conocer monumentos o lugares que la gente comparte. Visita y comparte lugares con tu nueva app.
 
 Muévete y explora el mundo de forma más rápida y sencilla. Guarda todos tus lugares favoritos con sólo un clic.
@@ -112,7 +110,7 @@ Se destacan las siguientes tecnologías usadas en algún momento o versión del 
 ---
 ### Herramientas usadas
 
-Estas son las herramientas que más hemos usado en clase para la realización de este proyecto:
+Estas son las herramientas que más hemos usado para la realización de este proyecto:
 
 <p align="center">
    <img src="https://logodownload.org/wp-content/uploads/2015/05/android-logo-7-1.png" 

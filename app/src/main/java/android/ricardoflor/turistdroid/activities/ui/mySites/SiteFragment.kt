@@ -1001,13 +1001,3 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     }
 
 }
-
-
-
-
-
-
-
-
-
-

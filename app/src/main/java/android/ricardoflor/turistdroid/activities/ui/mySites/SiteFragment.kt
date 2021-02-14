@@ -318,7 +318,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 cajaLocalizacion?.isEnabled = false
                 cajaFecha?.isEnabled = false
 
-                if (auth.currentUser!!.uid != SITIO!!.userID) {
+                if (!userExistVote()) {
                     cajaRating?.isEnabled = true
                     cajaRating?.onRatingBarChangeListener =
                         OnRatingBarChangeListener { ratingBar, rating, fromUser -> votar(rating) }
@@ -328,6 +328,18 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 }
             }
         }
+    }
+
+    private fun userExistVote(): Boolean {
+        var encontrado = false
+
+        for (it in SITIO?.votos!!) {
+            if (it.equals(auth.currentUser!!.uid)) {
+                encontrado = true
+            }
+        }
+
+        return encontrado
     }
 
     private fun votar(rating: Float): Boolean {

@@ -75,9 +75,9 @@ class SiteListAdapter(
         }
         //saca la diferencia entre dos fechas
         val days = compara2Fechas(siteDate)
-        if (days < 30){
+        if (days < 30) {
             holder.siteDate.text = "$days day ago"
-        }else{
+        } else {
             holder.siteDate.text = "More than 30 day ago"
         }
         holder.siteRating.text = siteMedia
@@ -94,49 +94,21 @@ class SiteListAdapter(
                 holder.likes.text = "$siteNumVotos votes"
             }
         }
-
         //Cargamos una imagen para mostrar en el listado de sitios
-        var listaImg: MutableList<Image>? = null
-        val turistREST = TuristAPI.service
-        val call: Call<List<ImageDTO>> = turistREST.imageGetbyIDSite(listaSitios[position].id)
-        call.enqueue(object : Callback<List<ImageDTO>> {
-            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
-                if (response.isSuccessful) {
-                    listaImg =
-                        ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
-
-            //Cargamos una imagen para mostrar en el listado de sitios
-             if (listaSitios[position].images.isNotEmpty()) {
-                for (img in listaSitios[position].images) {
-                    Picasso.get().load(img).into(object : Target {
-                        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                            if (bitmap != null) {
-                                holder.siteImage.setImageBitmap(bitmap)
-                            }
+        if (listaSitios[position].images.isNotEmpty()) {
+            for (img in listaSitios[position].images) {
+                Picasso.get().load(img).into(object : Target {
+                    override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                        if (bitmap != null) {
+                            holder.siteImage.setImageBitmap(bitmap)
                         }
-                        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
-                        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
-                    })
-                }
-            }
+                    }
 
-            // Programamos el clic de cada fila (itemView)
-            holder.btnViewSiteFloating
-                .setOnClickListener {
-                    // Devolvemos el sitio
-                    listener(listaSitios[position])
-                }
+                    override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+                    override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
+                })
+            }
         }
-            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
-                /*Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()*/
-            }
-
-        })
 
         // Programamos el clic de cada fila (itemView)
         holder.btnViewSiteFloating
@@ -145,6 +117,8 @@ class SiteListAdapter(
                 listener(listaSitios[position])
             }
     }
+    
+
     private fun compara2Fechas(siteDate: String): Int {
         val caNow = Calendar.getInstance()
         caNow.set(Calendar.HOUR, 0)
@@ -164,6 +138,7 @@ class SiteListAdapter(
         val siteMil = caSite.timeInMillis
         return (abs(siteMil - nowMil) / (1000 * 60 * 60 * 24)).toInt()
     }
+
     /**
      * Elimina un item de la lista
      *

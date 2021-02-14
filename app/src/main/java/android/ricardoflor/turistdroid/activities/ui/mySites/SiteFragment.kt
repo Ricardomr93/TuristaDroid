@@ -66,7 +66,6 @@ import android.ricardoflor.turistdroid.utils.UtilText
 import com.squareup.picasso.Target
 
 
-
 class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     // Variables a usar y permisos del mapa
@@ -301,16 +300,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     }
 
     private fun votar(rating: Float): Boolean {
-
+        cajaRating?.isEnabled = false
         SITIO?.votos?.add(auth.currentUser!!.uid)
 
-        // Hacemos la media
-        val numVotos = SITIO?.votos?.size
         SITIO?.rating = SITIO?.rating?.plus(rating)!!
-        val media = SITIO.rating.div(numVotos!!)
-
-        cajaRating?.rating = media.toFloat()
-        cajaRating?.isEnabled = false
 
         db.collection("sites").document(SITIO.id).set(SITIO)
 
@@ -811,7 +804,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 Log.i("Mapa", "Insertar mapa")
                 uiSettings.isRotateGesturesEnabled = true
                 uiSettings.isZoomControlsEnabled = true
-                if (posicion != null){
+                if (posicion != null) {
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion, 15f))
                 }
             }

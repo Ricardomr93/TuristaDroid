@@ -17,18 +17,15 @@
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="95dp"
             android:backgroundTint="@color/primary_dark" app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="16dp"/>
+            android:layout_marginStart="16dp" android:visibility="invisible"/>
     <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent" tools:layout_editor_absoluteY="43dp"
-            tools:layout_editor_absoluteX="111dp">
+            tools:layout_editor_absoluteX="111dp" android:id="@+id/buttomItemSite">
         <TextView
                 android:id="@+id/txtSiteName"
-                android:layout_width="356dp"
-                android:layout_height="23dp"
-                android:layout_marginStart="24dp"
-                android:layout_marginEnd="32dp"
+                android:layout_width="match_parent"
                 android:layout_toEndOf="@id/imgSite"
                 android:layout_toRightOf="@id/imgSite"
                 android:gravity="center_vertical"
@@ -37,14 +34,13 @@
                 android:textColor="@color/primary_text"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginTop="8dp"
-                android:textAllCaps="true"/>
+                android:textAllCaps="true" android:layout_height="40dp" android:layout_marginLeft="16dp"/>
         <TextView
                 android:id="@+id/txtSite2"
-                android:layout_width="387dp"
-                android:layout_height="19dp"
-                android:text="@string/it_site" android:layout_marginStart="24dp"
-                android:textColor="@color/secondary_text" android:layout_marginBottom="8dp"/>
+                android:text="@string/it_site"
+                android:textColor="@color/secondary_text"
+                android:layout_width="match_parent" android:layout_height="20dp" android:layout_marginLeft="16dp"
+                android:layout_marginBottom="8dp"/>
         <ImageView
                 android:id="@+id/imgSite"
                 android:layout_width="match_parent"
@@ -54,34 +50,53 @@
                 android:contentDescription="Icono"
                 app:srcCompat="@drawable/ic_ricflor_add_photo"
                 android:scaleType="centerCrop"/>
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="72dp">
+                android:layout_height="match_parent">
 
-            <TextView
-                    android:id="@+id/txtRatings2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="10" app:layout_constraintTop_toTopOf="parent"
-                    android:layout_marginTop="16dp"
-                    android:textSize="18sp" app:layout_constraintEnd_toStartOf="@+id/imageView"
-                    android:layout_marginEnd="8dp" android:textStyle="bold"/>
-            <TextView
-                    android:id="@+id/txtDate2"
-                    android:layout_width="132dp"
-                    android:layout_height="21dp"
-                    android:text="10/10/1010"
-                    app:layout_constraintTop_toTopOf="parent" android:layout_marginTop="16dp" android:textSize="18sp"
-                    app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="24dp"
-                    android:textStyle="bold"/>
-            <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="24dp" app:srcCompat="@drawable/ic_favoritos"
-                    android:id="@+id/imageView"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:layout_marginTop="16dp" app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginEnd="24dp"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                <TextView
+                        android:id="@+id/lblDateItem"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 day ago"
+                        android:textSize="18sp"
+                        android:textStyle="bold" android:textColor="@color/divider"
+                        app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+                        android:layout_marginStart="16dp" android:layout_marginTop="5dp"
+                />
+                <TextView
+                        android:id="@+id/lblRatinItem"
+                        android:layout_width="27dp"
+                        android:layout_height="21dp"
+                        android:text="10"
+                        android:textSize="18sp"
+                        android:textStyle="bold" android:textAlignment="center"
+                        app:layout_constraintEnd_toStartOf="@+id/imageView" app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginTop="8dp"/>
+                <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="21dp" app:srcCompat="@drawable/ic_favoritos"
+                        android:id="@+id/imageView"
+                        android:scaleType="fitCenter"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:layout_marginEnd="16dp" app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginTop="8dp"
+                />
+                <TextView
+                        android:text="3 votes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp" android:id="@+id/lblLikesItemSite"
+                        android:textAlignment="textStart"
+                        android:textSize="18sp"
+                        app:layout_constraintTop_toBottomOf="@+id/lblRatinItem"
+                        app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="16dp"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </FrameLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

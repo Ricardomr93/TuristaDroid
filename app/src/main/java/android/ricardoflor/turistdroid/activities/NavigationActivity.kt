@@ -262,14 +262,4 @@ class NavigationActivity : AppCompatActivity() {
                 .into(navUserImage)
         }
     }
-
-    private fun actualizarDatos(context: Context) {
-        val idUser = UtilSession.getUserID(context)
-        Log.i("Rest","iDUSER actualizarDatos: $idUser")
-        if (idUser !=""){//viene directo al navigation coge el id de las preferencias y asigna a USER
-            getUserBySession(idUser)
-        }else{//viene del login
-            cambiarDatos()
-        }
-    }
 }

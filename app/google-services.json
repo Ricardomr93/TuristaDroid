@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "27104315658",
+    "project_id": "turistdroid-a0b21",
+    "storage_bucket": "turistdroid-a0b21.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:27104315658:android:e4987fc46df3d3844ad2f3",
+        "android_client_info": {
+          "package_name": "android.ricardoflor.turistdroid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "27104315658-s71tkuee45aomrh8nc4adhvv02osf582.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALOP0RbiapX3qKdbxlps_77KzEuERy7Lg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "27104315658-s71tkuee45aomrh8nc4adhvv02osf582.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

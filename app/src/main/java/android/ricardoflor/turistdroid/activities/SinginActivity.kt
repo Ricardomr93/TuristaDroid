@@ -12,25 +12,27 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.ricardoflor.turistdroid.MyApplication
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.apirest.TuristAPI
-import android.ricardoflor.turistdroid.bd.user.User
-import android.ricardoflor.turistdroid.bd.user.UserDTO
-import android.ricardoflor.turistdroid.bd.user.UserMapper
 import android.ricardoflor.turistdroid.utils.UtilEncryptor
 import android.ricardoflor.turistdroid.utils.UtilImage
 import android.ricardoflor.turistdroid.utils.UtilNet
+import android.ricardoflor.turistdroid.utils.UtilText
 import android.util.Log
-import android.util.Patterns
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.*
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.ktx.userProfileChangeRequest
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import kotlinx.android.synthetic.main.activity_singin.*
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
-import java.lang.NullPointerException
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import java.time.Instant
+
 
 class SinginActivity : AppCompatActivity() {
 
@@ -42,9 +44,22 @@ class SinginActivity : AppCompatActivity() {
     private var IMAGE: Uri? = null
     private var image: Bitmap? = null
 
+    //autenticador
+    private lateinit var auth: FirebaseAuth
+
+    //storage
+    lateinit var storage: FirebaseStorage
+
+
+    private lateinit var IMAGEN_NOMBRE: String
+    private lateinit var txtname: String
+    private lateinit var txtxnameUser: String
+    private lateinit var txtpassword: String
+    private lateinit var txtemail: String
+
+
     // Constantes
     private val IMAGEN_DIR = "/TuristDroid"
-    private lateinit var IMAGEN_NOMBRE: String
     private val GALLERY = 1
     private val CAMERA = 2
 
@@ -52,6 +67,9 @@ class SinginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_singin)
         initUI()
+        txtxnameUser = txtUserName.text.toString()
+        txtpassword = UtilEncryptor.encrypt(txtPass.text.toString())!!
+        txtemail = txtEmail.text.toString()
     }
 
     /**
@@ -60,29 +78,8 @@ class SinginActivity : AppCompatActivity() {
      */
     fun singin() {
         btnSing.setOnClickListener {
-            if (anyEmpty()) {
-                    if (isMailValid(txtEmail.text.toString())) {//campo email correcto
-                        if (UtilNet.hasInternetConnection(this)){
-                            emailExists()
-                        }else{
-                            val snackbar = Snackbar.make(
-                                findViewById(android.R.id.content),
-                                R.string.no_net,
-                                Snackbar.LENGTH_INDEFINITE
-                            )
-                            snackbar.setActionTextColor(getColor(R.color.accent))
-                            snackbar.setAction("Conectar") {
-                                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
-                                startActivity(intent)
-                                finish()
-                            }
-                            snackbar.show()
-                        }
-
-                    } else {
-                        txtEmail.error = resources.getString(R.string.email_incorrecto)
-                    }
-            }
+            UtilText.cleanErrors(txtInLaSingEmail, txtInLaSingName, txtInLaSingPass)
+            createAccount()
         }
     }
 
@@ -95,120 +92,19 @@ class SinginActivity : AppCompatActivity() {
     }
 
     /**
-     * Metodo que coge los datos de los txt y los almacena a un usuario y lo inserta en la base de datos
-     */
-    private fun addUser() {
-        var im = ""
-        if (this::FOTO.isInitialized) {
-            im = UtilImage.toBase64(FOTO)!!
-        }
-        val user = User(
-            name = txtName.text.toString(),
-            nameUser = txtUserName.text.toString(),
-            password = UtilEncryptor.encrypt(txtPass.text.toString())!!,
-            email = txtEmail.text.toString(),
-            image = im,
-            twitter = "",
-            instagram = "",
-            facebook = "",
-        )
-
-        val turistREST = TuristAPI.service
-        val call: Call<UserDTO> = turistREST.userPost(UserMapper.toDTO(user!!))
-        call.enqueue(object : Callback<UserDTO> {
-            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
-                if (response.isSuccessful) {
-                    startLogin()
-                } else {
-                    Toast.makeText(applicationContext, R.string.error_post, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-            }
-
-        })
-        Log.i("user", user.toString())
-    }
-
-    /**
-     * Metodo que hace una llamada y devuelve si el email existe para no crear duplicados
-     */
-    private fun emailExists() {
-        val turistREST = TuristAPI.service
-        email = txtEmail.text.toString()
-        val call = turistREST.userGetByEmail(email)
-        Log.i("REST", "email: $email")
-        call.enqueue((object : Callback<List<UserDTO>> {
-
-            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
-                Log.i("REST", "emailExists en onResponse")
-                if (response.isSuccessful) {
-                    Log.i("REST", "emailExists en isSuccessful")
-                    if (response.body()!!.isEmpty()) {
-                        addUser()
-                    }else{
-                        txtEmail.error = resources.getString(R.string.isAlreadyExist)
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Log.i("REST", "emailExists onFailure")
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.service_error).toString() + t.localizedMessage,
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-            }
-        }))
-
-    }
-
-    /**
-     * Metodo para validar el EMAIL
-     */
-    private fun isMailValid(mail: String): Boolean {
-        return Patterns.EMAIL_ADDRESS.matcher(mail).matches()
-    }
-
-    /**
-     * Metodo para validar la PASSWORD
-     */
-    private fun isPasswordValid(password: String): Boolean {
-        return password.length > 5
-    }
-
-    /**
-     * Método que comprueba si el campo esta vacio y lanza un mensaje
-     * @param txt TextView
-     */
-    private fun notEmpty(txt: TextView): Boolean {
-        var empty = false
-        if (txt.text.isEmpty()) {
-            txt.error = resources.getString(R.string.isEmpty)
-            empty = true
-        }
-        return empty
-    }
-
-    /**
      * Método que devuelve false si alguno de los valores está vácio
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (notEmpty(txtName) && notEmpty(txtEmail) && notEmpty(txtPass) && notEmpty(txtUserName)) {
+        if (UtilText.empty(txtEmail, txtInLaSingEmail, this) || UtilText.empty(txtPass, txtInLaSingPass, this)
+            || UtilText.empty(txtUserName, txtInLaSingName, this)
+        ) {
             valid = false
         }
         return valid
     }
+
+
     //************************************************************
     //METODOS PARA LA IMAGEN**************************************
 
@@ -216,6 +112,8 @@ class SinginActivity : AppCompatActivity() {
      * Inicia la interfaz y los eventos de la apliación
      */
     private fun initUI() {
+        storage = Firebase.storage
+        auth = Firebase.auth
         initButtoms()
         singin()
     }
@@ -288,6 +186,7 @@ class SinginActivity : AppCompatActivity() {
         startActivityForResult(intent, CAMERA)
     }
 
+
     /**
      * Cuando ejecutamos una actividad y da un resultado
      * @param requestCode Int
@@ -308,8 +207,7 @@ class SinginActivity : AppCompatActivity() {
                 val contentURI = data.data!!
                 try {
                     FOTO = differentVersion(contentURI)
-                    FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
-
+                    FOTO = UtilImage.scaleImage(FOTO, 800, 800)
                     imgBtnPhoto.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgBtnPhoto)
                 } catch (e: IOException) {
@@ -322,8 +220,7 @@ class SinginActivity : AppCompatActivity() {
             //cogemos la imagen
             try {
                 FOTO = differentVersion(IMAGE!!)
-                FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
-
+                FOTO = UtilImage.scaleImage(FOTO, 800, 800)
                 // Mostramos la imagen
                 imgBtnPhoto.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgBtnPhoto)
@@ -350,6 +247,110 @@ class SinginActivity : AppCompatActivity() {
         }
         return bitmap;
     }
+
+    private fun isCorrect(txtemail: String): Boolean {
+        var valide = false
+        if (anyEmpty() && UtilText.isMailValid(txtemail)) {
+            if (UtilNet.hasInternetConnection(this)) {
+                valide = true
+            } else {
+                val snackbar = Snackbar.make(
+                    findViewById(android.R.id.content),
+                    R.string.no_net,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                snackbar.setActionTextColor(getColor(R.color.accent))
+                snackbar.setAction("Conectar") {
+                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                    startActivity(intent)
+                    finish()
+                }
+                snackbar.show()
+            }
+        } else {
+            txtInLaSingEmail.error = resources.getString(R.string.email_incorrecto)
+        }
+        return valide
+    }
+
+    private fun createAccount() {
+        txtpassword = UtilEncryptor.encrypt(txtPass.text.toString())!!
+        txtemail = txtEmail.text.toString()
+        if (!isCorrect(txtemail)) {
+            return
+        }
+        if (!UtilText.isPasswordValid(txtPass.text.toString())) {
+            txtInLaSingPass.error = resources.getString(R.string.pwd_incorrecto)
+            return
+        }
+        Log.d("fairbase", "createAccount:$txtemail")
+        // empieza la creacion del usuario con el email
+        auth.createUserWithEmailAndPassword(txtemail, txtpassword)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d("fairbase", "createUserWithEmail:success")
+                    val user = auth.currentUser
+                    updateProfile(user!!)
+                    startLogin()
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w("fairbase", "createUserWithEmail:failure", task.exception)
+                    txtInLaSingEmail.error = resources.getString(R.string.isAlreadyExist)
+                }
+                // [START_EXCLUDE]
+                //puede que lo haga
+                //hideProgressBar()
+                // [END_EXCLUDE]
+            }
+    }
+
+    private fun updateProfile(user: FirebaseUser) {
+
+        val profileUpdates = userProfileChangeRequest {
+            displayName = txtUserName.text.toString()
+            loadImage(displayName!!, user)
+        }
+        user!!.updateProfile(profileUpdates)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("TAG", "User profile updated.")
+                }
+            }
+        // [END update_profile]
+    }
+
+    private fun loadImage(string: String, user: FirebaseUser) {
+        if (!this::FOTO.isInitialized) {
+            return
+        }
+        val baos = ByteArrayOutputStream()
+        FOTO.compress(Bitmap.CompressFormat.JPEG, 40, baos)
+        val data = baos.toByteArray()
+        val imageRef = storage.reference.child("images/users/${auth.uid}.jpg")
+        var uploadTask = imageRef.putBytes(data)
+        //descarga y referencia URl
+        uploadTask.addOnFailureListener {
+            Log.i("fairebase", "error al subir la foto a storage")
+        }.addOnSuccessListener { taskSnapshot ->
+            val dowuri = taskSnapshot.metadata!!.reference!!.downloadUrl
+            dowuri.addOnSuccessListener { task ->
+                val profileUpdates = userProfileChangeRequest {
+                    photoUri = task
+                    Log.i("fairebase", "uri: $task")
+                }
+                //modifica con los cambios de la uri
+                user.updateProfile(profileUpdates)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d("TAG", "uri profile good")
+                        }
+                    }
+            }
+        }
+
+    }
+
     //************************************************************
     //METODOS PARA LA RECUPERACION DE DATOS***********************
     /**
@@ -360,7 +361,6 @@ class SinginActivity : AppCompatActivity() {
         outState.run {
             // Actualizamos los datos o los recogemos de la interfaz
             putString("EMAIL", email)
-            putString("NAME", name)
             putString("NAMEUSER", nameuser)
             putString("PASSWORD", pass)
             putString("IMAGE", image?.let { UtilImage.toBase64(it) })

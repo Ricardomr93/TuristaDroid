@@ -256,7 +256,6 @@ class MySitesFragment : Fragment() {
                 val position = viewHolder.adapterPosition
                 if (sitios.size > 0 && position >= 0) {
                     val site = sitios[position]
-
                     if (auth.currentUser?.uid == site.userID) {
                         if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                             val itemView = viewHolder.itemView

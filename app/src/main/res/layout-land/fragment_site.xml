@@ -14,7 +14,7 @@
             android:id="@+id/imageSite"
             android:elevation="10dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/txtDateSite" android:layout_marginBottom="5dp"
+            app:layout_constraintEnd_toStartOf="@+id/txtDatSite" android:layout_marginBottom="5dp"
             app:layout_constraintBottom_toTopOf="@+id/mapViewAddSite" app:layout_constraintTop_toTopOf="parent"
     />
 
@@ -31,7 +31,7 @@
             app:layout_constraintVertical_bias="0.419"/>
     <EditText
             android:layout_width="334dp"
-            android:layout_height="50dp" android:id="@+id/txtNameSiteSite"
+            android:layout_height="50dp" android:id="@+id/txtNamesSiteSite"
             android:textSize="24sp" android:textStyle="bold"
             android:textAlignment="center" android:hint="@string/site_name"
             app:layout_constraintTop_toTopOf="parent"
@@ -56,7 +56,7 @@
             android:hint="@string/site_site"
             android:layout_marginEnd="50dp" app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtNameSiteSite"
-            app:layout_constraintBottom_toTopOf="@+id/txtDateSite"
+            app:layout_constraintBottom_toTopOf="@+id/txtDatSite"
             android:entries="@array/sites_types"
     />
     <EditText
@@ -64,7 +64,7 @@
             android:layout_height="wrap_content"
             android:inputType="date"
             android:ems="10"
-            android:id="@+id/txtDateSite"
+            android:id="@+id/txtDatSite"
             android:layout_weight="1"
             android:textSize="14sp"
             android:hint="@string/site_date"
@@ -82,7 +82,7 @@
             android:numStars="5"
             android:layout_marginEnd="50dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/txtDateSite"
+            app:layout_constraintTop_toBottomOf="@+id/txtDatSite"
     />
 
 

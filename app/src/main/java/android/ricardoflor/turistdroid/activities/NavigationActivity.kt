@@ -204,36 +204,6 @@ class NavigationActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
-
-
-    /**
-     * Metodo que busca al usario con el id de la session
-     */
-    fun getUserBySession(idUser: String) {
-        val turistREST = TuristAPI.service
-
-        Log.i("rest","idUser: $idUser")
-        if (idUser != ""){
-            val call = turistREST.userGetById(idUser)
-            call.enqueue((object : Callback<UserDTO> {
-                override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
-                    Log.i("REST", "Entra en onResponse getUserBySession navigation")
-                    if (response.isSuccessful) {
-                        Log.i("REST", "Entra en isSuccessful getUserBySession navigation")
-                        val user = UserMapper.fromDTO(response.body()!!)
-                        USER = user
-                        cambiarDatos()
-                    }
-                }
-
-                override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                    Log.i("REST", "Entra en onFailure getUserBySession navigation")
-
-                }
-            }))
-        }
-    }
-
     /**
      * Metodo que recoge los datos del user y los almacena en los datos del nav
      */

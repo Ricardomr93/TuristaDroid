@@ -5,34 +5,38 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".activities.LoginActivity" android:background="@drawable/background_app"
+        tools:context=".activities.LoginActivity" android:background="@drawable/background_login"
         android:id="@+id/fragment_site">
 
+    <androidx.viewpager.widget.ViewPager
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:id="@+id/imageSite"
+            android:elevation="10dp"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="32dp" android:layout_marginEnd="32dp"
+            android:layout_marginTop="16dp">
+    </androidx.viewpager.widget.ViewPager>
     <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" app:layout_constraintTop_toTopOf="parent"
+            android:layout_height="0dp"
             app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" android:layout_marginEnd="32dp"
-            android:layout_marginStart="32dp">
-        <androidx.viewpager.widget.ViewPager
-                android:layout_width="wrap_content"
-                android:layout_height="140dp"
-                android:id="@+id/imageSite"
-                android:elevation="10dp"
-        >
-        </androidx.viewpager.widget.ViewPager>
-        <EditText
+            android:layout_marginEnd="32dp"
+            android:layout_marginStart="32dp" app:layout_constraintTop_toBottomOf="@+id/imageSite"
+            android:layout_marginTop="16dp"
+            app:layout_constraintHorizontal_bias="1.0">
+        <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:id="@+id/txtNameSiteSite"
-                android:textSize="24sp" android:textStyle="bold"
-                android:textAlignment="center" android:hint="@string/site_name"
-                android:layout_marginStart="30dp"
-                android:layout_marginEnd="30dp"
-        />
-        <Space
-                android:layout_width="match_parent"
-                android:layout_height="15dp"/>
+                android:layout_height="match_parent"
+                android:id="@+id/txtInSiteName"
+                app:helperTextEnabled="true"
+                app:errorTextColor="#CD0000" android:layout_marginBottom="20dp">
+            <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/site_name" android:id="@+id/txtNameSiteSite" android:textStyle="bold"/>
+        </com.google.android.material.textfield.TextInputLayout>
         <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
@@ -52,17 +56,18 @@
                         android:textSize="14sp" android:textStyle="bold"
                         android:hint="@string/site_site"
                         android:entries="@array/sites_types" android:layout_height="35dp"/>
-                <EditText
+                <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
-                        android:layout_height="35dp"
-                        android:inputType="date"
-                        android:ems="10"
-                        android:id="@+id/txtDateSite"
-                        android:textSize="14sp"
-                        android:hint="@string/site_date"
-                        android:clickable="false"
-                        android:focusable="false"
-                />
+                        android:layout_height="45dp"
+                        android:id="@+id/txtInSiteDate"
+                        app:helperTextEnabled="true"
+                        app:errorTextColor="#CD0000">
+                    <com.google.android.material.textfield.TextInputEditText
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:hint="@string/site_date" android:id="@+id/txtDateSite" android:textStyle="bold"
+                            android:focusable="false" android:clickable="false" android:ems="10"/>
+                </com.google.android.material.textfield.TextInputLayout>
                 <RatingBar
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -88,7 +93,7 @@
         <Button
                 android:text="@string/add"
                 android:layout_width="match_parent"
-                android:layout_height="54dp" android:id="@+id/buttonSiteAddUpdate" android:layout_weight="1"
+                android:layout_height="wrap_content" android:id="@+id/buttonSiteAddUpdate" android:layout_weight="1"
                 android:background="@drawable/buttom_round"
                 android:textColor="@color/white" android:layout_marginLeft="32dp" android:layout_marginRight="32dp"/>
     </LinearLayout>

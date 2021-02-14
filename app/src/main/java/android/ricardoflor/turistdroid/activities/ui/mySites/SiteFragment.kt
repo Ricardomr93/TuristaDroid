@@ -56,12 +56,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
+import java.io.File
 import java.io.IOException
 import java.time.Instant
 import kotlin.Exception
 import com.squareup.picasso.Picasso.LoadedFrom
 import android.graphics.drawable.Drawable
+import android.ricardoflor.turistdroid.utils.UtilText
 import com.squareup.picasso.Target
+
 
 
 class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -138,10 +141,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     private fun init() {
         initButtons()
         initEditCreateMode()
-        /* if (initPermisos()) {
-             initMap()
-             myActualPosition()
-         }*/
+        if (initPermisos()) {
+            initMap()
+            myActualPosition()
+        }
 
         cajaFecha?.setOnClickListener { showDatePickerDialog() }
     }
@@ -192,10 +195,10 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         // Se concatena un 0 a la izquierda
         if (dia.length == 1) {
-            dia = "0" + dia
+            dia = "0$dia"
         }
         if (mes.length == 1) {
-            mes = "0" + mes
+            mes = "0$mes"
         }
         cajaFecha?.setText("$dia/$mes/$year")
     }
@@ -205,23 +208,15 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
      */
     private fun anyEmpty(): Boolean {
         var valid = true
-        if (empty(txtNameSiteSite) || empty(txtDateSite)) {
+        if (UtilText.empty(txtNameSiteSite, txtInSiteName, context!!) || UtilText.empty(
+                txtDateSite,
+                txtInSiteDate,
+                context!!
+            )
+        ) {
             valid = false
         }
         return valid
-    }
-
-    /**
-     * Método que comprueba si el campo esta vacio y lanza un mensaje
-     * @param txt TextView
-     */
-    private fun empty(txt: TextView): Boolean {
-        var empty = false
-        if (txt.text.isEmpty()) {
-            txt.error = resources.getString(R.string.isEmpty)
-            empty = true
-        }
-        return empty
     }
 
     private fun isSelectSite(spinner: Spinner): Boolean {
@@ -310,9 +305,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         SITIO?.votos?.add(auth.currentUser!!.uid)
 
         // Hacemos la media
-        var numVotos = SITIO?.votos?.size
+        val numVotos = SITIO?.votos?.size
         SITIO?.rating = SITIO?.rating?.plus(rating)!!
-        var media = SITIO.rating.div(numVotos!!)
+        val media = SITIO.rating.div(numVotos!!)
 
         cajaRating?.rating = media.toFloat()
         cajaRating?.isEnabled = false
@@ -330,12 +325,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         cajaSiteName?.setText(SITIO!!.name)
 
         // Cargamos el spinner con la opcion correcta
-        var lista: Array<String> = resources.getStringArray(R.array.sites_types)
+        val lista: Array<String> = resources.getStringArray(R.array.sites_types)
 
         var opc: Int = 0
 
         for (it in lista) {
-            if (it.equals(SITIO!!.site)) {
+            if (it == SITIO!!.site) {
                 break
             }
             opc++
@@ -344,23 +339,26 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
 
         cajaFecha?.setText(SITIO!!.date)
 
-        var mediaVotos = SITIO!!.rating / SITIO!!.votos.size
+        val mediaVotos = SITIO!!.rating / SITIO!!.votos.size
         cajaRating?.rating = (mediaVotos.toFloat() ?: 0.0) as Float
 
         //Cargamos las imagenes de la BD
         cargarImagenes()
 
-        var textoQr: String =
-            SITIO!!.name + ";" + opc + ";" + SITIO!!.date + ";" +
-                    (SITIO!!.rating)?.toFloat() + ";" + (SITIO!!.latitude) + ";" + (SITIO!!.longitude)
+        val textoQr =
+            "${SITIO.name};$opc;${SITIO.date};${SITIO.rating.toFloat()};${SITIO.latitude};${SITIO.longitude}"
+        //SITIO!!.name + ";" + opc + ";" + SITIO!!.date + ";" +
+        //        (SITIO!!.rating)?.toFloat() + ";" + (SITIO!!.latitude) + ";" + (SITIO!!.longitude)
 
         generateQRCode(textoQr)
-        positionSite = LatLng(SITIO!!.latitude, SITIO!!.longitude)
+        positionSite = LatLng(SITIO.latitude, SITIO.longitude)
         Log.i("mapa", "cargarDatosSite-positionSite: $positionSite")
         if (initPermisos()) {
             initMap()
             myActualPosition()
         }
+
+
     }
 
     /**
@@ -510,7 +508,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
     /**
      * Vibrador
      */
-    fun vibrate() {
+    private fun vibrate() {
         try {
             //Compruebe si dispositivo tiene un vibrador.
             if (vibrator!!.hasVibrator()) { //Si tiene vibrador
@@ -518,8 +516,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 val tiempo: Long = 500 //en milisegundos
                 vibrator!!.vibrate(tiempo)
 
-            } else { //no tiene
-                //Log.v("VIBRATOR", "Este dispositivo NO puede vibrar");
             }
         } catch (e: Exception) {
         }
@@ -802,12 +798,12 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
         //Para controlar la version de android usar uno u otro
         val bitmap: Bitmap
         bitmap = if (Build.VERSION.SDK_INT < 28) {
-            MediaStore.Images.Media.getBitmap(context?.contentResolver, contentURI);
+            MediaStore.Images.Media.getBitmap(context?.contentResolver, contentURI)
         } else {
             val source: ImageDecoder.Source = ImageDecoder.createSource(context?.contentResolver!!, contentURI)
             ImageDecoder.decodeBitmap(source)
         }
-        return bitmap;
+        return bitmap
     }
 
 
@@ -841,6 +837,9 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 Log.i("Mapa", "Insertar mapa")
                 uiSettings.isRotateGesturesEnabled = true
                 uiSettings.isZoomControlsEnabled = true
+                if (posicion != null){
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion, 15f))
+                }
             }
             2 -> {
                 Log.i("Mapa", "Modificar mapa")
@@ -945,7 +944,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 BitmapFactory
                     .decodeResource(context?.resources, R.drawable.ic_marker)
             )
-            //marker?.remove()//borra el marcardor si existe
+            marker?.remove()//borra el marcardor si existe
             marker = mMap.addMarker(
                 MarkerOptions()
                     .position(positionSite!!) // posicion

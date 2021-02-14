@@ -146,7 +146,7 @@ class MyProfileFragment : Fragment() {
      */
     private fun buttomDelete() {
         if (UtilNet.hasInternetConnection(context)) {
-                dialogDelete()
+            dialogDelete()
         } else {
             val snackbar = Snackbar.make(
                 activity!!.findViewById(android.R.id.content),
@@ -260,20 +260,24 @@ class MyProfileFragment : Fragment() {
             .setNegativeButton(getString(R.string.Cancel), null)
             .show()
     }
-        private fun delUser() {
-            val user = Firebase.auth.currentUser
-            user!!.delete()
-                .addOnCompleteListener { task ->
-                    if (!task.isSuccessful) {
-                        Toast.makeText(context, task.exception!!.message.toString(), Toast.LENGTH_SHORT).show()
-                        Log.d("fairebase", "User account deleted.")
-                    }else{
-                        startActivity(Intent(context, LoginActivity::class.java))
-                        activity!!.finish()
-                        Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
-                    }
+
+    private fun delUser() {
+        val user = Firebase.auth.currentUser
+        // Create a storage reference from our app
+        val imageRef = storage.reference.child("images/users/${user!!.uid}.jpg")
+        imageRef.delete().addOnSuccessListener {}.addOnFailureListener {}
+        user!!.delete()
+            .addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Toast.makeText(context, task.exception!!.message.toString(), Toast.LENGTH_SHORT).show()
+                    Log.d("fairebase", "User account deleted.")
+                } else {
+                    startActivity(Intent(context, LoginActivity::class.java))
+                    activity!!.finish()
+                    Toast.makeText(context!!, getText(R.string.userDelete), Toast.LENGTH_SHORT).show()
                 }
-        }
+            }
+    }
 
     private fun dialogUpdate() {
         AlertDialog.Builder(context)
@@ -342,37 +346,31 @@ class MyProfileFragment : Fragment() {
         if (!this::FOTO.isInitialized) {
             return
         }
-        val time = Instant.now().toString()
-        val nombre = "$string$time"
         val baos = ByteArrayOutputStream()
         FOTO.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val data = baos.toByteArray()
-        val imageRef = storage.reference.child("images/$nombre.jpg")
-        var file = Uri.fromFile(File("path/to/images/$nombre.jpg"))
+        val imageRef = storage.reference.child("images/users/${user.uid}.jpg")
         var uploadTask = imageRef.putBytes(data)
-
+        //descarga y referencia URl
         uploadTask.addOnFailureListener {
             Log.i("fairebase", "error al subir la foto a storage")
         }.addOnSuccessListener { taskSnapshot ->
-            uploadTask = imageRef.putFile(file)
-            uploadTask.continueWithTask { task ->
-                imageRef.downloadUrl
-            }.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val profileUpdates = userProfileChangeRequest {
-                        val uri = task.result
-                        photoUri = uri
-                        Log.i("fairebase", "uri: $uri")
-                    }
-                    user.updateProfile(profileUpdates)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Log.d("TAG", "uri profile good")
-                            }
-                        }
+            val dowuri = taskSnapshot.metadata!!.reference!!.downloadUrl
+            dowuri.addOnSuccessListener { task ->
+                val profileUpdates = userProfileChangeRequest {
+                    photoUri = task
+                    Log.i("fairebase", "uri: $task")
                 }
+                //modifica con los cambios de la uri
+                user.updateProfile(profileUpdates)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d("TAG", "uri profile good")
+                        }
+                    }
             }
         }
+
     }
 
     /**

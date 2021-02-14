@@ -90,17 +90,17 @@ Se destacan las siguientes tecnologías usadas en algún momento o versión del 
   height="325">
   <img src="https://i.imgur.com/SWbzYvh.png" 
   height="325">
-  <img src="" 
+  <img src="https://i.imgur.com/34TRBs2.png" 
   height="325">
  </p>
  <p align="center">
-  <img src="" 
+  <img src="https://i.imgur.com/T4W4UlA.png" 
   height="325">
-  <img src="" 
+  <img src="https://i.imgur.com/3Y7e1jN.png" 
   height="325">
-  <img src="" 
+  <img src="https://i.imgur.com/EgL5tMK.png" 
   height="325">
-  <img src="" 
+  <img src="https://i.imgur.com/Q4u3HSk.png" 
   height="325">
  </p>
 

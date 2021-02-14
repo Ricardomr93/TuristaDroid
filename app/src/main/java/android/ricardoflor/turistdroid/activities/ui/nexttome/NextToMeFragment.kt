@@ -42,6 +42,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.firestore.ktx.toObjects
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_next_to_me.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -218,6 +219,7 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
      * @param loc :LatLng
      */
     private fun addMarkerSite() {
+        mMap.clear()
         val nearme = mutableListOf<Site>()
         db.collection("sites").get().addOnSuccessListener {
             for (item in it) {
@@ -246,61 +248,23 @@ class NextToMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClick
         //TODO
         mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(marker: Marker): View? {
-                /*val site = marker.tag as Site
-                cargaImagen(site.id)*/
                 return null
             }
-
             override fun getInfoContents(marker: Marker): View {
                 val row: View = layoutInflater.inflate(R.layout.site_marker_dialog, null)
                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.txtmakerdialoname)
                 val ratin: TextView = row.findViewById(R.id.txtmakerdialograting)
                 val imaPlaceInfo: ImageView = row.findViewById(R.id.imgmakerdialog)
                 val site = marker.tag as Site
-
                 txtNamePlaceInfo.text = site.name
                 ratin.text = String.format("%.1f", (site.rating / site.votos.size))
-
-                //imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img))
-
-                if (null != imagesSlider && !imagesSlider!!.isEmpty()) {
-
-                    for (img in imagesSlider!!) {
-                        if (site.id.equals(img.siteID)) {
-                            imaPlaceInfo.setImageBitmap(UtilImage.toBitmap(img.uri))
-                            break
-                        }
-                    }
+                if (site.images.isNotEmpty()){
+                    Picasso.get().load(site.images[0]).into(imaPlaceInfo)
                 }
-
                 return row
             }
         })
     }
-
-    /*private fun cargaImagen(id: String){
-
-        //Cargamos una imagen para mostrar en el pincho y si no tiene fotos muestra la de por defecto
-        var listaImg: MutableList<Image>? = null
-        val turistREST = TuristAPI.service
-        val call: Call<List<ImageDTO>> = turistREST.imageGetbyIDSite(id)
-        call.enqueue(object : Callback<List<ImageDTO>> {
-            override fun onResponse(call: Call<List<ImageDTO>>, response: Response<List<ImageDTO>>) {
-                if (response.isSuccessful) {
-                    listaImg =
-                        ImageMapper.fromDTO(response.body() as MutableList<ImageDTO>) as MutableList<Image>//saca todos los resultados
-
-                    if (null != listaImg && !listaImg!!.isEmpty()){
-                        img = listaImg!![0].uri
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<List<ImageDTO>>, t: Throwable) {
-                /*Toast.makeText(applicationContext,getText(R.string.service_error).toString() + t.localizedMessage,Toast.LENGTH_LONG).show()*/
-            }
-        })
-    }*/
     /**
      * Metodo encargado de buscar y rellenar las imagenes en el slaider
      */

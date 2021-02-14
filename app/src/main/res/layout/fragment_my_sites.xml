@@ -6,7 +6,7 @@
                                                    android:id="@+id/fragment_my_sites"
                                                    android:layout_height="wrap_content"
                                                    android:layout_width="wrap_content"
->
+                                                   android:background="@drawable/background_login">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             app:fabSize="normal"

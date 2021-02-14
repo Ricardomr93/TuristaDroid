@@ -48,7 +48,7 @@
                 android:layout_alignParentStart="true"
                 android:layout_alignParentLeft="true"
                 android:contentDescription="Icono"
-                app:srcCompat="@drawable/ic_ricflor_add_photo"
+                app:srcCompat="@drawable/city_pred"
                 android:scaleType="centerCrop"/>
         <FrameLayout
                 android:layout_width="match_parent"

@@ -908,7 +908,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 BitmapFactory
                     .decodeResource(context?.resources, R.drawable.ic_marker)
             )
-            //marker?.remove()//borra el marcardor si existe
+            marker?.remove()//borra el marcardor si existe
             marker = mMap.addMarker(
                 MarkerOptions()
                     .position(positionSite!!) // posicion

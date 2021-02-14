@@ -226,6 +226,7 @@ class MyProfileFragment : Fragment() {
                 .transform(RoundImagePicasso())
                 .into(NavigationActivity.navUserImage)
         }
+        Log.i("fairebase","cambia navigation ${user.photoUrl}")
     }
 
     /**
@@ -347,7 +348,7 @@ class MyProfileFragment : Fragment() {
             return
         }
         val baos = ByteArrayOutputStream()
-        FOTO.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        FOTO.compress(Bitmap.CompressFormat.JPEG, 40, baos)
         val data = baos.toByteArray()
         val imageRef = storage.reference.child("images/users/${user.uid}.jpg")
         var uploadTask = imageRef.putBytes(data)
@@ -365,6 +366,7 @@ class MyProfileFragment : Fragment() {
                 user.updateProfile(profileUpdates)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            changeNavigation()
                             Log.d("TAG", "uri profile good")
                         }
                     }
@@ -467,6 +469,7 @@ class MyProfileFragment : Fragment() {
         startActivityForResult(intent, CAMERA)
     }
 
+
     /**
      * Cuando ejecutamos una actividad y da un resultado
      * @param requestCode Int
@@ -487,6 +490,7 @@ class MyProfileFragment : Fragment() {
                 val contentURI = data.data!!
                 try {
                     FOTO = differentVersion(contentURI)
+                    FOTO = UtilImage.scaleImage(FOTO, 800, 800)
                     imgMyprofile.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgMyprofile)
                 } catch (e: IOException) {
@@ -499,6 +503,7 @@ class MyProfileFragment : Fragment() {
             //cogemos la imagen
             try {
                 FOTO = differentVersion(IMAGE)
+                FOTO = UtilImage.scaleImage(FOTO, 800, 800)
                 // Mostramos la imagen
                 imgMyprofile.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgMyprofile)

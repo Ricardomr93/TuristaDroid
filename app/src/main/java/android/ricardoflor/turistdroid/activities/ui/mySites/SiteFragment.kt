@@ -681,7 +681,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                     val contentURI = data.data!!
                     try {
                         FOTO = differentVersion(contentURI)
-                        FOTO = scaleImage(FOTO, 600, 600)
+                        FOTO = UtilImage.scaleImage(FOTO, 600, 600)
 
                         if (modo == 1) {
                             if (imagenIni) {
@@ -708,7 +708,7 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
                 //cogemos la imagen
                 try {
                     FOTO = differentVersion(IMAGE)
-                    FOTO = scaleImage(FOTO, 600, 600)
+                    FOTO = UtilImage.scaleImage(FOTO, 600, 600)
 
                     if (modo == 1) {
                         //Para borrar la imagen de muestra
@@ -736,32 +736,6 @@ class SiteFragment(modo: Int, site: Site?) : Fragment(), OnMapReadyCallback, Goo
             Toast.makeText(context, "No se ha podido cargar la imagen", 5)
         }
     }
-
-    /**
-     * Metodo que rescala la imagen
-     */
-    private fun scaleImage(foto: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
-
-        if (maxHeight > 0 && maxWidth > 0) {
-            val width: Int = foto.width
-            val height: Int = foto.height
-            val ratioBitmap = width.toFloat() / height.toFloat()
-            val ratioMax = maxWidth.toFloat() / maxHeight.toFloat()
-            var finalWidth = maxWidth
-            var finalHeight = maxHeight
-            if (ratioMax > ratioBitmap) {
-                finalWidth = (maxHeight.toFloat() * ratioBitmap).toInt()
-            } else {
-                finalHeight = (maxWidth.toFloat() / ratioBitmap).toInt()
-            }
-
-            return Bitmap.createScaledBitmap(foto, finalWidth, finalHeight, false)
-
-        } else {
-            return foto
-        }
-    }
-
     private fun saveImage(foto: Bitmap, sitio: Site) {
 
         val time = Instant.now().toString()

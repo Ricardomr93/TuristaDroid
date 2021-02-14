@@ -3,23 +3,14 @@ package android.ricardoflor.turistdroid.activities.ui.mySites
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.ricardoflor.turistdroid.R
-import android.ricardoflor.turistdroid.apirest.TuristAPI
-import android.ricardoflor.turistdroid.bd.image.Image
-import android.ricardoflor.turistdroid.bd.image.ImageDTO
-import android.ricardoflor.turistdroid.bd.image.ImageMapper
 import android.ricardoflor.turistdroid.bd.site.Site
-import android.ricardoflor.turistdroid.utils.UtilImage
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager.widget.ViewPager
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 import kotlinx.android.synthetic.main.item_site.view.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.*
 import kotlin.math.abs
 

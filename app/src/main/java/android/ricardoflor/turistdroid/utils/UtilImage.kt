@@ -157,7 +157,30 @@ object UtilImage {
         if (imagenUri.toFile().exists())
             imagenUri.toFile().delete()
     }
+    /**
+     * Metodo que rescala la imagen
+     */
+     fun scaleImage(foto: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
 
+        if (maxHeight > 0 && maxWidth > 0) {
+            val width: Int = foto.width
+            val height: Int = foto.height
+            val ratioBitmap = width.toFloat() / height.toFloat()
+            val ratioMax = maxWidth.toFloat() / maxHeight.toFloat()
+            var finalWidth = maxWidth
+            var finalHeight = maxHeight
+            if (ratioMax > ratioBitmap) {
+                finalWidth = (maxHeight.toFloat() * ratioBitmap).toInt()
+            } else {
+                finalHeight = (maxWidth.toFloat() / ratioBitmap).toInt()
+            }
+
+            return Bitmap.createScaledBitmap(foto, finalWidth, finalHeight, false)
+
+        } else {
+            return foto
+        }
+    }
 
     /**
      * Método que redondea la imagen

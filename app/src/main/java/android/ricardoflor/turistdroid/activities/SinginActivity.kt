@@ -186,6 +186,7 @@ class SinginActivity : AppCompatActivity() {
         startActivityForResult(intent, CAMERA)
     }
 
+
     /**
      * Cuando ejecutamos una actividad y da un resultado
      * @param requestCode Int
@@ -206,6 +207,7 @@ class SinginActivity : AppCompatActivity() {
                 val contentURI = data.data!!
                 try {
                     FOTO = differentVersion(contentURI)
+                    FOTO = UtilImage.scaleImage(FOTO, 800, 800)
                     imgBtnPhoto.setImageBitmap(FOTO)//mostramos la imagen
                     UtilImage.redondearFoto(imgBtnPhoto)
                 } catch (e: IOException) {
@@ -218,8 +220,7 @@ class SinginActivity : AppCompatActivity() {
             //cogemos la imagen
             try {
                 FOTO = differentVersion(IMAGE!!)
-                FOTO = Bitmap.createScaledBitmap(FOTO, 100 /*Ancho*/, 100 /*Alto*/, false /* filter*/)
-
+                FOTO = UtilImage.scaleImage(FOTO, 800, 800)
                 // Mostramos la imagen
                 imgBtnPhoto.setImageBitmap(FOTO)
                 UtilImage.redondearFoto(imgBtnPhoto)
@@ -324,7 +325,7 @@ class SinginActivity : AppCompatActivity() {
             return
         }
         val baos = ByteArrayOutputStream()
-        FOTO.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        FOTO.compress(Bitmap.CompressFormat.JPEG, 40, baos)
         val data = baos.toByteArray()
         val imageRef = storage.reference.child("images/users/${auth.uid}.jpg")
         var uploadTask = imageRef.putBytes(data)

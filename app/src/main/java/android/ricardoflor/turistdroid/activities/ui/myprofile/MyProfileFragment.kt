@@ -347,8 +347,8 @@ class MyProfileFragment : Fragment() {
         val baos = ByteArrayOutputStream()
         FOTO.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val data = baos.toByteArray()
-        val imageRef = storage.reference.child("images/$nombre.jpg")
-        var file = Uri.fromFile(File("path/to/images/$nombre.jpg"))
+        val imageRef = storage.reference.child("images/users$nombre.jpg")
+        var file = Uri.fromFile(File("path/to/images/users$nombre.jpg"))
         var uploadTask = imageRef.putBytes(data)
 
         uploadTask.addOnFailureListener {

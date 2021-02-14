@@ -35,10 +35,15 @@
     </tbody>
 </div>
 
+![GitHub](https://img.shields.io/github/last-commit/Ricardomr93/TuristaDroid)
+![](https://img.shields.io/github/forks/Ricardomr93/TuristaDroid.svg)
+![](https://img.shields.io/github/stars/Ricardomr93/TuristaDroid.svg)
+![](https://img.shields.io/github/release/Ricardomr93/TuristaDroid.svg)
+
 [![Android](https://img.shields.io/badge/App-Android-g)](https://www.android.com/intl/es_es/)
 [![Kotlin](https://img.shields.io/badge/Code-Kotlin-blue)](https://kotlinlang.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-%20Ready-FFA000)](https://firebase.google.com/)
-![GitHub](https://img.shields.io/github/last-commit/Ricardomr93/TuristaDroid)
+![Platform](https://img.shields.io/badge/Platform-Android-green)
 
 ## TuristDroid
 TuristDroid es tu nueva app para llevar siempre en el bolsillo. Podrás guardar tus lugares y sitios de interés, así como conocer monumentos o lugares que la gente comparte. Visita y comparte lugares con tu nueva app.
@@ -130,5 +135,5 @@ Estas son las herramientas que más hemos usado en clase para la realización de
 ## Autores
 
 Codificado por:
-- [Ricardo Martínez](https://github.com/Ricardomr93)
-- [Flor Santos](https://github.com/florius88)
+- [Ricardo Martínez](https://github.com/Ricardomr93) :100:
+- [Flor Santos](https://github.com/florius88) :100:
